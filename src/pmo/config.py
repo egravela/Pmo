@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 ListaCSV = Annotated[list[str], NoDecode]  # liste accettate come "a,b,c" nelle variabili d'ambiente
@@ -51,7 +51,9 @@ class Settings(BaseSettings):
 
     # --- Intelligenza artificiale ---------------------------------------------------------------
     ai_enabled: bool = True
-    anthropic_api_key: str | None = None  # in alternativa usa ANTHROPIC_API_KEY
+    anthropic_api_key: str | None = Field(
+        default=None, validation_alias=AliasChoices("PMO_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY")
+    )  # accetta anche ANTHROPIC_API_KEY, anche se scritta solo nel file .env
     claude_model: str = "claude-opus-5-5"
     claude_effort: str = "low"
     claude_max_tokens: int = 8000
