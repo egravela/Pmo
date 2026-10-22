@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titolo %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/pmo.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">{{ app_name }}</a>
+  {% if utente %}
+  <nav>
+    <a href="/" class="{{ 'attivo' if request.url.path == '/' else '' }}">Cruscotto</a>
+    <a href="/pratiche" class="{{ 'attivo' if request.url.path.startswith('/pratiche') else '' }}">Pratiche</a>
+    <a href="/solleciti" class="{{ 'attivo' if request.url.path.startswith('/solleciti') else '' }}">Solleciti</a>
+    <a href="/revisione" class="{{ 'attivo' if request.url.path.startswith('/revisione') else '' }}">Revisione</a>
+    <a href="/caselle" class="{{ 'attivo' if request.url.path.startswith('/caselle') else '' }}">Caselle</a>
+    {% if utente.is_admin %}<a href="/impostazioni" class="{{ 'attivo' if request.url.path.startswith('/impostazioni') else '' }}">Impostazioni</a>{% endif %}
+  </nav>
+  <div class="utente">
+    <span>{{ utente.nome or utente.email }}</span>
+    <form method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Esci</button></form>
+  </div>
+  {% endif %}
+</header>
+<main>
+  {% for livello, testo in flash_messaggi %}
+    <div class="flash {{ livello }}">{{ testo }}</div>
+  {% endfor %}
+  {% block contenuto %}{% endblock %}
+</main>
+<script>
+  document.querySelectorAll("[data-copia]").forEach(function (el) {
+    el.addEventListener("click", function () {
+      navigator.clipboard.writeText(el.getAttribute("data-copia")).then(function () {
+        var orig = el.textContent; el.textContent = "Copiato!"; setTimeout(function () { el.textContent = orig; }, 1500);
+      });
+    });
+  });
+  document.querySelectorAll("form[data-conferma]").forEach(function (f) {
+    f.addEventListener("submit", function (e) { if (!confirm(f.getAttribute("data-conferma"))) e.preventDefault(); });
+  });
+</script>
+</body>
+</html>

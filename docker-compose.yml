@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: pmo
+      POSTGRES_PASSWORD: pmo
+      POSTGRES_DB: pmo
+    volumes:
+      - pmo-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pmo"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      PMO_DATABASE_URL: postgresql+psycopg://pmo:pmo@db:5432/pmo
+      PMO_SCHEDULER_ENABLED: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - pmo-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pmo-db:
+  pmo-data:

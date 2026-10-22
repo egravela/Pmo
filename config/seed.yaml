@@ -1,0 +1,197 @@
+# Anagrafiche iniziali: clienti, prodotti e team. Caricate con `pmo seed` (idempotente: aggiorna per nome/email).
+# Modificare liberamente: domini e alias migliorano il riconoscimento automatico delle pratiche.
+
+utenti:
+  - email: egravela@latraccia.it
+    nome: Emanuele Gravela
+    ruolo: admin
+  - email: ploizzo@latraccia.it
+    nome: Pasquale Loizzo
+    ruolo: admin
+  - email: rantezza@latraccia.it
+    nome: Rocco Antezza
+  - email: vgravela@latraccia.it
+    nome: Vito Gravela
+  - email: mparadiso@latraccia.it
+    nome: M. Paradiso
+  - email: fnicoletti@latraccia.it
+    nome: F. Nicoletti
+  - email: fpetralla@latraccia.it
+    nome: F. Petralla
+  - email: rlaudadio@latraccia.it
+    nome: Roberto Laudadio
+  - email: mcaserta@latraccia.it
+    nome: Maristella Caserta
+  - email: vpellegrino@latraccia.it
+    nome: Valeria Pellegrino
+  - email: mmaurizzi@latraccia.it
+    nome: M. Maurizzi
+  - email: wdimauro@latraccia.it
+    nome: Walter Di Mauro
+  - email: mamati@latraccia.it
+    nome: Michele Amati
+  - email: bdercole@latraccia.it
+    nome: Benedetta D'Ercole
+  - email: cpaladino@latraccia.it
+    nome: C. Paladino
+  - email: cferraro@latraccia.it
+    nome: Christian Ferraro
+  - email: vgioviale@latraccia.it
+    nome: V. Gioviale
+  - email: adelicio@latraccia.it
+    nome: Alessandro Delicio
+  - email: rmazzoccoli@latraccia.it
+    nome: Rosanna Mazzoccoli
+  - email: mgcasamassima@latraccia.it
+    nome: M. G. Casamassima
+
+prodotti:
+  - nome: LURTO
+    alias: [LURTO CRT, LURTO CT, cartella trapianti]
+    descrizione: Cartella clinica per centri trapianto (CRT/CT) e liste d'attesa
+  - nome: Gepadial
+    alias: [GEPADIAL, cartella nefrologica, cartella dialisi]
+    descrizione: Cartella clinica nefrologia e dialisi
+  - nome: GEDON
+    descrizione: Gestione donazioni e prelievi
+  - nome: RegDial
+    alias: [Regdial]
+    descrizione: Registro regionale dialisi e trapianto
+  - nome: T-MED Suite
+    alias: [T-MED, TMED]
+    descrizione: Suite per banche dei tessuti (banca della cute, ecc.)
+  - nome: EYENET
+    alias: [Eyenet, banca degli occhi]
+    descrizione: Gestionale per banche degli occhi
+  - nome: Hub Registri SIN
+    alias: [sin-nefrologia, registri SIN]
+    descrizione: Hub dei registri della Società Italiana di Nefrologia
+  - nome: CDSS
+    descrizione: Sistema di supporto decisionale clinico, integrazione LIS
+  - nome: BUR Basilicata
+    alias: [BUR, Bollettino Ufficiale]
+    descrizione: Bollettino Ufficiale della Regione Basilicata (nuovo sistema)
+  - nome: Portali Regione Basilicata
+    alias: [portali regionali, sito istituzionale regionale, DM2 portali]
+    descrizione: Portali web istituzionali della Regione Basilicata
+  - nome: IDPC ARIA
+    alias: [IDPC, Identity Provider Cittadini]
+    descrizione: Integrazioni con l'Identity Provider di Regione Lombardia (ARIA)
+  - nome: Integrazione SPS Azero
+    alias: [SPS, RVDT, DWH SPS]
+    descrizione: Integrazione API DWH SPS per Azienda Zero Veneto
+  - nome: IPPOCRATE
+    descrizione: Progetto di telemedicina con dispositivi indossabili
+  - nome: DigitalTwin
+    alias: [DigitalTwin-Lodi]
+    descrizione: Progetto gemello digitale
+  - nome: Sistema ambulatoriale IA referti
+    alias: [ambulatoriale IA, referti IA]
+    descrizione: Sistema ambulatoriale con intelligenza artificiale per i referti
+  - nome: Passepartout Mexal
+    alias: [Mexal]
+    descrizione: Fornitura software gestionale (Traccia HiTech)
+  - nome: Accordo Quadro Sanità Digitale 5
+    alias: [SD5, AQ Sanità Digitale, Ordine Diretto SD5]
+    descrizione: Appalti specifici e ordini diretti dell'Accordo Quadro Consip Sanità Digitale 5 (RTI con Engineering, TIM, Maps)
+
+clienti:
+  - nome: Fondazione Policlinico Universitario A. Gemelli
+    alias: [Policlinico Gemelli, Gemelli]
+    domini: [policlinicogemelli.it]
+    tipo: sanita
+  - nome: Città della Salute e della Scienza di Torino
+    alias: [Città della Salute, Molinette, CSI Piemonte]
+    domini: [cittadellasalute.to.it]
+    tipo: sanita
+  - nome: AO San Giovanni Addolorata
+    alias: [San Giovanni Addolorata, Banca degli Occhi Roma]
+    domini: [hsangiovanni.roma.it]
+    tipo: sanita
+  - nome: Policlinico San Matteo Pavia
+    alias: [San Matteo, Policlinico San Matteo]
+    domini: [smatteo.pv.it]
+    tipo: sanita
+  - nome: ASL Vercelli
+    domini: [aslvc.piemonte.it]
+    tipo: sanita
+  - nome: ARES Sardegna
+    domini: [aressardegna.it]
+    tipo: sanita
+  - nome: AO dei Colli
+    alias: [Ospedale dei Colli, Monaldi, Cotugno]
+    domini: [ospedalideicolli.it]
+    tipo: sanita
+  - nome: ASM Matera
+    alias: [Azienda Sanitaria Matera]
+    domini: [asmbasilicata.it]
+    tipo: sanita
+  - nome: Policlinico Umberto I
+    alias: [Umberto I]
+    domini: [policlinicoumberto1.it, uniroma1.it]
+    tipo: sanita
+  - nome: Università di Torino
+    alias: [UniTo, Banca della Cute]
+    domini: [unito.it]
+    tipo: sanita
+  - nome: IRCCS Sacro Cuore Don Calabria
+    alias: [Sacro Cuore, Negrar]
+    domini: [sacrocuore.it]
+    tipo: sanita
+  - nome: Regione Basilicata
+    domini: [regione.basilicata.it, supporto.regione.basilicata.it]
+    tipo: pa
+  - nome: ARPAB
+    alias: [ARPA Basilicata]
+    domini: [arpab.it]
+    tipo: pa
+  - nome: ARIA SpA
+    alias: [ARIA, Regione Lombardia, Aria Lombardia]
+    domini: [ariaspa.it, ext.ariaspa.it]
+    tipo: pa
+  - nome: Azienda Zero Veneto
+    alias: [Azero, Azienda Zero]
+    domini: [azero.veneto.it]
+    tipo: sanita
+  - nome: ASST del Garda
+    domini: [asst-garda.it]
+    tipo: sanita
+  - nome: ASST della Franciacorta
+    domini: [asst-franciacorta.it]
+    tipo: sanita
+  - nome: AOUI Verona
+    alias: [Azienda Ospedaliera Universitaria Integrata Verona]
+    domini: [aovr.veneto.it]
+    tipo: sanita
+  - nome: AOU Padova
+    alias: [Azienda Ospedale Università Padova]
+    domini: [aopd.veneto.it]
+    tipo: sanita
+  - nome: Engineering
+    alias: [Engineering Ingegneria Informatica, ENG]
+    domini: [eng.it]
+    tipo: partner
+  - nome: TIM
+    alias: [Telecom Italia]
+    domini: [telecomitalia.it, tim.it]
+    tipo: partner
+  - nome: Maps Group
+    alias: [Maps]
+    domini: [mapsgroup.it]
+    tipo: partner
+  - nome: Dedalus
+    domini: [dedalus.com]
+    tipo: partner
+  - nome: Accenture
+    domini: [accenture.com]
+    tipo: partner
+  - nome: Fastweb
+    domini: [fastweb.it]
+    tipo: partner
+  - nome: Progesi SpA
+    alias: [Progesi]
+    domini: [progesi.it]
+    tipo: partner
+  - nome: Publisys
+    domini: [publisys.it]
+    tipo: partner

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block titolo %}Revisione · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<h1>Coda di revisione</h1>
+<div class="schede">
+  <a href="/revisione?scheda=pratiche" class="{{ 'attiva' if scheda == 'pratiche' }}">Pratiche proposte ({{ pratiche | length }})</a>
+  <a href="/revisione?scheda=messaggi" class="{{ 'attiva' if scheda == 'messaggi' }}">Mail da verificare ({{ messaggi | length }})</a>
+  <a href="/revisione?scheda=documenti" class="{{ 'attiva' if scheda == 'documenti' }}">Documenti da verificare ({{ documenti | length }})</a>
+  <a href="/revisione?scheda=errori" class="{{ 'attiva' if scheda == 'errori' }}">Errori ({{ errori | length }})</a>
+</div>
+
+{% if scheda == 'pratiche' %}
+<div class="card">
+  <p class="muto piccolo">L'IA ha riconosciuto in queste mail pratiche non ancora registrate. Confermandole, gli eventi estratti diventano effettivi; scartandole, i messaggi tornano qui per essere collegati a mano.</p>
+  <table><tr><th>Codice</th><th>Titolo proposto</th><th>Cliente</th><th>Stato</th><th>Fonti</th><th>Azioni</th></tr>
+  {% for p in pratiche %}
+  <tr>
+    <td class="mono"><a href="/pratiche/{{ p.id }}">{{ p.codice }}</a></td>
+    <td><a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a><div class="piccolo muto">{{ p.descrizione | truncate(160) }}</div></td>
+    <td>{{ p.cliente.nome if p.cliente else '-' }}</td>
+    <td><span class="badge stato {{ p.stato }}">{{ p.stato | stato }}</span></td>
+    <td class="piccolo">{{ p.messaggi | length }} mail · {{ p.eventi | selectattr('fonte_tipo', 'ne', 'sistema') | list | length }} eventi</td>
+    <td class="azioni">
+      <form class="inline" method="post" action="/pratiche/{{ p.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="ok piccolo">Conferma</button></form>
+      <form class="inline" method="post" action="/pratiche/{{ p.id }}/unisci" data-conferma="Unire alla pratica indicata?"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="text" name="codice" list="pratiche-aperte" placeholder="unisci a PMO-…" style="width:170px"><button class="piccolo">Unisci</button></form>
+      <form class="inline" method="post" action="/pratiche/{{ p.id }}/scarta" data-conferma="Scartare la pratica proposta?"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo pericolo">Scarta</button></form>
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="vuoto">Nessuna pratica proposta.</td></tr>{% endfor %}</table>
+</div>
+{% endif %}
+
+{% if scheda == 'messaggi' %}
+<div class="card">
+  <p class="muto piccolo">Mail rilevanti che l'IA non ha saputo collegare con certezza. Conferma il collegamento proposto, indica la pratica giusta oppure ignora.</p>
+  {% for m in messaggi %}
+  <details class="riga-sollecito info" {{ 'open' if loop.index <= 3 }}>
+    <summary><b>{{ m.data | data }}</b> · {{ m.from_email }} · {{ m.subject | truncate(100) }}{% if m.pratica %} → <span class="tag">{{ m.pratica.codice }}</span>{% if m.pratica.stato_verifica == 'proposto' %} <span class="badge proposto">pratica proposta</span>{% endif %}{% endif %}</summary>
+    <div class="piccolo muto">{{ m.motivo }}{% if m.confidenza is not none %} · confidenza {{ '%.0f' % (m.confidenza * 100) }}%{% endif %} · <a href="{{ m.gmail_url }}" target="_blank" rel="noopener">apri in Gmail</a></div>
+    {% if eventi_per_messaggio.get(m.id) %}<div class="piccolo">Eventi estratti: {% for e in eventi_per_messaggio[m.id] %}<span class="badge muto">{{ e.tipo | evento }}</span> {{ e.titolo }}{{ '; ' if not loop.last }}{% endfor %}</div>{% endif %}
+    <div class="testo-mail" style="max-height:200px">{{ m.body_text | truncate(1500) }}</div>
+    <div class="azioni" style="margin-top:6px">
+      {% if m.pratica %}<form class="inline" method="post" action="/messaggi/{{ m.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=messaggi"><button class="ok piccolo">Conferma {{ m.pratica.codice }}</button></form>{% endif %}
+      <form class="inline" method="post" action="/messaggi/{{ m.id }}/collega"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=messaggi"><input type="text" name="codice" list="pratiche-aperte" placeholder="PMO-AAAA-NNNN" style="width:170px"><button class="piccolo">Collega a</button></form>
+      <form class="inline" method="post" action="/messaggi/{{ m.id }}/ignora"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=messaggi"><button class="piccolo">Ignora</button></form>
+      <form class="inline" method="post" action="/messaggi/{{ m.id }}/riclassifica"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=messaggi"><button class="piccolo">Riclassifica</button></form>
+    </div>
+  </details>
+  {% else %}<div class="vuoto">Nessuna mail da verificare.</div>{% endfor %}
+</div>
+{% endif %}
+
+{% if scheda == 'documenti' %}
+<div class="card">
+  <table><tr><th>Modificato</th><th>Documento</th><th>Tipo</th><th>Proposta</th><th>Azioni</th></tr>
+  {% for d in documenti %}
+  <tr>
+    <td class="piccolo">{{ d.modified_time | data }}</td>
+    <td><a href="{{ d.web_view_link }}" target="_blank" rel="noopener">{{ d.nome }}</a><div class="muto piccolo">{{ d.percorso }} · {{ d.motivo }}</div></td>
+    <td><span class="badge muto">{{ d.tipo_documento or '-' }}</span></td>
+    <td>{% if d.pratica %}<a href="/pratiche/{{ d.pratica.id }}">{{ d.pratica.codice }}</a>{% else %}-{% endif %}</td>
+    <td class="azioni">
+      {% if d.pratica %}<form class="inline" method="post" action="/documenti/{{ d.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=documenti"><button class="ok piccolo">Conferma</button></form>{% endif %}
+      <form class="inline" method="post" action="/documenti/{{ d.id }}/collega"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=documenti"><input type="text" name="codice" list="pratiche-aperte" placeholder="PMO-AAAA-NNNN" style="width:160px"><button class="piccolo">Collega a</button></form>
+      <form class="inline" method="post" action="/documenti/{{ d.id }}/ignora"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=documenti"><button class="piccolo">Ignora</button></form>
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="5" class="vuoto">Nessun documento da verificare.</td></tr>{% endfor %}</table>
+</div>
+{% endif %}
+
+{% if scheda == 'errori' %}
+<div class="card">
+  <table><tr><th>Data</th><th>Messaggio</th><th>Errore</th><th></th></tr>
+  {% for m in errori %}<tr><td class="piccolo">{{ m.data | data }}</td><td>{{ m.subject | truncate(90) }}<div class="muto piccolo">{{ m.from_email }}</div></td><td class="piccolo">{{ m.motivo }}</td>
+  <td><form class="inline" method="post" action="/messaggi/{{ m.id }}/riclassifica"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/revisione?scheda=errori"><button class="piccolo">Riprova</button></form></td></tr>
+  {% else %}<tr><td colspan="4" class="vuoto">Nessun errore.</td></tr>{% endfor %}</table>
+</div>
+{% endif %}
+
+<datalist id="pratiche-aperte">{% for p in pratiche_aperte %}<option value="{{ p.codice }}">{{ p.titolo }}</option>{% endfor %}</datalist>
+{% endblock %}

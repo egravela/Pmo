@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titolo %}Cruscotto · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<div class="intestazione"><h1>Cruscotto</h1><span class="muto">{{ oggi | data }}</span></div>
+
+<div class="kpi" style="margin-bottom:16px">
+  <div class="box"><span class="n">{{ totale_attive }}</span><span class="l">pratiche attive</span></div>
+  {% for stato, n in per_stato %}<a class="box" href="/pratiche?stato={{ stato }}"><span class="n">{{ n }}</span><span class="l">{{ stato | stato }}</span></a>{% endfor %}
+</div>
+<div class="kpi" style="margin-bottom:16px">
+  <a class="box critico" href="/solleciti?gravita=critico"><span class="n">{{ per_gravita.critico }}</span><span class="l">solleciti critici</span></a>
+  <a class="box avviso" href="/solleciti?gravita=avviso"><span class="n">{{ per_gravita.avviso }}</span><span class="l">avvisi</span></a>
+  <a class="box info" href="/solleciti?gravita=info"><span class="n">{{ per_gravita.info }}</span><span class="l">informativi</span></a>
+  <a class="box" href="/revisione?scheda=pratiche"><span class="n">{{ da_rivedere.pratiche }}</span><span class="l">pratiche proposte</span></a>
+  <a class="box" href="/revisione?scheda=messaggi"><span class="n">{{ da_rivedere.messaggi }}</span><span class="l">mail da verificare</span></a>
+  <a class="box" href="/revisione?scheda=documenti"><span class="n">{{ da_rivedere.documenti }}</span><span class="l">documenti da verificare</span></a>
+  <div class="box"><span class="n">{{ in_attesa_ia }}</span><span class="l">in attesa di analisi</span></div>
+</div>
+
+<div class="griglia due">
+  <div class="card">
+    <h2>Solleciti aperti <span class="muto piccolo">({{ totale_solleciti }}) · <a href="/solleciti">tutti</a></span></h2>
+    {% for s in solleciti %}
+      <div class="riga-sollecito {{ s.gravita }}">
+        <div><span class="badge {{ s.gravita }}">{{ s.gravita }}</span> <a href="/pratiche/{{ s.pratica.id }}"><b>{{ s.pratica.codice }}</b> {{ s.pratica.titolo }}</a>{% if s.pratica.cliente %} <span class="muto">· {{ s.pratica.cliente.nome }}</span>{% endif %}</div>
+        <div class="piccolo"><b>{{ s.titolo }}</b> — {{ s.messaggio }}</div>
+      </div>
+    {% else %}<div class="vuoto">Nessun sollecito aperto.</div>{% endfor %}
+  </div>
+  <div>
+    <div class="card">
+      <h2>Scadenze entro 14 giorni</h2>
+      {% if scadenze %}<table><tr><th>Scadenza</th><th>Pratica</th><th>Stato</th></tr>
+      {% for p in scadenze %}<tr><td>{{ p.data_scadenza | data }}{% if p.data_scadenza < oggi %} <span class="badge critico">superata</span>{% endif %}</td><td><a href="/pratiche/{{ p.id }}">{{ p.codice }} {{ p.titolo }}</a></td><td><span class="badge stato {{ p.stato }}">{{ p.stato | stato }}</span></td></tr>{% endfor %}</table>
+      {% else %}<div class="vuoto">Nessuna scadenza imminente.</div>{% endif %}
+    </div>
+    <div class="card">
+      <h2>Caselle</h2>
+      <table><tr><th>Casella</th><th>Ultima sincronizzazione</th><th>Stato</th></tr>
+      {% for a in caselle %}<tr><td>{{ a.email }}{% if not a.collegato %} <span class="badge muto">non collegata</span>{% endif %}</td><td>{{ a.gmail_last_sync_at | datadt }}</td><td><span class="badge {{ 'ok' if a.last_sync_status == 'ok' else ('critico' if a.last_sync_status == 'errore' else 'muto') }}">{{ a.last_sync_status }}</span></td></tr>
+      {% else %}<tr><td colspan="3" class="vuoto">Nessuna casella collegata: <a href="/caselle">collega la tua</a>.</td></tr>{% endfor %}</table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Ultime attività registrate</h2>
+  <table><tr><th>Quando</th><th>Pratica</th><th>Evento</th><th>Fonte</th></tr>
+  {% for e in eventi %}
+    <tr><td class="piccolo">{{ e.data_evento | datadt }}</td><td><a href="/pratiche/{{ e.pratica.id }}">{{ e.pratica.codice }}</a> <span class="muto piccolo">{{ e.pratica.titolo | truncate(50) }}</span></td>
+    <td>{% if e.stato_verifica == 'proposto' %}<span class="badge proposto">proposto</span> {% endif %}<b>{{ e.tipo | evento }}</b>: {{ e.titolo }}</td>
+    <td class="piccolo">{% if e.fonte_url %}<a href="{{ e.fonte_url }}" target="_blank" rel="noopener">{{ e.fonte_tipo }}</a>{% else %}{{ e.fonte_tipo }}{% endif %}</td></tr>
+  {% else %}<tr><td colspan="4" class="vuoto">Nessun evento ancora: collega una casella e avvia la sincronizzazione.</td></tr>{% endfor %}</table>
+</div>
+{% endblock %}

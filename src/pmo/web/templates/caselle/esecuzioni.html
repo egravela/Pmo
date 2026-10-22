@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titolo %}Esecuzioni {{ account.email }} · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<div class="intestazione"><h1>Esecuzioni · {{ account.email }}</h1><a href="/caselle">← caselle</a></div>
+<div class="card">
+<table><tr><th>Inizio</th><th>Fine</th><th>Tipo</th><th>Esito</th><th>Contatori</th><th>Errori</th></tr>
+{% for r in runs %}<tr><td class="piccolo">{{ r.started_at | datadt }}</td><td class="piccolo">{{ r.finished_at | datadt }}</td><td>{{ r.tipo }}</td><td><span class="badge {{ 'ok' if r.stato == 'ok' else ('critico' if r.stato == 'errore' else 'muto') }}">{{ r.stato }}</span></td><td class="piccolo mono">{{ r.contatori }}</td><td class="piccolo">{% for e in r.errori %}<div>{{ e }}</div>{% endfor %}</td></tr>
+{% else %}<tr><td colspan="6" class="vuoto">Nessuna esecuzione.</td></tr>{% endfor %}</table>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titolo %}Pratiche · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<div class="intestazione"><h1>Pratiche</h1><a class="btn primario" href="/pratiche/nuova">Nuova pratica</a></div>
+<form method="get" class="filtri card">
+  <div class="campo" style="min-width:240px"><label>Cerca</label><input type="text" name="q" value="{{ filtri.q }}" placeholder="codice, titolo, descrizione"></div>
+  <div class="campo"><label>Stato</label><select name="stato"><option value="">attive</option>{% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if filtri.stato == k }}>{{ v }}</option>{% endfor %}</select></div>
+  <div class="campo"><label>Cliente</label><select name="cliente_id"><option value="">tutti</option>{% for c in clienti %}<option value="{{ c.id }}" {{ 'selected' if filtri.cliente_id == c.id }}>{{ c.nome }}</option>{% endfor %}</select></div>
+  <div class="campo"><label>Prodotto</label><select name="prodotto_id"><option value="">tutti</option>{% for p in prodotti %}<option value="{{ p.id }}" {{ 'selected' if filtri.prodotto_id == p.id }}>{{ p.nome }}</option>{% endfor %}</select></div>
+  <div class="campo"><label>Responsabile</label><select name="responsabile_id"><option value="">tutti</option>{% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if filtri.responsabile_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}</select></div>
+  <div class="campo"><label>Verifica</label><select name="verifica"><option value="">tutte</option><option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>solo proposte dall'IA</option></select></div>
+  <div class="campo"><label>&nbsp;</label><label><input type="checkbox" name="tutte" value="1" {{ 'checked' if filtri.tutte }}> incluse chiuse</label></div>
+  <button class="primario">Filtra</button>
+</form>
+<div class="card">
+<table>
+  <tr><th>Codice</th><th>Titolo</th><th>Cliente</th><th>Prodotto</th><th>Stato</th><th>Ultimo evento</th><th>Scadenza</th><th>Ordinato</th><th>Solleciti</th></tr>
+  {% for p in pratiche %}
+  <tr>
+    <td class="mono"><a href="/pratiche/{{ p.id }}">{{ p.codice }}</a></td>
+    <td><a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a>{% if p.stato_verifica == 'proposto' %} <span class="badge proposto">proposta IA</span>{% endif %}{% if p.priorita == 'alta' %} <span class="badge critico">alta</span>{% endif %}</td>
+    <td>{{ p.cliente.nome if p.cliente else '-' }}</td>
+    <td>{{ p.prodotto.nome if p.prodotto else '-' }}</td>
+    <td><span class="badge stato {{ p.stato }}">{{ p.stato | stato }}</span> <span class="muto piccolo">{{ p.stato_dal | giorni_fa }}</span></td>
+    <td class="piccolo">{{ p.ultimo_evento_at | giorni_fa }}</td>
+    <td class="piccolo">{{ p.data_scadenza | data }}</td>
+    <td class="piccolo">{{ p.importo_ordine | euro }}</td>
+    <td>{% set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}{% if aperti %}<span class="badge {{ aperti[0].gravita }}">{{ aperti | length }}</span>{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="9" class="vuoto">Nessuna pratica trovata.</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

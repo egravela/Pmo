@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titolo %}Solleciti · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<div class="intestazione"><h1>Solleciti</h1>
+  <form method="post" action="/solleciti/ricalcola" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Ricalcola adesso</button></form>
+</div>
+<form method="get" class="filtri card">
+  <div class="campo"><label>Stato</label><select name="stato"><option value="aperti" {{ 'selected' if filtri.stato == 'aperti' }}>aperti e in carico</option>{% for s in ['aperto', 'in_carico', 'silenziato', 'risolto'] %}<option value="{{ s }}" {{ 'selected' if filtri.stato == s }}>{{ s }}</option>{% endfor %}<option value="" {{ 'selected' if filtri.stato == '' }}>tutti</option></select></div>
+  <div class="campo"><label>Gravità</label><select name="gravita"><option value="">tutte</option>{% for g in ['critico', 'avviso', 'info'] %}<option value="{{ g }}" {{ 'selected' if filtri.gravita == g }}>{{ g }}</option>{% endfor %}</select></div>
+  <div class="campo"><label>Regola</label><select name="regola"><option value="">tutte</option>{% for r in regole %}<option value="{{ r.codice }}" {{ 'selected' if filtri.regola == r.codice }}>{{ r.nome }}</option>{% endfor %}</select></div>
+  <div class="campo"><label>Assegnazione</label><select name="assegnato"><option value="">tutti</option><option value="me" {{ 'selected' if filtri.assegnato == 'me' }}>in carico a me</option></select></div>
+  <button class="primario">Filtra</button>
+</form>
+<div class="card">
+<table>
+  <tr><th>Gravità</th><th>Pratica</th><th>Sollecito</th><th>Aperto</th><th>Stato</th><th>Azioni</th></tr>
+  {% for s in solleciti %}
+  <tr>
+    <td><span class="badge {{ s.gravita }}">{{ s.gravita }}</span></td>
+    <td><a href="/pratiche/{{ s.pratica.id }}"><b>{{ s.pratica.codice }}</b> {{ s.pratica.titolo | truncate(60) }}</a>{% if s.pratica.cliente %}<div class="muto piccolo">{{ s.pratica.cliente.nome }}</div>{% endif %}</td>
+    <td><b>{{ s.titolo }}</b><div class="piccolo">{{ s.messaggio }}</div></td>
+    <td class="piccolo">{{ s.aperto_il | data }}{% if s.occorrenze > 1 %}<div class="muto">{{ s.occorrenze }}ª volta</div>{% endif %}</td>
+    <td><span class="badge {{ 'ok' if s.stato == 'risolto' else 'muto' }}">{{ s.stato }}</span>{% if s.assegnato %}<div class="piccolo muto">{{ s.assegnato.nome or s.assegnato.email }}</div>{% endif %}{% if s.snooze_fino %}<div class="piccolo muto">fino al {{ s.snooze_fino | data }}</div>{% endif %}</td>
+    <td class="azioni">
+      {% if s.stato in ['aperto', 'in_carico'] %}
+      <form class="inline" method="post" action="/solleciti/{{ s.id }}/prendi"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">In carico</button></form>
+      <form class="inline" method="post" action="/solleciti/{{ s.id }}/risolvi"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo ok">Risolto</button></form>
+      <form class="inline" method="post" action="/solleciti/{{ s.id }}/silenzia"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="number" name="giorni" value="7" min="1" style="width:56px"><button class="piccolo">Silenzia</button></form>
+      {% else %}
+      <form class="inline" method="post" action="/solleciti/{{ s.id }}/riapri"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Riapri</button></form>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="vuoto">Nessun sollecito.</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

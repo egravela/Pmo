@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titolo %}Accesso · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<div class="card login">
+  <h1>{{ app_name }}</h1>
+  <p class="muto">Tracciabilità delle pratiche dalla stima alla fattura, con solleciti automatici.</p>
+  {% if google %}
+    <a class="btn primario" href="/auth/google?next={{ next | urlencode }}">Accedi con Google</a>
+    <p class="piccolo muto">Sono ammessi gli indirizzi dei domini: {{ settings.allowed_domains | join(", ") }}</p>
+  {% else %}
+    <div class="flash avviso">Google OAuth non configurato (PMO_GOOGLE_CLIENT_ID / PMO_GOOGLE_CLIENT_SECRET): vedi il README.</div>
+  {% endif %}
+  {% if dev_login %}
+    <hr>
+    <form method="post" action="/auth/dev">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="campo"><label>Accesso di sviluppo (solo email)</label><input type="email" name="email" placeholder="nome@latraccia.it" required></div>
+      <button>Entra senza Google</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

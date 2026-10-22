@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block titolo %}Impostazioni · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<h1>Impostazioni</h1>
+<div class="schede">
+  {% for k, v in [('regole', 'Regole di sollecito'), ('filtri', 'Filtri posta'), ('digest', 'Digest'), ('clienti', 'Clienti'), ('prodotti', 'Prodotti'), ('utenti', 'Utenti')] %}
+  <a href="/impostazioni?scheda={{ k }}" class="{{ 'attiva' if scheda == k }}">{{ v }}</a>
+  {% endfor %}
+</div>
+
+{% if scheda == 'regole' %}
+<div class="card">
+  <p class="muto piccolo">Le regole vengono valutate dopo ogni sincronizzazione e con "Ricalcola adesso" nella pagina dei solleciti.</p>
+  <table><tr><th>Regola</th><th>Descrizione</th><th>Soglia (giorni)</th><th>Gravità</th><th>Attiva</th><th></th></tr>
+  {% for r in regole %}
+  <tr><form method="post" action="/impostazioni/regole/{{ r.id }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <td><b>{{ r.nome }}</b><div class="muto piccolo mono">{{ r.codice }}</div></td>
+    <td class="piccolo">{{ r.descrizione }}</td>
+    <td>{% if r.soglia_giorni is not none %}<input type="number" name="soglia_giorni" value="{{ r.soglia_giorni }}" min="0" style="width:80px">{% else %}-{% endif %}</td>
+    <td><select name="gravita" style="width:auto">{% for g in ['critico', 'avviso', 'info'] %}<option value="{{ g }}" {{ 'selected' if r.gravita == g }}>{{ g }}</option>{% endfor %}</select></td>
+    <td><input type="checkbox" name="attiva" value="1" {{ 'checked' if r.attiva }}></td>
+    <td><button class="piccolo">Salva</button></td>
+  </form></tr>
+  {% endfor %}</table>
+</div>
+{% endif %}
+
+{% if scheda == 'filtri' %}
+<div class="card">
+  <p class="muto piccolo">I messaggi che corrispondono a questi filtri vengono importati ma segnati come ignorati senza passare dall'IA. Un codice pratica nell'oggetto vince sempre sui filtri. Una voce per riga.</p>
+  <form method="post" action="/impostazioni/filtri">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="griglia due">
+      <div class="campo"><label>Mittenti da ignorare (indirizzi esatti)</label><textarea name="ignore_senders">{{ filtri.ignore_senders | join('\n') }}</textarea></div>
+      <div class="campo"><label>Domini da ignorare</label><textarea name="ignore_domains">{{ filtri.ignore_domains | join('\n') }}</textarea></div>
+      <div class="campo"><label>Mittenti da analizzare sempre (eccezioni)</label><textarea name="keep_senders">{{ filtri.keep_senders | join('\n') }}</textarea></div>
+      <div class="campo"><label>Espressioni regolari sul mittente</label><textarea name="ignore_sender_patterns" style="min-height:140px">{{ filtri.ignore_sender_patterns | join('\n') }}</textarea></div>
+      <div class="campo"><label>Espressioni regolari sull'oggetto</label><textarea name="ignore_subject_patterns" style="min-height:140px">{{ filtri.ignore_subject_patterns | join('\n') }}</textarea></div>
+    </div>
+    <button class="primario">Salva filtri</button>
+  </form>
+</div>
+{% endif %}
+
+{% if scheda == 'digest' %}
+<div class="card">
+  <p class="muto piccolo">Il digest viene inviato ogni giorno alle {{ '%02d:%02d' % (settings.digest_hour, settings.digest_minute) }} ({{ settings.timezone }}) se lo scheduler è attivo, oppure con <span class="mono">pmo digest</span>. Se non indichi destinatari, lo ricevono tutti gli utenti attivi con il digest abilitato.</p>
+  <form method="post" action="/impostazioni/digest">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="campo"><label><input type="checkbox" name="attivo" value="1" {{ 'checked' if digest.attivo }}> digest attivo</label></div>
+    <div class="campo"><label>Destinatari (uno per riga)</label><textarea name="destinatari">{{ digest.destinatari | join('\n') }}</textarea></div>
+    <button class="primario">Salva</button>
+  </form>
+</div>
+{% endif %}
+
+{% if scheda == 'clienti' %}
+<div class="card">
+  <h2>Nuovo cliente</h2>
+  <form method="post" action="/impostazioni/clienti" class="campi">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="campo"><label>Nome</label><input type="text" name="nome" required></div>
+    <div class="campo"><label>Alias (separati da virgola)</label><input type="text" name="alias"></div>
+    <div class="campo"><label>Domini email (separati da virgola)</label><input type="text" name="domini"></div>
+    <div class="campo"><label>Tipo</label><select name="tipo">{% for t in ['sanita', 'pa', 'partner', 'altro'] %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select></div>
+    <div class="campo"><label>&nbsp;</label><button class="primario">Aggiungi</button></div>
+  </form>
+</div>
+<div class="card">
+  <table><tr><th>Nome</th><th>Alias</th><th>Domini</th><th>Tipo</th><th>Attivo</th><th></th></tr>
+  {% for c in clienti %}
+  <tr><form method="post" action="/impostazioni/clienti"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="cliente_id" value="{{ c.id }}">
+    <td><input type="text" name="nome" value="{{ c.nome }}"></td>
+    <td><input type="text" name="alias" value="{{ c.alias | join(', ') }}"></td>
+    <td><input type="text" name="domini" value="{{ c.domini | join(', ') }}"></td>
+    <td><select name="tipo" style="width:auto">{% for t in ['sanita', 'pa', 'partner', 'altro'] %}<option value="{{ t }}" {{ 'selected' if c.tipo == t }}>{{ t }}</option>{% endfor %}</select></td>
+    <td><input type="checkbox" name="attivo" value="1" {{ 'checked' if c.attivo }}></td>
+    <td><button class="piccolo">Salva</button></td>
+  </form></tr>
+  {% endfor %}</table>
+</div>
+{% endif %}
+
+{% if scheda == 'prodotti' %}
+<div class="card">
+  <h2>Nuovo prodotto / area</h2>
+  <form method="post" action="/impostazioni/prodotti" class="campi">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="campo"><label>Nome</label><input type="text" name="nome" required></div>
+    <div class="campo"><label>Alias</label><input type="text" name="alias"></div>
+    <div class="campo"><label>Descrizione</label><input type="text" name="descrizione"></div>
+    <div class="campo"><label>&nbsp;</label><button class="primario">Aggiungi</button></div>
+  </form>
+</div>
+<div class="card">
+  <table><tr><th>Nome</th><th>Alias</th><th>Descrizione</th><th>Attivo</th><th></th></tr>
+  {% for p in prodotti %}
+  <tr><form method="post" action="/impostazioni/prodotti"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="prodotto_id" value="{{ p.id }}">
+    <td><input type="text" name="nome" value="{{ p.nome }}"></td>
+    <td><input type="text" name="alias" value="{{ p.alias | join(', ') }}"></td>
+    <td><input type="text" name="descrizione" value="{{ p.descrizione }}"></td>
+    <td><input type="checkbox" name="attivo" value="1" {{ 'checked' if p.attivo }}></td>
+    <td><button class="piccolo">Salva</button></td>
+  </form></tr>
+  {% endfor %}</table>
+</div>
+{% endif %}
+
+{% if scheda == 'utenti' %}
+<div class="card">
+  <h2>Nuovo utente</h2>
+  <form method="post" action="/impostazioni/utenti" class="campi">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="campo"><label>Email</label><input type="email" name="email" required></div>
+    <div class="campo"><label>Nome</label><input type="text" name="nome"></div>
+    <div class="campo"><label>Ruolo</label><select name="ruolo"><option value="membro">membro</option><option value="admin">admin</option></select></div>
+    <div class="campo"><label>&nbsp;</label><label><input type="checkbox" name="riceve_digest" value="1" checked> riceve il digest</label></div>
+    <div class="campo"><label>&nbsp;</label><button class="primario">Aggiungi</button></div>
+  </form>
+</div>
+<div class="card">
+  <table><tr><th>Email</th><th>Nome</th><th>Ruolo</th><th>Attivo</th><th>Digest</th><th>Ultimo accesso</th><th></th></tr>
+  {% for u in utenti %}
+  <tr><form method="post" action="/impostazioni/utenti"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="email" value="{{ u.email }}">
+    <td>{{ u.email }}</td>
+    <td><input type="text" name="nome" value="{{ u.nome }}"></td>
+    <td><select name="ruolo" style="width:auto"><option value="membro" {{ 'selected' if u.ruolo == 'membro' }}>membro</option><option value="admin" {{ 'selected' if u.ruolo == 'admin' }}>admin</option></select></td>
+    <td><input type="checkbox" name="attivo" value="1" {{ 'checked' if u.attivo }}></td>
+    <td><input type="checkbox" name="riceve_digest" value="1" {{ 'checked' if u.riceve_digest }}></td>
+    <td class="piccolo">{{ u.last_login_at | datadt }}</td>
+    <td><button class="piccolo">Salva</button></td>
+  </form></tr>
+  {% endfor %}</table>
+</div>
+{% endif %}
+{% endblock %}

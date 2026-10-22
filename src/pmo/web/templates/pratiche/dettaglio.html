@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block titolo %}{{ pratica.codice }} · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<div class="intestazione">
+  <h1><span class="mono">{{ pratica.codice }}</span> {{ pratica.titolo }}</h1>
+  <span class="badge stato {{ pratica.stato }}">{{ pratica.stato | stato }}</span>
+  {% if pratica.stato_verifica == 'proposto' %}<span class="badge proposto">proposta dall'IA: da confermare</span>{% endif %}
+  <button class="piccolo" type="button" data-copia="{{ pratica.tag }} {{ pratica.titolo }}">Copia oggetto mail</button>
+</div>
+
+{% if pratica.stato_verifica == 'proposto' %}
+<div class="flash avviso">
+  Questa pratica è stata proposta dall'IA leggendo la posta. Verifica titolo, cliente e prodotto, poi conferma oppure scarta.
+  <form class="inline" method="post" action="/pratiche/{{ pratica.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="ok piccolo">Conferma pratica</button></form>
+  <form class="inline" method="post" action="/pratiche/{{ pratica.id }}/scarta" data-conferma="Scartare la pratica proposta? I messaggi torneranno in revisione."><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="pericolo piccolo">Scarta</button></form>
+</div>
+{% endif %}
+
+<div class="griglia due">
+  <div>
+    <div class="card">
+      <div class="azioni" style="justify-content:space-between">
+        <h2 style="margin:0">Cronologia</h2>
+        <form method="post" action="/pratiche/{{ pratica.id }}/stato" class="azioni">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <select name="stato" style="width:auto">{% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if k == pratica.stato }}>{{ v }}</option>{% endfor %}</select>
+          <input type="text" name="motivo" placeholder="motivo (facoltativo)" style="width:180px">
+          <button class="piccolo">Cambia stato</button>
+        </form>
+      </div>
+      {% if proposti %}<div class="flash avviso piccolo">{{ proposti | length }} eventi proposti dall'IA attendono conferma: finché restano proposti non aggiornano stato e importi.</div>{% endif %}
+      <ul class="timeline">
+        {% for e in eventi %}
+        <li class="{{ 'sistema' if e.fonte_tipo == 'sistema' else '' }} {{ 'proposto' if e.stato_verifica == 'proposto' else '' }}">
+          <div class="quando">{{ e.data_evento | datadt }} · {{ e.fonte_tipo }}{% if e.fonte_url %} · <a href="{{ e.fonte_url }}" target="_blank" rel="noopener">apri fonte</a>{% endif %}{% if e.confidenza is not none %} · confidenza {{ '%.0f' % (e.confidenza * 100) }}%{% endif %}</div>
+          <div class="titolo">{% if e.stato_verifica == 'proposto' %}<span class="badge proposto">proposto</span> {% elif e.stato_verifica == 'rifiutato' %}<span class="badge muto">scartato</span> {% endif %}<span class="badge muto">{{ e.tipo | evento }}</span> {{ e.titolo }}{% if e.importo %} · <b>{{ e.importo | euro }}</b>{% endif %}{% if e.scadenza %} · scadenza {{ e.scadenza | data }}{% endif %}</div>
+          {% if e.descrizione %}<div class="desc">{{ e.descrizione }}</div>{% endif %}
+          {% if e.stato_verifica == 'proposto' %}
+          <div class="azioni" style="margin-top:4px">
+            <form class="inline" method="post" action="/pratiche/{{ pratica.id }}/eventi/{{ e.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="ok piccolo">Conferma</button></form>
+            <form class="inline" method="post" action="/pratiche/{{ pratica.id }}/eventi/{{ e.id }}/rifiuta"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Scarta</button></form>
+          </div>
+          {% elif e.fonte_tipo == 'manuale' %}
+          <form class="inline" method="post" action="/pratiche/{{ pratica.id }}/eventi/{{ e.id }}/elimina" data-conferma="Eliminare l'evento?"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo pericolo">Elimina</button></form>
+          {% endif %}
+        </li>
+        {% else %}<li class="vuoto">Nessun evento.</li>{% endfor %}
+      </ul>
+      <details style="margin-top:10px"><summary>Aggiungi un evento manuale</summary>
+        <form method="post" action="/pratiche/{{ pratica.id }}/eventi" style="margin-top:8px">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="campi">
+            <div class="campo"><label>Tipo</label><select name="tipo">{% for k, v in tipi_evento %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+            <div class="campo"><label>Data</label><input type="date" name="data_evento" value="{{ oggi.isoformat() }}"></div>
+            <div class="campo"><label>Importo (€)</label><input type="text" name="importo"></div>
+            <div class="campo"><label>Scadenza implicata</label><input type="date" name="scadenza"></div>
+          </div>
+          <div class="campo"><label>Titolo</label><input type="text" name="titolo" required></div>
+          <div class="campo"><label>Descrizione</label><textarea name="descrizione"></textarea></div>
+          <button class="primario">Registra evento</button>
+        </form>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Messaggi collegati <span class="muto piccolo">({{ messaggi | length }})</span></h2>
+      {% for m in messaggi %}
+      <details>
+        <summary>{{ m.data | data }} · {{ m.from_email }} · {{ m.subject | truncate(90) }}{% if m.stato == 'da_rivedere' %} <span class="badge proposto">da verificare</span>{% endif %}</summary>
+        <div class="piccolo muto">A: {{ m.to_emails | join(', ') }}{% if m.cc_emails %} · Cc: {{ m.cc_emails | join(', ') }}{% endif %} · collegamento: {{ m.link_origine or '-' }} · <a href="{{ m.gmail_url }}" target="_blank" rel="noopener">apri in Gmail</a></div>
+        <div class="testo-mail">{{ m.body_text }}</div>
+        {% if m.attachments %}<div class="piccolo">Allegati: {% for a in m.attachments %}{{ a.filename }}{{ ', ' if not loop.last }}{% endfor %}</div>{% endif %}
+        <div class="azioni" style="margin-top:6px">
+          {% if m.stato == 'da_rivedere' %}<form class="inline" method="post" action="/messaggi/{{ m.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><button class="ok piccolo">Conferma collegamento</button></form>{% endif %}
+          <form class="inline" method="post" action="/messaggi/{{ m.id }}/scollega"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><button class="piccolo">Scollega</button></form>
+          <form class="inline" method="post" action="/messaggi/{{ m.id }}/collega"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><input type="text" name="codice" placeholder="PMO-AAAA-NNNN" style="width:150px"><button class="piccolo">Sposta su</button></form>
+        </div>
+      </details>
+      {% else %}<div class="vuoto">Nessun messaggio collegato. Usa il tag <span class="tag">{{ pratica.tag }}</span> nell'oggetto delle mail per collegarle automaticamente.</div>{% endfor %}
+    </div>
+
+    <div class="card">
+      <h2>Documenti collegati <span class="muto piccolo">({{ documenti | length }})</span></h2>
+      <table>{% for d in documenti %}<tr><td class="piccolo">{{ d.modified_time | data }}</td><td><a href="{{ d.web_view_link }}" target="_blank" rel="noopener">{{ d.nome }}</a><div class="muto piccolo">{{ d.percorso }}</div></td><td><span class="badge muto">{{ d.tipo_documento or '-' }}</span>{% if d.stato == 'da_rivedere' %} <span class="badge proposto">da verificare</span>{% endif %}</td>
+      <td>{% if d.stato == 'da_rivedere' %}<form class="inline" method="post" action="/documenti/{{ d.id }}/conferma"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><button class="ok piccolo">Conferma</button></form>{% endif %}</td></tr>
+      {% else %}<tr><td class="vuoto">Nessun documento collegato.</td></tr>{% endfor %}</table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Solleciti</h2>
+      {% for s in solleciti %}
+      <div class="riga-sollecito {{ s.gravita }}">
+        <div><span class="badge {{ s.gravita }}">{{ s.gravita }}</span> <b>{{ s.titolo }}</b> <span class="badge {{ 'ok' if s.stato == 'risolto' else 'muto' }}">{{ s.stato }}</span></div>
+        <div class="piccolo">{{ s.messaggio }}</div>
+        {% if s.stato in ['aperto', 'in_carico'] %}
+        <div class="azioni piccolo" style="margin-top:4px">
+          <form class="inline" method="post" action="/solleciti/{{ s.id }}/prendi"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><button class="piccolo">Prendo in carico</button></form>
+          <form class="inline" method="post" action="/solleciti/{{ s.id }}/risolvi"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><button class="piccolo ok">Risolto</button></form>
+          <form class="inline" method="post" action="/solleciti/{{ s.id }}/silenzia"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="ritorno" value="/pratiche/{{ pratica.id }}"><input type="number" name="giorni" value="7" min="1" style="width:60px"> gg <button class="piccolo">Silenzia</button></form>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}<div class="vuoto">Nessun sollecito.</div>{% endfor %}
+    </div>
+
+    <div class="card">
+      <h2>Scheda</h2>
+      <form method="post" action="/pratiche/{{ pratica.id }}/modifica">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="campo"><label>Titolo</label><input type="text" name="titolo" value="{{ pratica.titolo }}" required></div>
+        <div class="campo"><label>Descrizione</label><textarea name="descrizione">{{ pratica.descrizione }}</textarea></div>
+        <div class="campi">
+          <div class="campo"><label>Cliente</label><select name="cliente_id"><option value="">-</option>{% for c in clienti %}<option value="{{ c.id }}" {{ 'selected' if pratica.cliente_id == c.id }}>{{ c.nome }}</option>{% endfor %}</select></div>
+          <div class="campo"><label>Prodotto</label><select name="prodotto_id"><option value="">-</option>{% for p in prodotti %}<option value="{{ p.id }}" {{ 'selected' if pratica.prodotto_id == p.id }}>{{ p.nome }}</option>{% endfor %}</select></div>
+          <div class="campo"><label>Responsabile</label><select name="responsabile_id"><option value="">-</option>{% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if pratica.responsabile_user_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}</select></div>
+          <div class="campo"><label>Priorità</label><select name="priorita">{% for p in ['alta', 'media', 'bassa'] %}<option value="{{ p }}" {{ 'selected' if pratica.priorita == p }}>{{ p }}</option>{% endfor %}</select></div>
+          <div class="campo"><label>Scadenza</label><input type="date" name="data_scadenza" value="{{ pratica.data_scadenza.isoformat() if pratica.data_scadenza else '' }}"></div>
+          <div class="campo"><label>Importo stima (€)</label><input type="text" name="importo_stima" value="{{ pratica.importo_stima or '' }}"></div>
+          <div class="campo"><label>Importo offerta (€)</label><input type="text" name="importo_offerta" value="{{ pratica.importo_offerta or '' }}"></div>
+          <div class="campo"><label>Importo ordine (€)</label><input type="text" name="importo_ordine" value="{{ pratica.importo_ordine or '' }}"></div>
+          <div class="campo"><label>Importo fatturato (€)</label><input type="text" name="importo_fatturato" value="{{ pratica.importo_fatturato or '' }}"></div>
+        </div>
+        <div class="campo"><label>Riferimenti (una riga per voce, chiave=valore: numero_ordine, cig, protocollo, id_sia, id_vte...)</label><textarea name="riferimenti">{{ riferimenti_testo }}</textarea></div>
+        <div class="campo"><label>Cartella Drive della pratica (URL)</label><input type="text" name="drive_folder_url" value="{{ pratica.drive_folder_url or '' }}"></div>
+        <div class="campo"><label>Note</label><textarea name="note">{{ pratica.note }}</textarea></div>
+        <button class="primario">Salva scheda</button>
+      </form>
+      <hr>
+      <div class="piccolo muto">Aperta il {{ pratica.data_apertura | data }} · origine {{ pratica.origine }} · casella {{ pratica.account_id or '-' }}{% if pratica.data_chiusura %} · chiusa il {{ pratica.data_chiusura | data }}{% endif %}</div>
+      <details style="margin-top:8px"><summary>Unisci a un'altra pratica (doppione)</summary>
+        <form method="post" action="/pratiche/{{ pratica.id }}/unisci" class="azioni" style="margin-top:6px" data-conferma="Spostare eventi, messaggi e documenti nella pratica indicata e annullare questa?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="text" name="codice" placeholder="PMO-AAAA-NNNN di destinazione" style="width:220px" required><button class="piccolo pericolo">Unisci</button>
+        </form>
+      </details>
+    </div>
+  </div>
+</div>
+{% endblock %}

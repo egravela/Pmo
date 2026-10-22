@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titolo %}Nuova pratica · {{ app_name }}{% endblock %}
+{% block contenuto %}
+<h1>Nuova pratica</h1>
+<form method="post" action="/pratiche" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="campo"><label>Titolo</label><input type="text" name="titolo" required placeholder="es. Banca degli Occhi – canone e giornate 2027"></div>
+  <div class="campo"><label>Descrizione</label><textarea name="descrizione"></textarea></div>
+  <div class="campi">
+    <div class="campo"><label>Cliente</label><select name="cliente_id"><option value="">-</option>{% for c in clienti %}<option value="{{ c.id }}">{{ c.nome }}</option>{% endfor %}</select></div>
+    <div class="campo"><label>Prodotto</label><select name="prodotto_id"><option value="">-</option>{% for p in prodotti %}<option value="{{ p.id }}">{{ p.nome }}</option>{% endfor %}</select></div>
+    <div class="campo"><label>Stato iniziale</label><select name="stato">{% for k, v in stati.items() if k not in ['chiusa', 'annullata'] %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+    <div class="campo"><label>Responsabile</label><select name="responsabile_id"><option value="">io</option>{% for u in utenti %}<option value="{{ u.id }}">{{ u.nome or u.email }}</option>{% endfor %}</select></div>
+    <div class="campo"><label>Priorità</label><select name="priorita"><option value="media">media</option><option value="alta">alta</option><option value="bassa">bassa</option></select></div>
+    <div class="campo"><label>Scadenza</label><input type="date" name="data_scadenza"></div>
+    <div class="campo"><label>Importo offerta (€)</label><input type="text" name="importo_offerta"></div>
+    <div class="campo"><label>Importo ordine (€)</label><input type="text" name="importo_ordine"></div>
+  </div>
+  <button class="primario">Crea pratica</button>
+</form>
+{% endblock %}
