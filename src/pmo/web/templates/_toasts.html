@@ -1,0 +1,17 @@
+{#- Zona dei messaggi transitori: una sola per applicazione, i messaggi si impilano dentro.
+    Conferme: role status (annuncio cortese) e chiusura automatica da pmo.js.
+    Errori e allerte: role alert sul singolo messaggio, si chiudono solo a mano. -#}
+<div class="tr-toast-region" id="pmo-toasts" role="status" aria-live="polite">
+{%- for livello, testo in flash_messaggi %}
+  {%- set variante = {"ok": "success", "errore": "danger", "avviso": "warning"}.get(livello, "info") %}
+  {%- set titolo = {"success": "Fatto", "danger": "Errore", "warning": "Attenzione", "info": "Informazione"}[variante] %}
+  <div class="tr-toast tr-toast--{{ variante }}"{% if variante in ["danger", "warning"] %} role="alert"{% endif %}>
+    <span class="tr-toast__icon" aria-hidden="true"></span>
+    <div class="tr-toast__content">
+      <p class="tr-toast__title">{{ titolo }}</p>
+      <p class="tr-toast__body">{{ testo }}</p>
+    </div>
+    <button class="tr-btn tr-btn--icon tr-btn--sm" type="button" aria-label="Chiudi il messaggio" data-toast-close><span class="tr-icon tr-icon--close" aria-hidden="true"></span></button>
+  </div>
+{%- endfor %}
+</div>

@@ -107,6 +107,14 @@ def f_datadt(valore: datetime | None) -> str:
     return valore.astimezone(_tz()).strftime("%d/%m/%Y %H:%M")
 
 
+def f_ora(valore: datetime | None) -> str:
+    if valore is None:
+        return "-"
+    if valore.tzinfo is None:
+        valore = valore.replace(tzinfo=UTC)
+    return valore.astimezone(_tz()).strftime("%H:%M")
+
+
 def f_euro(valore: Decimal | float | None) -> str:
     if valore is None:
         return "-"
@@ -138,10 +146,17 @@ def f_giorni_fa(valore: datetime | date | None) -> str:
     return f"{giorni} giorni fa"
 
 
+def _versione_statici() -> str:
+    """Cambia quando cambia un file statico: evita che il browser serva il CSS vecchio dopo un aggiornamento."""
+    tempi = [p.stat().st_mtime_ns for p in STATIC_DIR.rglob("*") if p.is_file()]
+    return str(max(tempi) // 1_000_000_000) if tempi else "0"
+
+
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.filters.update(
-    {"data": f_data, "datadt": f_datadt, "euro": f_euro, "stato": f_stato, "evento": f_evento, "giorni_fa": f_giorni_fa}
+    {"data": f_data, "datadt": f_datadt, "ora": f_ora, "euro": f_euro, "stato": f_stato, "evento": f_evento, "giorni_fa": f_giorni_fa}
 )
+templates.env.globals["asset_v"] = _versione_statici()
 templates.env.globals["ETICHETTE_STATO"] = ETICHETTE_STATO
 templates.env.globals["ETICHETTE_EVENTO"] = ETICHETTE_EVENTO
 

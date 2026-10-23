@@ -1,0 +1,298 @@
+/* ==========================================================================
+   LA TRACCIA — Design Tokens
+   Fonte unica di verità per colori, tipografia, spaziatura e geometria.
+
+   Regola cromatica:
+   - identità, brochure, slide e materiali editoriali usano un solo hue,
+     derivato dal blu logo (#4194d7);
+   - le interfacce software possono introdurre esclusivamente colori semantici
+     di stato per comunicare stato, severità e urgenza;
+   - i colori di stato non sono accenti decorativi e non sostituiscono il blu
+     di marca.
+   ========================================================================== */
+
+:root {
+  /* ---- Colore · Brand (unico accento istituzionale) ---- */
+  --tr-brand-50: #edf6fd;  /* fondo brand appena accennato */
+  --tr-brand-100: #d0e4f5; /* tinta pallida decorativa */
+  --tr-brand-200: #b0d2ee; /* hover delle tinte pallide */
+  --tr-brand-300: #8fc0e7; /* linee secondarie */
+  --tr-brand-400: #69aadf; /* icone e grafica secondaria */
+  --tr-brand-500: #4194d7; /* blu logo: evidenze, numeri, quote, dot, icone */
+  --tr-brand-600: #2f7ab8; /* testo e fondi pieni con testo bianco (>= 4.5:1) */
+  --tr-brand-700: #266296; /* hover delle superfici piene */
+  --tr-brand-800: #1d4c76; /* sezioni scure */
+  --tr-brand-900: #153758; /* titoli istituzionali ad alto contrasto */
+  --tr-brand-950: #0d2339; /* massimo contrasto */
+
+  /* ---- Colore · Stati semantici UI ----
+     Eccezione controllata alla regola del singolo hue. Queste famiglie sono
+     riservate alle interfacce software e comunicano un significato preciso:
+       info     = informazione neutra;
+       success  = operazione completata / stato regolare;
+       warning  = attenzione richiesta, situazione non ancora bloccante;
+       danger   = errore, fallimento o condizione bloccante;
+       critical = allarme che richiede intervento immediato.
+
+     Ogni famiglia offre base, dark, tint, tint-2 e border. Non affidarsi mai
+     al solo colore: associare sempre icona, testo o forma e, per gli
+     aggiornamenti dinamici, il corretto ruolo ARIA. Mai usare questi hue su
+     brochure, slide o materiale stampato. */
+
+  /* Informazione: riusa il blu di marca, senza introdurre un nuovo hue. */
+  --tr-state-info: var(--tr-brand-600);
+  --tr-state-info-dark: var(--tr-brand-700);
+  --tr-state-info-tint: var(--tr-brand-50);
+  --tr-state-info-tint-2: var(--tr-brand-100);
+  --tr-state-info-border: var(--tr-brand-300);
+
+  /* Esito positivo. */
+  --tr-state-success: #2f6b45;
+  --tr-state-success-dark: #245537;
+  --tr-state-success-tint: #e5f2e9;
+  --tr-state-success-tint-2: #cde4d5;
+  --tr-state-success-border: #7faa8a;
+
+  /* Attenzione / allerta non bloccante. */
+  --tr-state-warning: #99631d;
+  --tr-state-warning-dark: #70470f;
+  --tr-state-warning-tint: #fff2d9;
+  --tr-state-warning-tint-2: #f3d49a;
+  --tr-state-warning-border: #c89446;
+
+  /* Errore / condizione bloccante. */
+  --tr-state-danger: #a53a3a;
+  --tr-state-danger-dark: #872f2f;
+  --tr-state-danger-tint: #fadfdf;
+  --tr-state-danger-tint-2: #f3c2c2;
+  --tr-state-danger-border: #c97878;
+
+  /* Allarme critico: stessa famiglia del pericolo, più scura e più urgente. */
+  --tr-state-critical: #702525;
+  --tr-state-critical-dark: #571b1b;
+  --tr-state-critical-tint: #f6dddd;
+  --tr-state-critical-tint-2: #eab5b5;
+  --tr-state-critical-border: #b86767;
+
+  /* Testo comune sulle superfici semantiche piene. */
+  --tr-state-on-solid: var(--tr-ink-on-solid);
+
+  /* ---- Colore · Superfici ----
+     Due piani, non uno. La PAGINA e' il fondo neutro; i COMPONENTI che
+     raccolgono contenuto — card, pannelli — stanno un gradino sopra, in bianco.
+     E' cosi' che un gruppo si stacca senza bisogno di un bordo o di un'ombra:
+     lo separa il piano su cui poggia.
+     Perche' il gradino si veda davvero, paper sta a 1,10:1 dal bianco: a
+     1,03:1 (#fbfbfd) le card sparivano sulla maggior parte degli schermi.
+     Il tint scende con lui e resta un gradino sotto la pagina (1,08:1),
+     altrimenti il cerchietto sul paper perderebbe il proprio disco.
+     Questi sono i valori della modalita' chiara. In una futura modalita' scura
+     il rapporto resta lo stesso e si invertono le tinte: la pagina scende al
+     fondo piu' scuro e i componenti salgono di un gradino verso la luce. */
+  --tr-paper: #f2f4f8;        /* piano 0: la pagina */
+  --tr-surface: #ffffff;      /* piano 1: card e pannelli */
+  --tr-surface-tint: #e8ecf5; /* SOLO riempimenti piccoli (cerchietti, silhouette) */
+
+  /* ---- Colore · Bordi ---- */
+  --tr-border-soft: #dde2ee;   /* filetti leggeri */
+  --tr-border-soft-2: #c9cede; /* filetti leggeri, variante più scura */
+
+  /* ---- Colore · Inchiostro ---- */
+  --tr-ink-900: #1b1f2a; /* testo primario, tratti disegni tecnici */
+  --tr-ink-600: #3a4050; /* testo secondario / body */
+  --tr-ink-400: #565c6b; /* didascalie e metadati */
+  /* Antracite (RAL 7016): un grigio scuro neutro, piu' morbido di ink/900.
+     E' il colore della scritta «traccia» accanto al marchio, e solo di quella. */
+  --tr-anthracite: #383e42;
+  /* Il wordmark e' antracite sui fondi chiari. Sul blu del marchio e' sempre
+     bianco, come il marchio accanto. */
+  --tr-color-wordmark: var(--tr-anthracite);
+  --tr-color-wordmark-on-brand: var(--tr-ink-on-solid);
+  /* Inchiostro su superficie piena, di marca o di stato. Vale per il cerchietto
+     pieno, per l'azione del login e per i pannelli semantici: e' un ruolo, non
+     un colore, ed e' il motivo per cui non si scrive #ffffff nei componenti. */
+  --tr-ink-on-solid: #ffffff;
+
+  /* ---- Tipografia · Famiglie ---- */
+  --tr-font-display: "Archivo", system-ui, sans-serif;   /* display / UI / body */
+  --tr-font-mono: "IBM Plex Mono", ui-monospace, monospace; /* tecnico / etichette */
+  /* Solo il wordmark «traccia», minuscolo: non e' un carattere di testo. */
+  --tr-font-wordmark: "Space Grotesk", var(--tr-font-display);
+
+  /* ---- Tipografia · Pesi ---- */
+  --tr-weight-body: 400;
+  --tr-weight-semibold: 600;
+  --tr-weight-display: 800;
+  --tr-weight-wordmark: 700;
+
+  /* ---- Tipografia · Tracking ---- */
+  --tr-tracking-display: -0.015em; /* titoli maiuscoli */
+  --tr-tracking-mono: 0.08em;      /* etichette mono base (range 0.06–0.3em) */
+  --tr-tracking-mono-wide: 0.22em; /* eyebrow / kicker */
+  /* Mono da leggere, non da scorrere: comandi e navigazione. La spaziatura
+     ampia serve all'etichetta che l'occhio attraversa; sulla parola che si
+     legge e si clicca stacca le lettere l'una dall'altra e disfa la parola. */
+  --tr-tracking-mono-ui: 0.03em;
+  /* Gradino intermedio: etichette brevi che aprono un blocco e vanno
+     attraversate, non lette parola per parola (ruoli di firma, credenziali). */
+  --tr-tracking-mono-mid: 0.14em;
+  --tr-tracking-wordmark: -0.02em; /* wordmark «traccia», minuscolo */
+  /* Ragione sociale in maiuscolo (Cooperativa E.D.P. La Traccia) nel piede
+     dei documenti: e' un nome scritto per esteso, non il wordmark. */
+  --tr-tracking-name: 0.08em;
+
+  /* ---- Tipografia · Interlinea ---- */
+  --tr-leading-display: 1.08; /* range 1.04–1.15 */
+  --tr-leading-body: 1.6;     /* range 1.5–1.65 */
+  --tr-leading-figure: 0.95;  /* cifra in evidenza: una riga sola, senza aria sopra */
+
+  /* ---- Tipografia · Misura ----
+     Quante battute stanno su una riga. E' un massimo, non un'eccezione: un
+     paragrafo che lo supera si legge peggio, non "riempie meglio" la pagina.
+     Se lo spazio avanza, il testo si affianca a una colonna di servizio o si
+     spezza in piu' paragrafi di pari misura — non si allarga. */
+  --tr-measure-body: 62ch;    /* .tr-body (range 56–66ch) */
+  --tr-measure-prose: 66ch;   /* paragrafi di prosa in colonna, il massimo del range */
+  --tr-measure-lead: 60ch;    /* lead (range 52–60ch) */
+  --tr-measure-short: 56ch;   /* riga di descrizione sotto il titolo di una voce */
+  --tr-measure-title: 22ch;   /* .tr-h2/.tr-h3 come titolo di blocco (range 20–26ch) */
+
+  /* ---- Tipografia · Scala (UI, px) ---- */
+  --tr-text-caption: 12px;
+  --tr-text-mono: 13px;
+  --tr-text-body: 15px;   /* UI 14–16px */
+  --tr-text-lead: 18px;
+  --tr-text-h3: 22px;
+  --tr-text-h2: 32px;
+  --tr-text-h1: 48px;
+  /* Cifra in evidenza: piu' grande dell'H1, scala con la finestra e si ferma
+     prima di diventare un poster. */
+  --tr-text-figure: clamp(56px, 7vw, 84px);
+
+  /* ---- Spaziatura ---- */
+  --tr-space-1: 4px;
+  --tr-space-2: 8px;
+  --tr-space-3: 12px;
+  --tr-space-4: 16px;
+  --tr-space-5: 24px;
+  --tr-space-6: 32px;
+  --tr-space-7: 48px;
+  --tr-space-8: 64px;
+  --tr-space-9: 96px;
+  /* Distanza fra l'eyebrow e cio' che apre: il testo sta a un passo, un titolo
+     o una cifra a un passo e mezzo (--tr-space-5, vedi .tr-eyebrow + *). */
+  --tr-space-after-eyebrow: var(--tr-space-4);
+
+  /* ---- Geometria · Raggi ----
+     A schermo le superfici dell'interfaccia — card, pannelli, campi, azioni —
+     sono a spigolo vivo: e' il taglio che il sistema ha scelto per la UI, e
+     tenerlo in un token solo permette di cambiarlo in un punto solo.
+     Gli angoli smussati restano dove sono nati, cioe' nella stampa. */
+  --tr-radius-ui: 0;       /* superfici dell'interfaccia */
+  --tr-radius-line: 99px;  /* estremità stondate di filetti e segmenti */
+  --tr-radius-pill: 999px; /* chip, dot e cerchietti: la pillola resta */
+  --tr-radius-soft: 20px;  /* angoli smussati, stampa (range 16–26px) */
+  --tr-radius-photo: 28px; /* cornice foto ambientata (range 22–36px) */
+
+  /* ---- Geometria · Tratti ---- */
+  --tr-rule-thin: 1px;     /* filetti orizzontali */
+  --tr-rule-medium: 2px;   /* segmenti decorativi verticali */
+  --tr-rule-accent: 3px;   /* tratti d'accento e linee di quota */
+  --tr-stroke-drawing: 2.25px; /* tratto disegni tecnici (2–2.5px) */
+
+  /* ---- Watermark logo (sagoma outline negli sfondi) ---- */
+  --tr-watermark-opacity: 0.16;  /* opacità della sagoma sul paper */
+  --tr-watermark-stroke: 6px;    /* spessore tratto dell'outline (su viewBox 1280) */
+
+  /* ---- Conchiglia (solo decorazione di sfondo, assets/conchiglia.svg) ---- */
+  --tr-seashell-opacity: 0.4;    /* molte linee sottili: piu' della sagoma */
+
+  /* ---- Campi di form ---- */
+  --tr-field-h: 56px;             /* altezza del campo con etichetta flottante */
+  --tr-field-h-compact: 40px;     /* variante compatta: filtri in barra, senza etichetta interna */
+
+  /* ---- Azioni ---- */
+  --tr-btn-h: 42px;               /* altezza standard */
+  --tr-btn-h-sm: 32px;            /* barre, tabelle, azioni di riga */
+  --tr-btn-h-lg: 48px;            /* azione principale a piena larghezza */
+  --tr-field-radius: var(--tr-radius-ui); /* angolo del campo */
+  --tr-field-pad-x: 16px;         /* respiro orizzontale interno */
+  --tr-field-label-rest: 20px;    /* quota dell'etichetta a riposo, dal filetto superiore */
+  --tr-field-affix: 46px;         /* spazio riservato a icona prefisso/suffisso */
+  --tr-field-bg: var(--tr-paper); /* superficie su cui poggia il campo: la tacca
+                                     dell'etichetta flottante la ricopre. Va
+                                     ridefinita sui contenitori con fondo diverso. */
+
+  /* ---- Interruttore ----
+     Pista e cursore rettangolari, come tutto il resto dell'interfaccia. Il
+     cursore e' quadrato e si ricava dall'altezza (h - 2 filetti - 2 respiri),
+     cosi' la corsa vale esattamente w - h: cambiare una misura non sfascia
+     l'altra. */
+  --tr-switch-w: 44px;            /* pista */
+  --tr-switch-h: 22px;            /* pista: cursore 14px, corsa 22px */
+  --tr-switch-pad: 3px;           /* respiro fra filetto e cursore */
+
+  /* ---- Icone ----
+     Tre misure sole, agganciate alle altezze delle azioni: sotto i 14px il
+     tratto da 2 si chiude, sopra i 24 l'icona diventa un disegno e vuole
+     un'altra griglia. */
+  --tr-icon-sm: 14px;             /* dentro .tr-btn--sm e le righe di tabella */
+  --tr-icon-md: 16px;             /* misura corrente: azione, campo, elenco */
+  --tr-icon-lg: 20px;             /* .tr-btn--lg, sola icona, riquadro avviso */
+
+  /* ---- Movimento ---- */
+  --tr-motion-fast: 160ms;
+  --tr-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
+  /* Parallasse dell'hero: l'unico movimento di pagina ammesso, sull'immagine
+     e mai sul testo corrente. I fattori li legge js/tr-parallax.js con
+     getComputedStyle, cosi' si tarano da qui e non nel codice. Lo sbordo e'
+     quanto lo sfondo eccede il riquadro sopra e sotto: con il fattore a 0,4 e'
+     cio' che serve perche' il bordo della foto non si scopra mai. */
+  --tr-parallax-bg: 0.4;        /* velocita' dello sfondo rispetto allo scorrimento */
+  --tr-parallax-content: 0.25;  /* velocita' del testo dell'hero, che intanto sfuma */
+  --tr-parallax-bleed: 22%;     /* sbordo verticale dello sfondo, sopra e sotto */
+  --tr-hero-min-h: 420px;       /* altezza minima dell'hero fotografico */
+  --tr-hero-overlay: 64%;       /* quanto ink/900 copre la foto perche' il testo regga */
+
+  /* ---- Pagina di login (co-branding con il cliente) ---- */
+  --tr-client-logo-h: 40px;   /* altezza del marchio cliente in testa (range 32-48px) */
+  --tr-login-panel-w: 420px;  /* larghezza della colonna del form */
+
+  /* ---- Documenti formali (stampa A4) ----
+     Preventivi, progetti tecnici, relazioni, documenti da protocollare.
+     Il foglio ha una misura fissa: 794x1123px sono 210x297mm a 96dpi. I
+     margini sono piu' larghi di quelli di una pagina a schermo perche' il
+     documento viene stampato, pinzato e archiviato, e il testo non deve mai
+     arrivare al taglio. */
+  --tr-doc-w: 794px;            /* 210mm a 96dpi */
+  --tr-doc-h: 1123px;           /* 297mm a 96dpi */
+  --tr-doc-pad-x: 64px;         /* ~17mm ai lati */
+  --tr-doc-pad-top: 56px;       /* ~15mm in testa */
+  --tr-doc-pad-bottom: 56px;    /* ~15mm: il piede non sta sotto la testa */
+  --tr-doc-text: 13px;          /* corpo del documento (stampa 12–14px) */
+  --tr-doc-meta-col: 288px;     /* colonna dei dati di protocollo */
+  --tr-doc-sign-h: 128px;       /* banda firme: ~11,5mm di spazio per la penna */
+
+  /* ---- Tempo: cronologia e cronoprogramma ----
+     La riga del cronoprogramma e' alta quanto la barra di un grafico (circa
+     40px, vedi "Grafici"): un piano che cresce in basso e' sempre meglio di
+     uno che si comprime. La barra e' il tassello categoriale allungato, e
+     una colonna e' l'unita' minima del piano: giorni, settimane o mesi. */
+  --tr-timeline-when-col: 112px; /* colonna della data nella cronologia verticale */
+  --tr-gantt-row-h: 40px;        /* riga del cronoprogramma */
+  --tr-gantt-bar-h: 14px;        /* altezza della barra */
+  --tr-gantt-label-col: 220px;   /* colonna dei nomi delle attivita' */
+  --tr-gantt-col-min: 0px;       /* larghezza minima di una colonna: 0 = fluido;
+                                    si alza (es. 24px) quando l'unita' e' il giorno,
+                                    e il piano scorre dentro .tr-gantt-scroll */
+
+  /* ---- Geometria · Misure ricorrenti ---- */
+  --tr-accent-dash-w: 64px; /* tratto d'accento sopra i titoli di sezione */
+  --tr-dot-size: 8px;       /* dot bullet (range 6–13px) */
+  --tr-dot-size-sm: 6px;    /* dot dentro un chip o accanto a una riga di testo */
+  --tr-dot-size-lg: 12px;   /* evento della cronologia, pietra miliare del cronoprogramma */
+  --tr-intro-aside-min: 200px; /* la colonna del dato nel blocco introduttivo non scende sotto */
+  --tr-circle-sm: 28px;     /* cerchietto numerato piccolo (range 24–52px) */
+  --tr-circle-md: 40px;
+  --tr-circle-lg: 52px;
+}

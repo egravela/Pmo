@@ -1,0 +1,103 @@
+/* ==========================================================================
+   PMO La Traccia — comportamento dell'applicazione
+
+   Tre cose sole, tutte con le regole del design system:
+   - i messaggi transitori (.tr-toast): chiusura automatica solo per le conferme,
+     con la durata minima di 4 secondi piu' uno ogni cinque parole oltre le dieci;
+     il conto si ferma sotto il puntatore e col fuoco dentro; un errore o
+     un'allerta non si chiude da solo;
+   - l'attivazione della listbox del select (js/tr-select.js);
+   - copia negli appunti e conferma prima delle azioni distruttive.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  /* ---- Messaggi transitori ------------------------------------------------ */
+
+  function durata(toast) {
+    var testo = (toast.textContent || '').trim();
+    var parole = testo ? testo.split(/\s+/).length : 0;
+    return 4000 + Math.floor(Math.max(0, parole - 10) / 5) * 1000;
+  }
+
+  function chiudi(toast) {
+    if (toast && toast.parentNode) { toast.parentNode.removeChild(toast); }
+  }
+
+  function monta(toast) {
+    var chiusura = toast.querySelector('[data-toast-close]');
+    if (chiusura) { chiusura.addEventListener('click', function () { chiudi(toast); }); }
+
+    // Errori e allerte: solo a mano. Idem se il messaggio porta un comando.
+    var manuale = toast.getAttribute('role') === 'alert' || toast.querySelector('.tr-toast__action');
+    if (manuale) { return; }
+
+    var restante = durata(toast);
+    var inizio = null;
+    var timer = null;
+    function avvia() {
+      inizio = Date.now();
+      timer = setTimeout(function () { chiudi(toast); }, restante);
+    }
+    function ferma() {
+      if (timer === null) { return; }
+      clearTimeout(timer);
+      timer = null;
+      restante = Math.max(1000, restante - (Date.now() - inizio));
+    }
+    toast.addEventListener('mouseenter', ferma);
+    toast.addEventListener('mouseleave', function () { if (timer === null) { avvia(); } });
+    toast.addEventListener('focusin', ferma);
+    toast.addEventListener('focusout', function () { if (timer === null) { avvia(); } });
+    avvia();
+  }
+
+  var TITOLI = { success: 'Fatto', info: 'Informazione', warning: 'Attenzione', danger: 'Errore' };
+
+  function nuovoToast(variante, messaggio, titolo) {
+    var zona = document.getElementById('pmo-toasts');
+    if (!zona) { return; }
+    var t = document.createElement('div');
+    t.className = 'tr-toast tr-toast--' + variante;
+    if (variante === 'danger' || variante === 'warning') { t.setAttribute('role', 'alert'); }
+    t.innerHTML =
+      '<span class="tr-toast__icon" aria-hidden="true"></span>' +
+      '<div class="tr-toast__content"><p class="tr-toast__title"></p><p class="tr-toast__body"></p></div>' +
+      '<button class="tr-btn tr-btn--icon tr-btn--sm" type="button" aria-label="Chiudi il messaggio" data-toast-close>' +
+      '<span class="tr-icon tr-icon--close" aria-hidden="true"></span></button>';
+    t.querySelector('.tr-toast__title').textContent = titolo || TITOLI[variante] || '';
+    t.querySelector('.tr-toast__body').textContent = messaggio;
+    zona.appendChild(t);
+    monta(t);
+  }
+
+  /* ---- Avvio -------------------------------------------------------------- */
+
+  function avvio() {
+    Array.prototype.forEach.call(document.querySelectorAll('.tr-toast'), monta);
+
+    if (window.TrSelect) { window.TrSelect.enhanceAll(); }
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-copia]'), function (el) {
+      el.addEventListener('click', function () {
+        var testo = el.getAttribute('data-copia');
+        var fatto = function () { nuovoToast('success', 'Oggetto della mail copiato negli appunti.', 'Copiato'); };
+        var errore = function () { nuovoToast('danger', 'Copia non riuscita: seleziona il testo e copialo a mano.'); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(testo).then(fatto, errore);
+        } else { errore(); }
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('form[data-conferma]'), function (f) {
+      f.addEventListener('submit', function (e) {
+        if (!window.confirm(f.getAttribute('data-conferma'))) { e.preventDefault(); }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', avvio); }
+  else { avvio(); }
+
+  window.pmoToast = nuovoToast;
+})();

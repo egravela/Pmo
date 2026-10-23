@@ -1,0 +1,2481 @@
+/* ========================================================================== 
+   LA TRACCIA — Componenti
+   Richiede tokens/tokens.css.
+   Linguaggio: layout aperti, niente box, niente ombre, niente gradienti.
+   La struttura la danno filetti sottili, spaziatura e allineamenti a griglia.
+   Prefisso classi: .tr-
+   ========================================================================== */
+
+/* I componenti del sistema non possono dipendere dal box-sizing del progetto
+   ospite: se lo dichiarano da se', le misure valgono identiche ovunque. */
+.tr-field,
+.tr-field__control,
+.tr-field__prefix,
+.tr-field__suffix,
+.tr-field__assist,
+.tr-field__label,
+.tr-btn,
+.tr-btn-group,
+.tr-card,
+.tr-card__head,
+.tr-card__foot,
+.tr-shell,
+.tr-shell__body,
+.tr-chip,
+.tr-circle,
+.tr-notice,
+.tr-switch,
+.tr-switch-row,
+.tr-login,
+.tr-login__header,
+.tr-login__main,
+.tr-login__panel,
+.tr-login__footer,
+.tr-select,
+.tr-select__trigger,
+.tr-select__panel,
+.tr-select__list,
+.tr-select__search,
+.tr-select__search-input,
+.tr-select__option,
+.tr-select__group,
+.tr-fieldset,
+.tr-tabs,
+.tr-tab,
+.tr-photo-frame,
+.tr-spinner,
+.tr-spinner__track,
+.tr-spinner__ring,
+.tr-mark-clip,
+.tr-mark-clip__defs,
+.tr-mark-clip__img,
+.tr-mark-clip__echo,
+.tr-panel,
+.tr-hero,
+.tr-hero__content,
+.tr-intro,
+.tr-facts,
+.tr-numbered-list,
+.tr-list { box-sizing: border-box; }
+
+/* ---- Base pagina ---- */
+.tr-page {
+  background: var(--tr-paper);
+  color: var(--tr-ink-600);
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-body);
+  font-size: var(--tr-text-body);
+  line-height: var(--tr-leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========================================================================== 
+   Primitive geometriche
+   ========================================================================== */
+
+/* Filetto orizzontale sottile, estremità stondate */
+.tr-rule {
+  border: 0;
+  height: var(--tr-rule-thin);
+  background: var(--tr-border-soft);
+  border-radius: var(--tr-radius-line);
+  margin: 0;
+}
+.tr-rule--2 { height: var(--tr-rule-medium); }
+.tr-rule--dark { background: var(--tr-border-soft-2); }
+.tr-rule--brand-300 { background: var(--tr-brand-300); }
+
+/* Tratto d'accento corto sopra i titoli di sezione (al posto di bordi full-width) */
+.tr-accent-dash {
+  display: block;
+  width: var(--tr-accent-dash-w);
+  height: var(--tr-rule-accent);
+  background: var(--tr-brand-500);
+  border-radius: var(--tr-radius-line);
+}
+
+/* Segmento decorativo verticale: pieno sopra il contenuto, tinta chiara sotto.
+   La linea "si interrompe" al testo e riprende dopo. */
+.tr-vseg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tr-space-2);
+  width: var(--tr-rule-medium);
+}
+.tr-vseg::before,
+.tr-vseg::after {
+  content: "";
+  width: var(--tr-rule-medium);
+  border-radius: var(--tr-radius-line);
+}
+.tr-vseg::before { flex: 1 1 auto; background: var(--tr-brand-500); }
+.tr-vseg::after  { flex: 1 1 auto; background: var(--tr-brand-100); }
+
+/* Dot bullet pieno blu */
+.tr-dot {
+  display: inline-block;
+  width: var(--tr-dot-size);
+  height: var(--tr-dot-size);
+  border-radius: var(--tr-radius-pill);
+  background: var(--tr-brand-500);
+  flex: none;
+}
+
+/* Cerchietto numerato: tinta + cifra mono blu, oppure solo bordo blu */
+.tr-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tr-circle-md);
+  height: var(--tr-circle-md);
+  border-radius: var(--tr-radius-pill);
+  background: var(--tr-surface-tint);
+  color: var(--tr-brand-500);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  flex: none;
+}
+.tr-circle--outline {
+  background: transparent;
+  border: 1.5px solid var(--tr-brand-500);
+}
+.tr-circle--solid {
+  background: var(--tr-brand-500);
+  color: var(--tr-ink-on-solid);
+}
+.tr-circle--sm { width: var(--tr-circle-sm); height: var(--tr-circle-sm); font-size: 12px; }
+.tr-circle--lg { width: var(--tr-circle-lg); height: var(--tr-circle-lg); font-size: 16px; }
+
+/* ========================================================================== 
+   Tipografia
+   ========================================================================== */
+
+/* Etichetta mono tecnica: sempre maiuscola, tracking ampio */
+.tr-mono {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-600);
+}
+.tr-mono--brand { color: var(--tr-brand-500); }
+.tr-mono--muted { color: var(--tr-ink-400); font-weight: var(--tr-weight-body); }
+.tr-mono--wide { letter-spacing: var(--tr-tracking-mono-wide); }
+
+/* H1 / H2: maiuscolo, weight 800; la parola chiave finale in blu logo (<em>) */
+.tr-h1,
+.tr-h2,
+.tr-h3 {
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-display);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-tracking-display);
+  line-height: var(--tr-leading-display);
+  color: var(--tr-ink-900);
+  margin: 0;
+}
+.tr-h1 { font-size: var(--tr-text-h1); }
+.tr-h2 { font-size: var(--tr-text-h2); }
+.tr-h3 { font-size: var(--tr-text-h3); }
+.tr-h1 em,
+.tr-h2 em,
+.tr-h3 em {
+  font-style: normal;
+  color: var(--tr-brand-500);
+}
+
+/* La misura e' un massimo, non un'eccezione: non si toglie con max-width: none.
+   Se lo spazio avanza, il testo si affianca a una colonna di servizio o si
+   spezza in paragrafi di pari misura (vedi .tr-intro). */
+.tr-body { color: var(--tr-ink-600); max-width: var(--tr-measure-body); }
+.tr-caption {
+  font-size: var(--tr-text-caption);
+  color: var(--tr-ink-400);
+}
+
+/* ========================================================================== 
+   1 · Header di pagina
+   logo + wordmark a sinistra, eyebrow mono blu a destra, filetto sotto
+   ========================================================================== */
+.tr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tr-space-5);
+  padding-bottom: var(--tr-space-4);
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+/* Il lockup si misura sull'altezza del marchio (--tr-brandmark-h): la
+   scritta e' 0,8 di quell'altezza e sta a 0,34 di distanza. «traccia» e'
+   minuscolo, senza «la», in Space Grotesk 700: in minuscolo le lettere sono
+   basse, e alla misura del vecchio maiuscolo sparirebbero accanto al
+   marchio. Il minuscolo e' anche nel CSS, cosi' il wordmark resta tale
+   chiunque scriva il testo. */
+.tr-brandmark {
+  --tr-brandmark-h: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--tr-brandmark-h) * 0.34);
+}
+.tr-brandmark__logo { height: var(--tr-brandmark-h); width: auto; display: block; }
+.tr-brandmark__wordmark {
+  font-family: var(--tr-font-wordmark);
+  font-weight: var(--tr-weight-wordmark);
+  font-size: calc(var(--tr-brandmark-h) * 0.8);
+  line-height: 1;
+  letter-spacing: var(--tr-tracking-wordmark);
+  text-transform: lowercase;
+  color: var(--tr-color-wordmark);
+}
+
+/* ========================================================================== 
+   2 · Eyebrow / kicker
+   etichetta mono blu + filetto stondato 2px che riempie la riga;
+   variante con nota mono grigia in coda a destra
+   ========================================================================== */
+.tr-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--tr-space-4);
+}
+.tr-eyebrow__label {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono-wide);
+  text-transform: uppercase;
+  color: var(--tr-brand-500);
+  white-space: nowrap;
+}
+.tr-eyebrow__line {
+  flex: 1 1 auto;
+  height: var(--tr-rule-medium);
+  background: var(--tr-border-soft);
+  border-radius: var(--tr-radius-line);
+}
+.tr-eyebrow__note {
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  white-space: nowrap;
+}
+
+/* L'eyebrow apre un blocco, e cio' che apre non gli sta incollato: il testo a
+   un passo, un titolo o una cifra a un passo e mezzo. E' un margine sul
+   fratello che segue, quindi in flusso normale collassa con un eventuale
+   margine inferiore gia' scritto sull'eyebrow: non si somma, prevale il
+   maggiore. */
+.tr-eyebrow + * { margin-top: var(--tr-space-after-eyebrow); }
+.tr-eyebrow + .tr-h1,
+.tr-eyebrow + .tr-h2,
+.tr-eyebrow + .tr-h3,
+.tr-eyebrow + .tr-figure { margin-top: var(--tr-space-5); }
+
+/* ========================================================================== 
+   3 · Chip / pill
+   bordo 1px blu, testo mono blu, raggio 999px
+   ========================================================================== */
+.tr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-2);
+  padding: 6px 16px;
+  border: 1px solid var(--tr-brand-500);
+  border-radius: var(--tr-radius-pill);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-brand-500);
+  background: transparent;
+  white-space: nowrap;
+}
+.tr-chip .tr-dot { width: var(--tr-dot-size-sm); height: var(--tr-dot-size-sm); }
+
+/* ========================================================================== 
+   4 · Voce elenco numerata (settori, funzioni)
+   cerchietto + label semibold o titolo maiuscolo + body breve; senza box
+   ========================================================================== */
+.tr-numbered {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tr-space-4);
+}
+.tr-numbered__title {
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-body);
+  color: var(--tr-ink-900);
+  margin: 0 0 var(--tr-space-1);
+}
+.tr-numbered__title--caps {
+  font-weight: var(--tr-weight-display);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-tracking-display);
+}
+.tr-numbered__body {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tr-ink-600);
+}
+
+/* Elenco di linee di prodotto o di offerta: le voci numerate impilate fra due
+   filetti. Il cerchietto va in --outline con il numero mono, il titolo in
+   frase, la descrizione su una riga sola di misura breve: e' un sommario, non
+   il posto in cui si racconta. */
+.tr-numbered-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--tr-space-5) 0;
+  display: grid;
+  gap: var(--tr-space-4);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-numbered-list > li { margin: 0; padding: 0; }
+.tr-numbered-list .tr-numbered__body { max-width: var(--tr-measure-short); }
+
+/* ========================================================================== 
+   5 · Step di processo
+   cerchietti numerati (l'ultimo pieno blu), in riga da 4,
+   su slide collegati da una linea orizzontale sottile brand/300
+   ========================================================================== */
+.tr-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--tr-space-5);
+  position: relative;
+}
+.tr-steps--linked::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--tr-circle-md) / 2);
+  left: calc(12.5% + var(--tr-circle-md) / 2);
+  right: calc(12.5% + var(--tr-circle-md) / 2);
+  height: var(--tr-rule-thin);
+  background: var(--tr-brand-300);
+  border-radius: var(--tr-radius-line);
+}
+.tr-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tr-space-3);
+  position: relative; /* sopra la linea di collegamento */
+}
+.tr-step .tr-circle { background: var(--tr-paper); border: 1.5px solid var(--tr-brand-500); }
+.tr-step:last-child .tr-circle { background: var(--tr-brand-500); border-color: var(--tr-brand-500); color: var(--tr-ink-on-solid); }
+.tr-step__title {
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-display);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: var(--tr-tracking-display);
+  color: var(--tr-ink-900);
+  margin: 0;
+}
+.tr-step__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--tr-ink-400);
+  max-width: 22ch;
+}
+
+/* ========================================================================== 
+   6 · Riga specifiche
+   voci con dot bullet mono distribuite su una riga, filetto sottile sopra
+   ========================================================================== */
+.tr-specs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tr-space-4) var(--tr-space-6);
+  padding-top: var(--tr-space-4);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-specs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-3);
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-600);
+}
+
+/* Elenco tecnico verticale con dot bullet */
+.tr-dotlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tr-space-3);
+}
+.tr-dotlist li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tr-space-3);
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-600);
+}
+.tr-dotlist li .tr-dot { transform: translateY(-1px); }
+
+/* Elenco in frase: l'elenco che sta dentro la prosa. Voci lunghe, in sans e
+   nel corpo del body, con un dot piccolo appeso alla prima riga. Il .tr-dotlist
+   qui sopra e' un'altra cosa: mono maiuscolo per voci brevi e tecniche —
+   specifiche, contatti, campi — e su una frase intera diventa illeggibile. */
+.tr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tr-space-2);
+  max-width: var(--tr-measure-body);
+  color: var(--tr-ink-600);
+}
+.tr-list > li {
+  position: relative;
+  margin: 0;
+  padding-left: calc(var(--tr-dot-size-sm) + var(--tr-space-3));
+}
+/* Il dot si allinea al centro ottico della prima riga, qualunque sia il corpo:
+   meta' dell'interlinea meno meta' del dot. */
+.tr-list > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc((var(--tr-leading-body) * 1em - var(--tr-dot-size-sm)) / 2);
+  width: var(--tr-dot-size-sm);
+  height: var(--tr-dot-size-sm);
+  border-radius: var(--tr-radius-pill);
+  background: var(--tr-brand-500);
+}
+
+/* ========================================================================== 
+   7 · Tabella dati
+   label mono grigia a sinistra / valore mono ink a destra,
+   filetti 1px; nota d'unità mono piccola in basso a destra
+   ========================================================================== */
+.tr-datatable { width: 100%; }
+.tr-datatable__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tr-space-5);
+  padding: var(--tr-space-3) 0;
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-datatable__row:first-child { border-top: var(--tr-rule-thin) solid var(--tr-border-soft); }
+.tr-datatable__label {
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+.tr-datatable__value {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: 0.04em;
+  color: var(--tr-ink-900);
+  text-align: right;
+}
+.tr-datatable__value--brand { color: var(--tr-brand-500); }
+.tr-datatable__unit-note {
+  display: block;
+  text-align: right;
+  margin-top: var(--tr-space-2);
+  font-family: var(--tr-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+/* ========================================================================== 
+   8 · Disegno tecnico quotato (contenitore + convenzioni SVG)
+   silhouette: tratto ink 2–2.5px, riempimento surface/tint;
+   quote: linee blu 1.5–3px con tacche, valore mono blu (virgola italiana)
+   ========================================================================== */
+.tr-drawing { display: block; }
+.tr-drawing svg { display: block; max-width: 100%; height: auto; }
+.tr-drawing .silhouette {
+  fill: var(--tr-surface-tint);
+  stroke: var(--tr-ink-900);
+  stroke-width: var(--tr-stroke-drawing);
+  stroke-linejoin: round;
+}
+.tr-drawing .quota {
+  stroke: var(--tr-brand-500);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.tr-drawing .quota-label {
+  font-family: var(--tr-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  fill: var(--tr-brand-500);
+}
+
+/* ========================================================================== 
+   9 · Footer
+   filetto sopra, logo + wordmark a sinistra, contatti mono con dot blu
+   e/o riferimento prodotto mono blu a destra
+   ========================================================================== */
+.tr-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--tr-space-4) var(--tr-space-6);
+  padding-top: var(--tr-space-4);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-footer .tr-brandmark { --tr-brandmark-h: 20px; }
+.tr-footer__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tr-space-4) var(--tr-space-5);
+}
+.tr-footer__contact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-2);
+  font-family: var(--tr-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  text-decoration: none;
+}
+.tr-footer__contact .tr-dot { width: 6px; height: 6px; }
+.tr-footer__ref {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: 11px;
+  letter-spacing: var(--tr-tracking-mono-wide);
+  text-transform: uppercase;
+  color: var(--tr-brand-500);
+}
+
+/* Il footer sta SEMPRE in fondo alla pagina, anche quando il contenuto non la
+   riempie: un footer a mezz'aria sotto una pagina corta sembra un errore di
+   caricamento, e la riga certificazioni deve chiudere la pagina, non fluttuarci
+   dentro.
+
+   Il contenitore diventa una colonna e il corpo si prende lo spazio che avanza;
+   il footer resta l'ultimo elemento e finisce naturalmente in basso. Vale sia
+   quando a scorrere e' la pagina, sia quando a scorrere e' un pannello interno:
+   basta che .tr-shell sia alto quanto il suo contenitore. */
+.tr-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.tr-shell__body { flex: 1 1 auto; }
+
+/* Riga certificazioni: solo sulle superfici pubbliche — sito, brochure,
+   pagina di accesso — dove chi guarda non sa ancora con chi ha a che fare.
+   Dentro l'applicazione si omette: l'ha gia' letta entrando, e ripeterla sotto
+   ogni schermata la trasforma in rumore.
+   Etichetta mono blu + elenco certificazioni mono grigio + filetto
+   che riempie la riga + badge (IMQ / SI Cert). */
+.tr-footer__certs {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tr-space-3) var(--tr-space-4);
+  margin-top: var(--tr-space-2);
+}
+.tr-footer__certs-label {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tr-brand-500);
+  white-space: nowrap;
+}
+/* L'elenco va a capo: le norme sono sette e su una riga sola non ci stanno
+   nemmeno a piena larghezza. Con min-width: 0 e' lui a cedere spazio, cosi'
+   il filetto continua a chiudere l'ultima riga invece di sparire. */
+.tr-footer__certs-list {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--tr-font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tr-tracking-mono);
+  color: var(--tr-ink-400);
+}
+.tr-footer__certs-line {
+  flex: 1 1 auto;
+  height: var(--tr-rule-thin);
+  background: var(--tr-border-soft);
+  border-radius: var(--tr-radius-line);
+}
+.tr-footer__certs-badges { height: 30px; width: auto; display: block; }
+
+/* ========================================================================== 
+   10 · Pagina di login
+   Testata con il marchio del CLIENTE, colonna del form senza box, footer
+   La Traccia. Vale la regola di co-branding: un solo marchio per lockup.
+   In testa sta il cliente — la pagina e' il suo prodotto; La Traccia firma
+   in basso nel footer e, quando serve presenza di marchio, compare come
+   sagoma outline nello sfondo (.tr-watermark). Mai i due marchi affiancati.
+   ========================================================================== */
+.tr-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--tr-paper);
+}
+.tr-login__header,
+.tr-login__main,
+.tr-login__footer {
+  padding-left: var(--tr-space-6);
+  padding-right: var(--tr-space-6);
+}
+.tr-login__header {
+  padding-top: var(--tr-space-5);
+  padding-bottom: var(--tr-space-5);
+}
+.tr-login__main {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  padding-top: var(--tr-space-7);
+  padding-bottom: var(--tr-space-7);
+}
+/* Colonna del form: nessuna card, nessuna ombra, nessun bordo contenitore.
+   La struttura la danno l'eyebrow, il titolo e i filetti. */
+.tr-login__panel {
+  width: 100%;
+  max-width: var(--tr-login-panel-w);
+}
+.tr-login__footer { padding-bottom: var(--tr-space-6); }
+
+/* Marchio del cliente: logo + nome del prodotto in mono, separati da un
+   filetto verticale stondato. Il logo del cliente non si ricolora, non si
+   ridisegna e non si mette dentro un riquadro: si appoggia sul paper. */
+.tr-clientmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-4);
+  text-decoration: none;
+}
+.tr-clientmark__logo {
+  height: var(--tr-client-logo-h);
+  width: auto;
+  display: block;
+  flex: none;
+}
+.tr-clientmark__sep {
+  width: var(--tr-rule-thin);
+  height: 28px;
+  background: var(--tr-border-soft);
+  border-radius: var(--tr-radius-line);
+  flex: none;
+}
+.tr-clientmark__product {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono-wide);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  white-space: nowrap;
+}
+
+/* ========================================================================== 
+   Controlli di interfaccia
+   Introdotti dalla pagina di login, riusabili in tutta la UI software.
+   Stesso linguaggio del resto del sistema: filetti al posto di ombre e ring,
+   etichette mono maiuscole, pillole per le azioni.
+   ========================================================================== */
+
+/* ---- Campo con etichetta flottante ----
+
+   L'etichetta parte dentro il campo, al posto del placeholder, e sale sul
+   filetto superiore quando il campo riceve il focus o contiene un valore.
+   Il placeholder vero resta invisibile finche' l'etichetta non e' salita, cosi'
+   i due testi non si sovrappongono mai.
+
+   IL COMPORTAMENTO E' IN CSS PURO. Si regge su tre cose soltanto:
+     1. l'ordine nel DOM — il CONTROLLO viene prima, l'ETICHETTA dopo;
+     2. la pseudo-classe :placeholder-shown, quindi il controllo deve sempre
+        avere un placeholder (anche solo uno spazio: placeholder=" ");
+     3. :focus.
+   Nessun JavaScript, nessuno stato di framework: lo stesso markup vale identico
+   in HTML, React/Next, Angular, Vue, Svelte. Per i controlli che un framework
+   rimpiazza con un widget proprio (autocomplete, ng-select, react-select) c'e'
+   la classe di forzatura .tr-field--float sul contenitore.
+
+   Struttura:
+     .tr-field [.tr-field--with-prefix] [.tr-field--error]
+       .tr-field__control     <- input | select | textarea, con placeholder
+       .tr-field__label       <- SEMPRE dopo il controllo
+       .tr-field__prefix      <- icona a sinistra (facoltativa)
+       .tr-field__suffix      <- icona/azione a destra (facoltativa)
+       .tr-field__assist      <- riga di servizio: hint o errore + contatore
+   ========================================================================== */
+.tr-field {
+  position: relative;
+  display: block;
+}
+
+.tr-field__control {
+  width: 100%;
+  height: var(--tr-field-h);
+  /* Il respiro in alto e' quello che libera la corsia dell'etichetta. */
+  padding: 22px var(--tr-field-pad-x) 6px;
+  border: var(--tr-rule-thin) solid var(--tr-border-soft);
+  border-radius: var(--tr-field-radius);
+  background: transparent;
+  font-family: var(--tr-font-display);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--tr-ink-900);
+  transition:
+    border-color var(--tr-motion-fast) var(--tr-motion-ease),
+    box-shadow var(--tr-motion-fast) var(--tr-motion-ease);
+}
+textarea.tr-field__control {
+  height: auto;
+  min-height: calc(var(--tr-field-h) + 32px);
+  padding-top: 24px;
+  padding-bottom: 12px;
+  resize: vertical;
+}
+select.tr-field__control {
+  appearance: none;
+  padding-right: var(--tr-field-affix);
+  cursor: pointer;
+}
+
+/* Il placeholder resta invisibile finche' l'etichetta occupa il suo posto:
+   compare solo quando il campo ha il focus e l'etichetta e' salita. */
+.tr-field__control::placeholder {
+  color: transparent;
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-field__control:focus::placeholder { color: var(--tr-ink-400); opacity: 0.6; }
+
+.tr-field__control:hover { border-color: var(--tr-border-soft-2); }
+/* Al focus il filetto vira al blu e raddoppia otticamente con un anello da 1px:
+   non e' un'ombra decorativa ed evita lo scatto di 1px di un border piu' spesso. */
+.tr-field__control:focus {
+  border-color: var(--tr-brand-500);
+  box-shadow: 0 0 0 1px var(--tr-brand-500);
+}
+.tr-field__control:focus,
+.tr-field__control:focus-visible { outline: none; }
+
+/* ---- Etichetta ---- */
+.tr-field__label {
+  position: absolute;
+  top: 0;
+  left: calc(var(--tr-field-pad-x) - 4px);
+  z-index: 1;
+  max-width: calc(100% - var(--tr-field-pad-x) * 2);
+  padding: 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(var(--tr-field-label-rest));
+  transform-origin: left center;
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  /* Si animano solo transform e colore: nessun reflow, nessuno sfarfallio. */
+  transition:
+    transform var(--tr-motion-fast) var(--tr-motion-ease),
+    color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+
+/* Stato salito: il centro dell'etichetta si appoggia sul filetto superiore e
+   la sua tacca ricopre il filetto. Solo transform, quindi interpola pulito. */
+.tr-field__control:focus + .tr-field__label,
+.tr-field__control:not(:placeholder-shown) + .tr-field__label,
+/* Controlli che mostrano sempre un valore e non conoscono :placeholder-shown */
+select.tr-field__control + .tr-field__label,
+.tr-field__control[type="date"] + .tr-field__label,
+.tr-field__control[type="time"] + .tr-field__label,
+.tr-field__control[type="month"] + .tr-field__label,
+.tr-field__control[type="datetime-local"] + .tr-field__label,
+/* Forzatura per i widget di framework che non sono un <input> vero */
+.tr-field--float .tr-field__label {
+  transform: translateY(-50%) scale(0.84);
+  background: var(--tr-field-bg);
+}
+.tr-field__control:focus + .tr-field__label { color: var(--tr-brand-500); }
+
+/* ---- Compilazione automatica del browser ----
+
+   Quando il browser compila un campo da se', il valore si vede ma
+   :placeholder-shown resta valido — nello stato di anteprima di Chrome il
+   valore e' solo dipinto, non e' ancora nel DOM. Senza queste regole
+   l'etichetta resterebbe a riposo, sopra al valore.
+
+   Ogni motore ha il suo selettore e ognuno sta in una REGOLA SEPARATA: un
+   selettore non riconosciuto invaliderebbe l'intera lista, e con essa anche
+   il comportamento sugli altri browser. Per lo stesso motivo la dichiarazione
+   e' ripetuta invece di essere raccolta in un elenco di selettori. */
+.tr-field__control:autofill + .tr-field__label {
+  transform: translateY(-50%) scale(0.84);
+  background: var(--tr-field-bg);
+}
+.tr-field__control:-webkit-autofill + .tr-field__label {
+  transform: translateY(-50%) scale(0.84);
+  background: var(--tr-field-bg);
+}
+
+/* Il fondo giallo/azzurro che Chrome dipinge sul campo compilato e' un pannello
+   pieno dietro al contenuto: il sistema non lo ammette. Non e' rimovibile con
+   background-color, si copre con un'ombra interna piena. */
+.tr-field__control:-webkit-autofill,
+.tr-field__control:-webkit-autofill:hover {
+  -webkit-text-fill-color: var(--tr-ink-900);
+  -webkit-box-shadow: 0 0 0 1000px var(--tr-field-bg) inset;
+  box-shadow: 0 0 0 1000px var(--tr-field-bg) inset;
+  caret-color: var(--tr-ink-900);
+  font-family: var(--tr-font-display);
+}
+/* Al focus l'anello va ridichiarato insieme alla copertura, altrimenti
+   l'ombra interna lo sostituirebbe. */
+.tr-field__control:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1px var(--tr-brand-500), 0 0 0 1000px var(--tr-field-bg) inset;
+  box-shadow: 0 0 0 1px var(--tr-brand-500), 0 0 0 1000px var(--tr-field-bg) inset;
+}
+.tr-field--error .tr-field__control:-webkit-autofill:focus,
+.tr-field__control--error:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1px var(--tr-state-danger), 0 0 0 1000px var(--tr-field-bg) inset;
+  box-shadow: 0 0 0 1px var(--tr-state-danger), 0 0 0 1000px var(--tr-field-bg) inset;
+}
+
+/* Asterisco del campo obbligatorio */
+.tr-field__required { color: var(--tr-state-danger); }
+
+/* ---- Prefisso / suffisso ---- */
+.tr-field__prefix,
+.tr-field__suffix {
+  position: absolute;
+  top: 0;
+  height: var(--tr-field-h);
+  display: flex;
+  align-items: center;
+  color: var(--tr-brand-500);
+  pointer-events: none;
+}
+.tr-field__prefix { left: var(--tr-field-pad-x); }
+.tr-field__suffix { right: var(--tr-field-pad-x); color: var(--tr-ink-400); }
+/* Suffisso cliccabile (mostra/nascondi password, cancella, apri calendario) */
+.tr-field__suffix--action {
+  pointer-events: auto;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-field__suffix--action:hover { color: var(--tr-brand-600); }
+
+.tr-field--with-prefix .tr-field__control { padding-left: var(--tr-field-affix); }
+.tr-field--with-prefix .tr-field__label { left: calc(var(--tr-field-affix) - 4px); }
+.tr-field--with-suffix .tr-field__control { padding-right: var(--tr-field-affix); }
+
+/* ---- Riga di servizio ----
+   Altezza riservata anche quando e' vuota: la comparsa di un errore non deve
+   far saltare il layout del form. */
+.tr-field__assist {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tr-space-3);
+  min-height: 18px;
+  margin-top: var(--tr-space-2);
+  padding: 0 var(--tr-field-pad-x);
+}
+.tr-field__hint,
+.tr-field__error,
+.tr-field__counter {
+  margin: 0;
+  font-family: var(--tr-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+}
+.tr-field__hint { color: var(--tr-ink-400); }
+.tr-field__error { color: var(--tr-state-danger); font-weight: var(--tr-weight-semibold); }
+.tr-field__counter { color: var(--tr-ink-400); margin-left: auto; flex: none; }
+
+/* ---- Stati ---- */
+.tr-field--error .tr-field__control,
+.tr-field__control--error { border-color: var(--tr-state-danger); }
+.tr-field--error .tr-field__control:focus,
+.tr-field__control--error:focus {
+  border-color: var(--tr-state-danger);
+  box-shadow: 0 0 0 1px var(--tr-state-danger);
+}
+.tr-field--error .tr-field__label,
+.tr-field--error .tr-field__control:focus + .tr-field__label,
+.tr-field__control--error + .tr-field__label,
+.tr-field__control--error:focus + .tr-field__label { color: var(--tr-state-danger); }
+.tr-field--error .tr-field__prefix { color: var(--tr-state-danger); }
+
+.tr-field__control:disabled {
+  background: var(--tr-surface-tint);
+  color: var(--tr-ink-400);
+  cursor: not-allowed;
+}
+.tr-field__control:disabled + .tr-field__label { color: var(--tr-ink-400); opacity: 0.7; }
+.tr-field--disabled .tr-field__label { --tr-field-bg: var(--tr-surface-tint); }
+
+/* Sola lettura: nessun fondo, filetto piu' tenue */
+.tr-field__control:read-only:not(:disabled) { border-color: var(--tr-border-soft); color: var(--tr-ink-600); }
+
+/* Codice OTP e simili: cifre mono distanziate, allineate al centro */
+.tr-field__control--code {
+  text-align: center;
+  font-family: var(--tr-font-mono);
+  font-size: 24px;
+  letter-spacing: 0.5em;
+  /* La spaziatura sposta otticamente il testo a destra: si compensa. */
+  text-indent: 0.5em;
+}
+
+/* Chi ha chiesto meno movimento vede lo stesso stato finale, senza corsa. */
+@media (prefers-reduced-motion: reduce) {
+  .tr-field__control,
+  .tr-field__control::placeholder,
+  .tr-field__label,
+  .tr-field__suffix--action { transition: none; }
+}
+
+/* ---- Select ----
+
+   Il menu di un <select> nativo lo disegna il sistema operativo: non e'
+   stilabile, in nessun browser. Dove serve il linguaggio del sistema anche
+   nel menu, il select viene affiancato da una listbox costruita a parte.
+
+   Il <select> nativo pero' RESTA NEL DOM ed e' lui a tenere il valore: form
+   nativi, reactive forms di Angular e componenti controllati di React
+   continuano a funzionare senza sapere nulla di questo componente. Ed e' anche
+   il ripiego: finche' l'enhancement non e' avvenuto — JS non caricato, errore,
+   markup parziale — la classe .tr-select--ready non c'e' e resta in campo il
+   select nativo, funzionante.
+
+   Struttura:
+     .tr-field.tr-select [.tr-select--ready] [data-open="true"]
+       select.tr-field__control.tr-select__native   <- il valore vive qui
+       label.tr-field__label
+       button.tr-field__control.tr-select__trigger  <- role="combobox"
+         span.tr-select__value
+       span.tr-field__suffix.tr-select__chevron
+       ul.tr-select__panel                          <- role="listbox"
+         li.tr-select__option                       <- role="option"
+           span.tr-select__dot
+           span.tr-select__option-label
+   ========================================================================== */
+.tr-select { position: relative; }
+
+/* L'etichetta di un select sta sempre in alto: non c'e' uno stato a riposo. */
+.tr-select .tr-field__label {
+  transform: translateY(-50%) scale(0.84);
+  background: var(--tr-field-bg);
+}
+
+/* Prima dell'enhancement esiste solo il select nativo. */
+.tr-select__trigger,
+.tr-select__panel { display: none; }
+
+.tr-select--ready .tr-select__native {
+  /* Fuori dalla vista ma dentro il form: continua a portare il valore. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.tr-select--ready .tr-select__trigger { display: flex; }
+.tr-select--ready .tr-select__panel { display: block; }
+
+/* ---- Trigger ----
+   Riusa .tr-field__control: stessa scatola, stesso filetto, stesso anello di
+   focus del resto dei campi. */
+.tr-select__trigger {
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--tr-font-display);
+}
+.tr-select__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tr-select__value--placeholder { color: var(--tr-ink-400); }
+.tr-select__trigger:disabled { cursor: not-allowed; }
+
+/* Il chevron ruota all'apertura. Ruota l'icona, non il contenitore: il
+   contenitore e' posizionato in assoluto e ruotarlo sposterebbe la scatola. */
+.tr-select__chevron > * {
+  display: block;
+  transition: transform var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-select[data-open="true"] .tr-select__chevron > * { transform: rotate(180deg); }
+.tr-select[data-open="true"] .tr-select__trigger {
+  border-color: var(--tr-brand-500);
+  box-shadow: 0 0 0 1px var(--tr-brand-500);
+}
+
+/* ---- Pannello ----
+   Resta nel DOM anche da chiuso: e' cio' che permette di animare apertura e
+   chiusura senza passare da display:none, che non e' animabile.
+   Il pannello e' il contenitore; la lista scorre al suo interno, cosi' il campo
+   di ricerca resta fermo in testa mentre le voci scorrono sotto. */
+.tr-select__panel {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(var(--tr-field-h) + 6px);
+  display: flex;
+  flex-direction: column;
+  /* Il pannello galleggia sopra il contenuto: qui il filetto non e' decorazione
+     ma l'unica cosa che ne segna il confine, perche' bianco su bianco non si
+     staccherebbe. */
+  background: var(--tr-surface);
+  border: var(--tr-rule-thin) solid var(--tr-border-soft);
+  border-radius: var(--tr-radius-ui);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity var(--tr-motion-fast) var(--tr-motion-ease),
+    transform var(--tr-motion-fast) var(--tr-motion-ease),
+    visibility 0s linear var(--tr-motion-fast);
+}
+.tr-select[data-open="true"] .tr-select__panel {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+/* Se non c'e' spazio sotto, il pannello si apre verso l'alto. */
+.tr-select[data-drop="up"] .tr-select__panel {
+  top: auto;
+  bottom: calc(var(--tr-field-h) + 6px);
+  transform: translateY(4px);
+}
+.tr-select[data-drop="up"][data-open="true"] .tr-select__panel { transform: none; }
+
+.tr-select__list {
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  max-height: 268px;
+  overflow-y: auto;
+  /* Senza questo, overflow-y:auto rende automatico anche l'asse orizzontale e
+     l'etichetta indentata fa comparire una barra di scorrimento. */
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+/* ---- Ricerca ----
+   Su un elenco lungo scorrere non basta e la digitazione del select nativo
+   cerca solo dall'inizio della voce: serve un filtro vero. Compare da sola
+   oltre la soglia, perche' su cinque voci sarebbe solo un ostacolo in piu'. */
+.tr-select__search {
+  display: flex;
+  align-items: center;
+  gap: var(--tr-space-3);
+  flex: none;
+  padding: 4px var(--tr-field-pad-x);
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-select__search-icon {
+  flex: none;
+  display: flex;
+  color: var(--tr-brand-500);
+}
+.tr-select__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--tr-font-display);
+  font-size: 14px;
+  color: var(--tr-ink-900);
+}
+.tr-select__search-input:focus { outline: none; }
+.tr-select__search-input::placeholder { color: var(--tr-ink-400); opacity: 0.7; }
+/* Quante voci restano dopo il filtro: mono, come tutti i metadati. */
+.tr-select__count {
+  flex: none;
+  font-family: var(--tr-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-tracking-mono);
+  color: var(--tr-ink-400);
+  font-variant-numeric: tabular-nums;
+}
+.tr-select__empty {
+  margin: 0;
+  padding: 18px var(--tr-field-pad-x);
+  font-family: var(--tr-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+/* ---- Opzione ----
+   Il dot entra da sinistra e l'etichetta scorre a destra. Si muovono solo
+   opacity e transform: la voce sotto il puntatore non cambia dimensione e
+   non si sposta, quindi il puntatore non "perde" la riga che stava mirando —
+   e' il motivo per cui l'indentazione non si fa con padding o width. */
+.tr-select__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* Il respiro a destra riserva lo spazio in cui l'etichetta scorre: cosi' il
+     testo non sborda e i puntini di sospensione restano visibili. */
+  padding: 9px calc(var(--tr-field-pad-x) + var(--tr-dot-size) + 10px) 9px var(--tr-field-pad-x);
+  cursor: pointer;
+  color: var(--tr-ink-600);
+  font-family: var(--tr-font-display);
+  font-size: 14px;
+  line-height: 1.4;
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
+  user-select: none;
+}
+/* Un display esplicito batte la regola [hidden] del browser: senza questa riga
+   le voci escluse dal filtro resterebbero visibili. */
+.tr-select__option[hidden] { display: none; }
+.tr-select__dot {
+  position: absolute;
+  left: var(--tr-field-pad-x);
+  width: var(--tr-dot-size);
+  height: var(--tr-dot-size);
+  border-radius: var(--tr-radius-pill);
+  background: var(--tr-brand-500);
+  opacity: 0;
+  transform: scale(0.3);
+  transition:
+    opacity var(--tr-motion-fast) var(--tr-motion-ease),
+    transform var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-select__option-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: transform var(--tr-motion-fast) var(--tr-motion-ease);
+}
+
+/* Voce puntata dal mouse e voce attiva da tastiera: stesso stato, cosi' le due
+   navigazioni si somigliano invece di comportarsi in modo diverso. */
+.tr-select__option:hover,
+.tr-select__option--active {
+  color: var(--tr-ink-900);
+}
+.tr-select__option:hover .tr-select__dot,
+.tr-select__option--active .tr-select__dot {
+  opacity: 1;
+  transform: none;
+}
+.tr-select__option:hover .tr-select__option-label,
+.tr-select__option--active .tr-select__option-label {
+  transform: translateX(calc(var(--tr-dot-size) + 10px));
+}
+
+/* Voce scelta: il dot resta, l'etichetta resta indentata. */
+.tr-select__option[aria-selected="true"] {
+  color: var(--tr-ink-900);
+  font-weight: var(--tr-weight-semibold);
+}
+.tr-select__option[aria-selected="true"] .tr-select__dot { opacity: 1; transform: none; }
+.tr-select__option[aria-selected="true"] .tr-select__option-label {
+  transform: translateX(calc(var(--tr-dot-size) + 10px));
+}
+
+.tr-select__option[aria-disabled="true"] {
+  color: var(--tr-ink-400);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.tr-select__option[aria-disabled="true"]:hover { color: var(--tr-ink-400); }
+.tr-select__option[aria-disabled="true"]:hover .tr-select__dot { opacity: 0; transform: scale(0.3); }
+.tr-select__option[aria-disabled="true"]:hover .tr-select__option-label { transform: none; }
+/* Un segnaposto disabilitato non e' una scelta: niente dot ne' indentazione,
+   anche quando il nativo lo riporta come selezionato. */
+.tr-select__option[aria-disabled="true"][aria-selected="true"] { font-weight: var(--tr-weight-body); }
+.tr-select__option[aria-disabled="true"][aria-selected="true"] .tr-select__dot { opacity: 0; transform: scale(0.3); }
+.tr-select__option[aria-disabled="true"][aria-selected="true"] .tr-select__option-label { transform: none; }
+
+/* ---- Gruppi di opzioni ----
+   Il gruppo e' reso con un <ul role="group"> annidato: e' cosi' che ARIA
+   ammette di raggruppare dentro una listbox, e uno screen reader annuncia il
+   nome del gruppo insieme alla voce. L'intestazione e' un'etichetta tecnica,
+   quindi mono maiuscola come tutte le altre. */
+.tr-select__group {
+  display: block;
+  padding: 10px var(--tr-field-pad-x) 4px;
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: 10px;
+  letter-spacing: var(--tr-tracking-mono-wide);
+  text-transform: uppercase;
+  color: var(--tr-brand-600);
+}
+.tr-select__group-items { margin: 0; padding: 0; list-style: none; }
+.tr-select__group-wrap + .tr-select__group-wrap .tr-select__group {
+  margin-top: 4px;
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+  padding-top: 10px;
+}
+
+/* Separatore fra gruppi di opzioni */
+.tr-select__separator {
+  height: var(--tr-rule-thin);
+  margin: 6px var(--tr-field-pad-x);
+  background: var(--tr-border-soft);
+  border-radius: var(--tr-radius-line);
+}
+
+/* Stato di errore ereditato dal campo */
+.tr-field--error .tr-select__trigger { border-color: var(--tr-state-danger); }
+.tr-field--error.tr-select[data-open="true"] .tr-select__trigger {
+  border-color: var(--tr-state-danger);
+  box-shadow: 0 0 0 1px var(--tr-state-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-card--action::after,
+  .tr-select__panel,
+  .tr-select__dot,
+  .tr-select__option,
+  .tr-select__option-label,
+  .tr-select__chevron > * { transition: none; }
+}
+
+/* ---- Variante compatta ----
+   I filtri che vivono dentro una barra non sono campi di form: non hanno
+   attorno lo spazio di un'etichetta flottante ne' di una riga di servizio, e
+   un campo da 56px li sfonderebbe. La variante compatta abbassa il campo e
+   toglie l'etichetta interna; l'etichetta resta comunque nel markup, ma per le
+   sole tecnologie assistive (.tr-sr-only) o scritta di fianco. */
+.tr-field--compact .tr-field__control {
+  height: var(--tr-field-h-compact);
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 14px;
+}
+.tr-field--compact textarea.tr-field__control { height: auto; }
+.tr-field--compact .tr-field__label { display: none; }
+.tr-field--compact .tr-field__assist { display: none; }
+.tr-field--compact .tr-field__prefix,
+.tr-field--compact .tr-field__suffix { height: var(--tr-field-h-compact); }
+.tr-select--compact .tr-select__panel { top: calc(var(--tr-field-h-compact) + 6px); }
+.tr-select--compact[data-drop="up"] .tr-select__panel {
+  top: auto;
+  bottom: calc(var(--tr-field-h-compact) + 6px);
+}
+
+/* Visibile solo alle tecnologie assistive: serve alle etichette che il layout
+   non puo' mostrare ma che il campo deve comunque avere. */
+.tr-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Card ----
+   Il sistema preferisce i layout aperti: prima di mettere una card, chiedersi
+   se bastano un filetto e un po' di spazio. La card serve dove un gruppo di
+   contenuti e' davvero un'unita' — una scheda, un pannello, un riepilogo — e
+   non semplicemente una sezione di pagina.
+
+   Quando serve, la card non ha ne' bordo ne' ombra: la separa il piano su cui
+   poggia. La pagina e' il fondo neutro, la card sta un gradino sopra, in
+   bianco. E' la stessa idea dei filetti — separare con il minimo — applicata
+   alla superficie invece che alla linea.
+
+   La card ridefinisce --tr-field-bg per i propri figli: la tacca dell'etichetta
+   flottante deve ricoprire il filetto del campo con il bianco della card, non
+   con il neutro della pagina.
+   ========================================================================== */
+.tr-card {
+  --tr-field-bg: var(--tr-surface);
+  display: block;
+  padding: var(--tr-space-5);
+  border: 0;
+  border-radius: var(--tr-radius-ui);
+  background: var(--tr-surface);
+}
+@media (min-width: 720px) {
+  .tr-card { padding: var(--tr-space-6); }
+}
+
+/* Riportata sul piano della pagina: per i blocchi impilati, dove a dividere
+   bastano lo spazio e i filetti che il contenuto ha gia'. */
+.tr-card--plain {
+  --tr-field-bg: var(--tr-paper);
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Card cliccabile. Il filetto vira all'accento e il titolo si scurisce: nessun
+   sollevamento, nessuna ombra — il sistema non ha profondita' da simulare. */
+.tr-card--action {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--tr-motion-fast) var(--tr-motion-ease),
+    color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+/* Senza bordo da tingere, il richiamo e' lo stesso delle azioni: un filetto
+   che cresce da sinistra lungo il bordo inferiore. */
+.tr-card--action { position: relative; overflow: hidden; }
+.tr-card--action::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--tr-rule-accent);
+  background: var(--tr-brand-500);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms var(--tr-motion-ease);
+}
+.tr-card--action:hover::after { transform: scaleX(1); }
+.tr-card--action:hover .tr-card__title { color: var(--tr-brand-700); }
+.tr-card--action:focus-visible {
+  outline: 2px solid var(--tr-brand-500);
+  outline-offset: 2px;
+}
+
+/* Selezionata. Il filetto in basso e' gia' impegnato dall'hover, e i due
+   segni non possono stare sullo stesso bordo: uno coprirebbe l'altro, e a
+   distinguerli resterebbe solo una sfumatura di blu. La scelta prende quindi
+   il fianco sinistro — lo stesso gesto dell'avviso in linea — cosi' le due
+   condizioni si leggono per posizione e non per tinta.
+
+   In una fila di card senza bordo e' l'unico segno a riposo: la card scelta
+   si trova senza doverle confrontare una a una.
+
+   Si dichiara con aria-pressed su un <button>, con aria-current su un <a>, o
+   con .is-selected dove non c'e' semantica da esprimere. */
+.tr-card--action::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--tr-rule-accent);
+  background: var(--tr-brand-500);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-card--action[aria-pressed="true"]::before,
+.tr-card--action[aria-current]:not([aria-current="false"])::before,
+.tr-card--action.is-selected::before { transform: scaleX(1); }
+
+.tr-card--action[aria-pressed="true"] .tr-card__title,
+.tr-card--action[aria-current]:not([aria-current="false"]) .tr-card__title,
+.tr-card--action.is-selected .tr-card__title { color: var(--tr-brand-700); }
+
+
+/* Testata: eyebrow mono, titolo, e il filetto che chiude l'intestazione.
+   E' lo stesso impianto delle sezioni di pagina, in scala ridotta. */
+.tr-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tr-space-4);
+  padding-bottom: var(--tr-space-4);
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+  margin-bottom: var(--tr-space-5);
+}
+.tr-card__head--bare {
+  padding-bottom: 0;
+  border-bottom: 0;
+  margin-bottom: var(--tr-space-4);
+}
+/* In frase, non in maiuscolo. Il titolo di una card e' contenuto — il nome di
+   un centro, di una misura, di un paziente — non un'etichetta di sistema. Il
+   maiuscolo appartiene alla voce mono, che dice "questo lo scrive il
+   programma", e ai titoli display di .tr-h1/h2/h3, che aprono una sezione e si
+   leggono una volta. Il titolo di una card si legge trenta volte al giorno e
+   spesso e' un nome proprio: in maiuscolo perde la sagoma della parola e
+   costringe a compitarlo. */
+.tr-card__title {
+  margin: 0;
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-display);
+  font-size: var(--tr-text-h3);
+  line-height: var(--tr-leading-display);
+  letter-spacing: var(--tr-tracking-display);
+  color: var(--tr-ink-900);
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-card__title em { font-style: normal; color: var(--tr-brand-500); }
+.tr-card__sub {
+  margin: var(--tr-space-2) 0 0;
+  font-size: 14px;
+  color: var(--tr-ink-400);
+  max-width: 62ch;
+}
+/* Metadato o azione in coda alla testata */
+.tr-card__aside {
+  flex: none;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+.tr-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tr-space-3) var(--tr-space-6);
+  padding-top: var(--tr-space-4);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+  margin-top: var(--tr-space-5);
+}
+
+/* Griglia di card: stessa spaziatura ovunque, senza margini sui singoli. */
+.tr-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--tr-space-5);
+}
+
+/* Stato vuoto dentro una card: mono, centrato, senza illustrazioni. */
+.tr-card__empty {
+  padding: var(--tr-space-7) var(--tr-space-5);
+  text-align: center;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+/* ---- Gruppo di opzioni (radio / checkbox) ----
+   Qui non c'e' un controllo unico su cui far salire l'etichetta: il gruppo
+   tiene la sua etichetta sopra, statica, nello stesso stile mono del campo.
+
+   Va reso con <div role="group"> e un'etichetta collegata da aria-labelledby,
+   NON con <fieldset>/<legend>. Il legame per le tecnologie assistive e' lo
+   stesso, ma <legend> ha regole di rendering tutte sue dentro un <fieldset> e
+   non si comporta come un normale blocco: qualunque tentativo di dargli un
+   margine affidabile finisce per romperne il flusso, e in una griglia le
+   opzioni scavalcano la colonna accanto. */
+.tr-fieldset {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.tr-fieldset__legend {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--tr-space-3);
+  padding: 0;
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+.tr-fieldset--error .tr-fieldset__legend { color: var(--tr-state-danger); }
+
+/* ---- Azione ----
+   Nessuno sfondo, nessuna cornice: solo l'etichetta mono maiuscola e un filetto.
+   E' la stessa regola del resto del sistema — la struttura la danno i filetti,
+   la spaziatura e gli allineamenti, non le scatole — applicata finalmente anche
+   alle azioni, che erano rimaste l'ultimo elemento con un contenitore pieno.
+
+   A riposo il pulsante e' solo la sua etichetta: il filetto compare sotto il
+   puntatore. La gerarchia si legge quindi da una cosa sola, il colore
+   dell'inchiostro — ed e' il motivo per cui le varianti sono cinque e non di
+   piu': senza fondo, senza cornice e senza filetto fisso non ci sono altri
+   gradi da esprimere, e inventarne renderebbe solo indistinguibili due nomi.
+
+   Gerarchia, dalla piu' forte alla piu' debole:
+     --primary    inchiostro blu: l'azione che porta avanti il compito,
+                  una sola per schermata
+     --secondary  inchiostro scuro
+     --neutral    inchiostro tenue: annulla, chiudi, torna indietro
+     --quiet      inchiostro tenue, filetto blu: azioni di servizio
+     --danger     inchiostro rosso: solo cio' che distrugge
+
+   Va detto che senza fondo e senza bordo l'azione somiglia a un collegamento:
+   e' un compromesso voluto in favore della quiete della pagina, e regge finche'
+   le etichette restano in mono maiuscolo, che nel sistema significa "comando".
+   ========================================================================== */
+.tr-btn {
+  /* Colore del filetto che cresce all'hover; ogni variante lo ridefinisce. */
+  --tr-btn-rule: var(--tr-brand-500);
+  --tr-btn-rule-h: 2px;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tr-space-2);
+  height: var(--tr-btn-h);
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--tr-ink-900);
+  cursor: pointer;
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+
+/* Il filetto non esiste a riposo: compare solo sotto il puntatore. A fermo il
+   pulsante e' solo la sua etichetta. */
+.tr-btn::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 8px 0;
+  height: var(--tr-btn-rule-h);
+  background: var(--tr-btn-rule);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms var(--tr-motion-ease);
+}
+.tr-btn:hover:not(:disabled):not([aria-busy="true"])::before { transform: scaleX(1); }
+
+.tr-btn:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 3px; }
+.tr-btn:disabled,
+.tr-btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+.tr-btn[aria-busy="true"] { cursor: progress; pointer-events: none; }
+.tr-btn:active:not(:disabled) { transform: translateY(1px); }
+
+/* L'icona in coda accompagna il gesto; quella in testa resta ferma, altrimenti
+   scivolerebbe addosso al testo. */
+.tr-btn > svg:last-child:not(:first-child) {
+  transition: transform var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-btn:hover:not(:disabled) > svg:last-child:not(:first-child) { transform: translateX(3px); }
+
+/* ---- Gerarchia ---- */
+.tr-btn--primary {
+  color: var(--tr-brand-600);
+  --tr-btn-rule: var(--tr-brand-500);
+}
+.tr-btn--primary:hover:not(:disabled) { color: var(--tr-brand-700); }
+
+.tr-btn--secondary {
+  color: var(--tr-ink-900);
+  --tr-btn-rule: var(--tr-brand-500);
+}
+.tr-btn--secondary:hover:not(:disabled) { color: var(--tr-brand-700); }
+
+/* Annulla e chiudi non sono azioni da richiamare: nessun filetto acceso, e
+   nemmeno l'accento sotto il puntatore. */
+.tr-btn--neutral {
+  color: var(--tr-ink-400);
+  --tr-btn-rule: var(--tr-ink-400);
+}
+.tr-btn--neutral:hover:not(:disabled) { color: var(--tr-ink-900); }
+
+.tr-btn--quiet {
+  color: var(--tr-ink-400);
+  --tr-btn-rule: var(--tr-brand-500);
+}
+.tr-btn--quiet:hover:not(:disabled) { color: var(--tr-brand-600); }
+
+/* ---- Azioni distruttive ----
+   Il rosso di stato e' l'unica altra tinta ammessa, e solo qui: un pulsante
+   rosso che non cancella nulla svaluta quelli che lo fanno davvero. */
+.tr-btn--danger {
+  color: var(--tr-state-danger);
+  --tr-btn-rule: var(--tr-state-danger);
+}
+.tr-btn--danger:hover:not(:disabled) { color: var(--tr-state-danger-dark); }
+
+
+/* ---- Eccezione: l'azione della pagina di login ----
+   Ovunque l'azione e' senza fondo, e regge perche' attorno c'e' del contenuto
+   che le da' contesto. Nella pagina di login non c'e': una schermata quasi
+   vuota, un campo, e un solo comando. Li' un'etichetta senza superficie si
+   legge come un collegamento invece che come il pulsante che chiude il compito,
+   e su un accesso non ci si puo' permettere l'esitazione.
+
+   Qui, e solo qui, la primaria torna a essere una superficie piena. La regola e'
+   legata al blocco .tr-login: fuori da quello non esiste, cosi' non puo' essere
+   usata per sbaglio altrove — che e' il motivo per cui non e' una variante.
+   Lo spigolo vivo resta: cambia il fondo, non la geometria. */
+.tr-login .tr-btn--primary {
+  padding: 0 24px;
+  background: var(--tr-brand-600);
+  color: var(--tr-ink-on-solid);
+  --tr-btn-rule: rgba(255, 255, 255, 0.92);
+}
+.tr-login .tr-btn--primary:hover:not(:disabled) {
+  background: var(--tr-brand-700);
+  color: var(--tr-ink-on-solid);
+}
+
+/* ---- Misure ---- */
+.tr-btn--sm { height: var(--tr-btn-h-sm); font-size: var(--tr-text-caption); }
+.tr-btn--sm::before { bottom: 5px; }
+.tr-btn--lg { height: var(--tr-btn-h-lg); font-size: 14px; }
+.tr-btn--lg::before { bottom: 11px; }
+.tr-btn--block { width: 100%; }
+
+/* Sola icona: nessun filetto sotto — una sottolineatura sotto un simbolo non
+   si legge come tale. Cambia l'inchiostro. Serve sempre un aria-label. */
+.tr-btn--icon {
+  width: var(--tr-btn-h);
+  height: var(--tr-btn-h);
+  color: var(--tr-ink-400);
+}
+.tr-btn--icon::before { content: none; }
+.tr-btn--icon:hover:not(:disabled) { color: var(--tr-brand-600); }
+.tr-btn--icon.tr-btn--danger:hover:not(:disabled) { color: var(--tr-state-danger); }
+.tr-btn--icon.tr-btn--sm { width: var(--tr-btn-h-sm); height: var(--tr-btn-h-sm); }
+
+/* Gruppo di azioni. Senza scatole servono piu' aria fra un comando e l'altro,
+   altrimenti due etichette vicine si leggono come una sola riga di testo. */
+.tr-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tr-space-3) var(--tr-space-6);
+}
+.tr-btn-group--end { justify-content: flex-end; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Lo stato finale resta, la corsa no. */
+  .tr-btn,
+  .tr-btn::before,
+  .tr-btn > svg:last-child:not(:first-child) { transition: none; }
+  .tr-btn:active:not(:disabled) { transform: none; }
+}
+
+/* ---- Avviso in linea ----
+   Filetto verticale colorato al posto del pannello pieno: il sistema non
+   ammette sfondi colorati dietro ai contenuti. */
+.tr-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tr-space-3);
+  padding: var(--tr-space-1) 0 var(--tr-space-1) var(--tr-space-4);
+  border-left: var(--tr-rule-medium) solid var(--tr-border-soft);
+  border-radius: var(--tr-radius-ui);
+  font-size: 14px;
+  color: var(--tr-ink-600);
+}
+.tr-notice--danger { border-left-color: var(--tr-state-danger); color: var(--tr-state-danger); }
+.tr-notice--warning { border-left-color: var(--tr-state-warning); color: var(--tr-state-warning); }
+.tr-notice--success { border-left-color: var(--tr-state-success); color: var(--tr-state-success); }
+.tr-notice p { margin: 0; }
+
+/* ========================================================================== 
+   Cornice foto ambientata
+   angoli 22–36px, bordo 1–2px border/soft, padding 7–14px.
+   I render/scontornati PNG invece fluttuano sul fondo pagina senza cornice.
+   ========================================================================== */
+.tr-photo-frame {
+  display: inline-block;
+  border: 1px solid var(--tr-border-soft);
+  border-radius: var(--tr-radius-photo);
+  padding: 10px;
+  background: transparent;
+}
+.tr-photo-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: calc(var(--tr-radius-photo) - 10px);
+}
+.tr-photo-float {
+  display: block;
+  max-width: 100%;
+  object-fit: contain; /* soggetto intero e centrato, fluttua sul paper */
+}
+
+/* ========================================================================== 
+   Ritaglio foto nella sagoma del marchio
+   Le due forme arrivano da assets/logo-traccia.svg. Il contenitore espone
+   dimensioni, scala e offset della maschera; MarkClip valorizza le variabili
+   tramite una classe di istanza e monta un clipPath con ID univoco.
+   ========================================================================== */
+.tr-mark-clip {
+  --tr-mark-clip-width: 640px;
+  --tr-mark-clip-height: 640px;
+  --tr-mark-clip-scale: 1;
+  --tr-mark-clip-mask-offset-x: 0px;
+  --tr-mark-clip-mask-offset-y: 0px;
+  --tr-mark-clip-object-position: 50% 50%;
+  --tr-mark-clip-path: url(#tracciaMarkClip);
+  --tr-mark-clip-canvas-left: 0px;
+  --tr-mark-clip-canvas-top: 0px;
+  --tr-mark-clip-canvas-width: 1280px;
+  --tr-mark-clip-canvas-height: 746.67px;
+  --tr-mark-clip-echo-offset-x: 24px;
+  --tr-mark-clip-echo-offset-y: 18px;
+  --tr-mark-clip-bleed-inline: var(--tr-space-7);
+
+  position: relative;
+  display: block;
+  flex: none;
+  isolation: isolate;
+  width: var(--tr-mark-clip-width);
+  height: var(--tr-mark-clip-height);
+  max-width: none;
+  margin: 0;
+  overflow: visible;
+}
+
+/* Le defs restano nel documento per risolvere url(#id), senza occupare spazio. */
+.tr-mark-clip__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tr-mark-clip__img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: var(--tr-mark-clip-object-position);
+  clip-path: var(--tr-mark-clip-path, url(#tracciaMarkClip));
+  -webkit-clip-path: var(--tr-mark-clip-path, url(#tracciaMarkClip));
+}
+
+/* L'outline usa lo stesso canvas della maschera, sfalsato dietro alla foto. */
+.tr-mark-clip__echo {
+  position: absolute;
+  z-index: 0;
+  left: calc(var(--tr-mark-clip-canvas-left) + var(--tr-mark-clip-echo-offset-x));
+  top: calc(var(--tr-mark-clip-canvas-top) + var(--tr-mark-clip-echo-offset-y));
+  display: block;
+  width: var(--tr-mark-clip-canvas-width);
+  height: var(--tr-mark-clip-canvas-height);
+  max-width: none;
+  object-fit: contain;
+  opacity: var(--tr-watermark-opacity);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Sbordo logico a destra nei layout LTR e a sinistra nei layout RTL. */
+.tr-mark-clip--bleed {
+  margin-inline-end: calc(0px - var(--tr-mark-clip-bleed-inline));
+}
+
+/* ========================================================================== 
+   Watermark logo (sagoma negli sfondi)
+   Versione outline del logo (assets/logo-traccia-outline.svg: fill none,
+   tratto blu logo) in opacità 0.16 sul paper, negli sfondi di brochure
+   e pagine di presentazione. Sta dietro ai contenuti, tipicamente sborda
+   da un bordo pagina, e non intercetta il puntatore.
+   Il contenitore pagina deve avere position:relative e tagliare lo sbordo.
+   Lo taglia con overflow:clip e non con hidden: hidden fa del contenitore un
+   contesto di scorrimento, e qualunque position:sticky al suo interno — la
+   colonna del dato di .tr-intro — smetterebbe di seguire la pagina. clip
+   taglia e basta.
+   ========================================================================== */
+.tr-watermark-host {
+  position: relative;
+  overflow: clip;
+}
+.tr-watermark {
+  position: absolute;
+  width: 330px; /* indicativo: scala col formato pagina */
+  height: auto;
+  opacity: var(--tr-watermark-opacity);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+.tr-watermark-host > :not(.tr-watermark):not(.tr-seashell) { position: relative; z-index: 1; }
+/* Posizioni ricorrenti: angolo alto-destra o basso-sinistra, sempre a sbordo */
+.tr-watermark--top-right { top: -74px; right: -40px; }
+.tr-watermark--bottom-left { bottom: -80px; left: -60px; }
+
+/* ==========================================================================
+   Conchiglia (solo decorazione di sfondo)
+   La conchiglia dell'immagine aziendale (assets/conchiglia.svg, generata da
+   tools/conchiglia.py): un ventaglio di petali fatti di archi annidati.
+   E' un asset decorativo e si usa SOLO negli sfondi: sta dietro ai
+   contenuti, non porta informazione e non firma la pagina. Non e' un
+   marchio: non sostituisce il chevron, non sta accanto al wordmark, non
+   diventa icona, illustrazione o elemento in primo piano.
+
+   Il perno sta nell'angolo della superficie e il ventaglio si apre verso
+   l'interno. Tratto blu logo a --tr-seashell-opacity sul paper: sono molte
+   linee sottili, quindi regge un'opacita' piu' alta della sagoma del
+   watermark. Vive nello stesso .tr-watermark-host del watermark e non
+   intercetta il puntatore.
+
+   Regole: una conchiglia per superficie; mai nello stesso angolo del
+   watermark; mai nei documenti formali (si fotocopiano e si scansionano,
+   come per il watermark). A differenza del marchio si puo' specchiare
+   (--bottom-left): due conchiglie speculari sono le due valve di una
+   composizione simmetrica.
+
+   (Il nome e' .tr-seashell perche' .tr-shell e' gia' il contenitore che
+   tiene il footer in fondo alla pagina.)
+
+   Markup:
+     <div class="tr-watermark-host">
+       <img class="tr-seashell" src="assets/conchiglia.svg" alt="" aria-hidden="true">
+       ...contenuto...
+     </div>
+   ========================================================================== */
+.tr-seashell {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 220px; /* indicativo: scala col formato pagina; l'altezza segue */
+  height: auto;
+  opacity: var(--tr-seashell-opacity);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+.tr-seashell--bottom-left { right: auto; left: 0; transform: scaleX(-1); }
+
+/* ========================================================================== 
+   15. Tabs
+   Cambiare vista non e' navigare: le tabs restano dentro la pagina e non
+   pretendono la voce alta di un menu. Sono etichette mono in fila, e a dire
+   quale sia quella attiva e' un filetto — lo stesso gesto dei pulsanti, dove
+   pero' li' compare all'hover e qui resta acceso su quella scelta.
+
+   Niente pastiglie, niente fondo colorato, niente slab scura: la barra sta
+   sul piano dei componenti e si stacca dal contenuto con un filetto soltanto.
+
+   Markup:
+     <div class="tr-tabs" role="tablist">
+       <button class="tr-tab" role="tab" aria-selected="true">Etichetta</button>
+       <button class="tr-tab" role="tab" aria-selected="false">
+         Altra <span class="tr-tab__count">3</span>
+       </button>
+     </div>
+
+   `--bottom` per la barra ancorata in fondo: il filetto passa sopra, cosi'
+   punta al contenuto invece che al vuoto sotto.
+   ========================================================================== */
+.tr-tabs {
+  display: flex;
+  gap: var(--tr-space-5);
+  box-sizing: border-box;
+  padding: 0 var(--tr-space-5);
+  border-bottom: 1px solid var(--tr-border-soft);
+  background: var(--tr-surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tr-tabs::-webkit-scrollbar { display: none; }
+
+.tr-tabs--bottom {
+  border-bottom: 0;
+  border-top: 1px solid var(--tr-border-soft);
+}
+
+.tr-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-2);
+  box-sizing: border-box;
+  height: var(--tr-btn-h-lg);
+  padding: 0;
+  border: 0;
+  border-radius: var(--tr-radius-ui);
+  background: none;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-mono);
+  font-weight: var(--tr-weight-semibold);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--tr-ink-400);
+  cursor: pointer;
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.tr-tab > svg { width: 15px; height: 15px; flex: none; }
+
+/* Il filetto: spento sulle tabs a riposo, accennato sotto il puntatore, pieno
+   su quella scelta. E' l'unico segno che distingue le tre condizioni. */
+.tr-tab::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--tr-rule-medium);
+  background: var(--tr-brand-500);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms var(--tr-motion-ease);
+}
+.tr-tabs--bottom .tr-tab::after { inset: 0 0 auto 0; }
+
+.tr-tab:hover { color: var(--tr-ink-900); }
+.tr-tab:hover::after { transform: scaleX(1); background: var(--tr-border-soft-2); }
+
+.tr-tab[aria-selected="true"] { color: var(--tr-ink-900); }
+.tr-tab[aria-selected="true"]::after,
+.tr-tab[aria-selected="true"]:hover::after {
+  transform: scaleX(1);
+  background: var(--tr-brand-500);
+}
+
+.tr-tab:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: -2px; }
+.tr-tab:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Il conteggio e' un dato, non una decorazione: cifre tabellari in coda
+   all'etichetta, senza pastiglia intorno. */
+.tr-tab__count {
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--tr-ink-400);
+}
+.tr-tab[aria-selected="true"] .tr-tab__count { color: var(--tr-brand-600); }
+
+/* ==========================================================================
+   Spinner di caricamento
+   Quattro varianti, un solo gesto: muovere il chevron del marchio. Nessuna
+   forma nuova, nessun secondo colore, nessuna ombra e nessun gradiente —
+   si animano soltanto opacity e transform, cosi' l'attesa non fa reflow.
+
+   Il marchio non ha un contorno proprio: le varianti riusano i tracciati di
+   assets/logo-traccia-mark.svg attraverso un <symbol id="tr-mark"> incollato
+   una volta per pagina. E' l'unico modo perche' <use> valga in ogni browser.
+
+   Variabili locali (non sono token: vivono dentro il componente)
+   --tr-sp-dur   moltiplicatore di durata; 1 e' la velocita' nominale
+   --tr-sp-ease  curva; per difetto quella del sistema
+   --tr-sp-run   corsa del chevron nella variante Traccia
+   --tr-sp-ring  diametro dell'anello
+
+   La scelta della variante la fa la durata dell'attesa, non il gusto:
+   Riempimento a schermo intero oltre il secondo, Traccia sul caricamento di
+   una pagina o di un elenco, Sequenza per l'attesa breve accanto a un'azione,
+   Anello per l'attesa indeterminata al centro di un pannello.
+   ========================================================================== */
+.tr-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-3);
+  color: var(--tr-brand-500);
+}
+.tr-spinner--stack { flex-direction: column; gap: var(--tr-space-5); }
+.tr-spinner--start { align-items: flex-start; }
+
+/* Dentro un pulsante il colore lo detta il testo che lo accompagna: due blu
+   diversi nella stessa etichetta sarebbero due voci per una cosa sola. */
+.tr-spinner--inherit { color: inherit; }
+
+.tr-spinner__mark { display: block; fill: currentColor; }
+
+/* Il wordmark accompagna il solo Riempimento: e' l'unica variante che occupa
+   la pagina. Nelle altre il marchio e' un indicatore dentro un'interfaccia
+   gia' firmata, e ripetere la firma non aggiunge nulla. */
+.tr-spinner__wordmark {
+  font-family: var(--tr-font-wordmark);
+  font-weight: var(--tr-weight-wordmark);
+  font-size: var(--tr-text-lead);
+  letter-spacing: var(--tr-tracking-wordmark);
+  text-transform: lowercase;
+  color: var(--tr-color-wordmark);
+}
+.tr-spinner__label {
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono-wide);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+/* ---- Riempimento: il marchio si riempie dal basso sulla propria silhouette ----
+   La silhouette ferma sta in surface/tint, la stessa tinta dichiarata per i
+   riempimenti piccoli; sopra passa il marchio pieno, ritagliato da un rect che
+   sale. Ogni istanza vuole un id di clip suo, altrimenti la seconda ruba il
+   ritaglio alla prima. */
+.tr-spinner__wipe {
+  animation: tr-sp-fill calc(1900ms * var(--tr-sp-dur, 1))
+    var(--tr-sp-ease, var(--tr-motion-ease)) infinite;
+}
+@keyframes tr-sp-fill {
+  0%, 10%  { transform: translateY(760px); }
+  56%, 76% { transform: translateY(0); }
+  100%     { transform: translateY(-760px); }
+}
+
+/* ---- Traccia: il chevron percorre il filetto e lascia il segno dietro di se' ----
+   E' il filetto del sistema che si accende, non una barra di avanzamento: non
+   promette una percentuale, dice soltanto che qualcosa sta correndo. */
+.tr-spinner__track {
+  position: relative;
+  display: block;
+  width: calc(var(--tr-sp-run, 218px) + 18px);
+  height: 24px;
+}
+.tr-spinner__rule {
+  position: absolute;
+  inset: 11px 0 auto 0;
+  height: var(--tr-rule-medium);
+  border-radius: var(--tr-radius-line);
+  background: var(--tr-border-soft);
+}
+.tr-spinner__trail {
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 100%;
+  height: var(--tr-rule-medium);
+  border-radius: var(--tr-radius-line);
+  background: var(--tr-brand-500);
+  transform-origin: left center;
+  animation: tr-sp-trail calc(1800ms * var(--tr-sp-dur, 1))
+    var(--tr-sp-ease, var(--tr-motion-ease)) infinite;
+}
+.tr-spinner__runner {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  animation: tr-sp-run calc(1800ms * var(--tr-sp-dur, 1))
+    var(--tr-sp-ease, var(--tr-motion-ease)) infinite;
+}
+@keyframes tr-sp-run {
+  0%       { transform: translateX(0); opacity: 0; }
+  8%       { transform: translateX(4px); opacity: 1; }
+  66%, 86% { transform: translateX(var(--tr-sp-run, 218px)); opacity: 1; }
+  100%     { transform: translateX(var(--tr-sp-run, 218px)); opacity: 0; }
+}
+@keyframes tr-sp-trail {
+  0%       { transform: scaleX(0.04); opacity: 0; }
+  8%       { transform: scaleX(0.06); opacity: 1; }
+  66%, 86% { transform: scaleX(0.962); opacity: 1; }
+  100%     { transform: scaleX(0.962); opacity: 0; }
+}
+
+/* ---- Sequenza: tre chevron in successione ----
+   Non ruotano e non rimbalzano: si accendono in fila, che e' il modo in cui il
+   marchio si ripete gia' sulle superfici stampate. */
+.tr-spinner__seq { display: inline-flex; align-items: center; gap: 7px; }
+.tr-spinner__seq > * {
+  animation: tr-sp-pulse calc(1200ms * var(--tr-sp-dur, 1))
+    var(--tr-sp-ease, var(--tr-motion-ease)) infinite;
+}
+.tr-spinner__seq > *:nth-child(2) { animation-delay: calc(150ms * var(--tr-sp-dur, 1)); }
+.tr-spinner__seq > *:nth-child(3) { animation-delay: calc(300ms * var(--tr-sp-dur, 1)); }
+@keyframes tr-sp-pulse {
+  0%        { opacity: 0.16; }
+  20%       { opacity: 1; }
+  52%, 100% { opacity: 0.16; }
+}
+
+/* ---- Anello: arco che ruota attorno al marchio fermo ----
+   A girare e' l'arco; il chevron resta dritto, perche' un marchio che ruota
+   smette di essere un marchio. */
+.tr-spinner__ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tr-sp-ring, 112px);
+  height: var(--tr-sp-ring, 112px);
+}
+.tr-spinner__arc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+  animation: tr-sp-spin calc(1400ms * var(--tr-sp-dur, 1)) linear infinite;
+}
+@keyframes tr-sp-spin { to { transform: rotate(360deg); } }
+
+/* Come per l'etichetta flottante: lo stato finale resta, la corsa no. */
+@media (prefers-reduced-motion: reduce) {
+  .tr-spinner__wipe,
+  .tr-spinner__trail,
+  .tr-spinner__runner,
+  .tr-spinner__arc,
+  .tr-spinner__seq > * { animation: none; }
+  .tr-spinner__wipe { transform: none; }
+  .tr-spinner__seq > * { opacity: 1; }
+  .tr-spinner__trail { transform: scaleX(0.962); }
+  .tr-spinner__runner { transform: translateX(var(--tr-sp-run, 218px)); }
+}
+
+/* ==========================================================================
+   Interruttore
+   Un'opzione a due stati che ha effetto subito: la cifratura si accende, il
+   filtro si applica, il salvataggio automatico parte. Non e' una scelta da
+   confermare — quella e' roba da due .tr-tab o da un gruppo di opzioni, dove
+   esiste ancora un pulsante che chiude il compito.
+
+   Il riflesso e' di prendere la pillola con la pallina che scivola, ma quella
+   forma appartiene a un altro sistema: qui --tr-radius-ui vale 0 e non ci sono
+   ombre. Pista e cursore restano rettangolari, il filetto e' quello di sempre,
+   e il segno di stato lo danno il riempimento pieno e la posizione.
+
+   La POSIZIONE e' il segnale primario, il colore e' solo conferma: il cursore
+   compie una corsa pari a w - h, cioe' meta' pista, e a colori spenti si vede
+   comunque da che parte sta. E' il motivo per cui la corsa e' cosi' lunga.
+   ========================================================================== */
+.tr-switch {
+  --tr-switch-track: transparent;
+  --tr-switch-rule: var(--tr-border-soft-2);
+  --tr-switch-knob: var(--tr-ink-400);
+  --tr-switch-travel: 0px;
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--tr-switch-w);
+  height: var(--tr-switch-h);
+  margin: 0;
+  padding: 0;
+  border: var(--tr-rule-thin) solid var(--tr-switch-rule);
+  border-radius: var(--tr-radius-ui);
+  background: var(--tr-switch-track);
+  cursor: pointer;
+  transition:
+    background-color var(--tr-motion-fast) var(--tr-motion-ease),
+    border-color var(--tr-motion-fast) var(--tr-motion-ease);
+}
+
+/* Il cursore si ricava dall'altezza, non da un token proprio: cosi' non puo'
+   sfasarsi dalla pista che lo contiene. */
+.tr-switch::before {
+  content: "";
+  position: absolute;
+  top: var(--tr-switch-pad);
+  left: var(--tr-switch-pad);
+  width: calc(var(--tr-switch-h) - 2 * var(--tr-rule-thin) - 2 * var(--tr-switch-pad));
+  height: calc(var(--tr-switch-h) - 2 * var(--tr-rule-thin) - 2 * var(--tr-switch-pad));
+  background: var(--tr-switch-knob);
+  transform: translateX(var(--tr-switch-travel));
+  transition: transform 180ms var(--tr-motion-ease);
+}
+
+.tr-switch[aria-checked="true"] {
+  --tr-switch-track: var(--tr-brand-600);
+  --tr-switch-rule: var(--tr-brand-600);
+  --tr-switch-knob: var(--tr-surface);
+  --tr-switch-travel: calc(var(--tr-switch-w) - var(--tr-switch-h));
+}
+
+.tr-switch:hover:not(:disabled) { --tr-switch-rule: var(--tr-ink-400); }
+.tr-switch[aria-checked="true"]:hover:not(:disabled) {
+  --tr-switch-track: var(--tr-brand-700);
+  --tr-switch-rule: var(--tr-brand-700);
+}
+
+.tr-switch:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
+.tr-switch:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Riga di comando: l'interruttore, cio' che governa, e la parola che dice come
+   sta. La parola e' .tr-status e non una pill colorata, perche' il pallino piu'
+   il testo reggono anche a colori spenti — una pill no. */
+.tr-switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tr-space-3);
+}
+.tr-switch-row__label {
+  color: var(--tr-ink-900);
+  font-size: var(--tr-text-body);
+}
+.tr-switch-row .tr-status { margin-left: auto; }
+.tr-switch-row:has(.tr-switch:disabled) .tr-switch-row__label { opacity: 0.45; }
+
+/* Il colore non e' piu' un canale: resta la posizione, che infatti bastava. */
+@media (forced-colors: active) {
+  .tr-switch { border-color: CanvasText; background: Canvas; }
+  .tr-switch::before { background: CanvasText; }
+  .tr-switch[aria-checked="true"] { border-color: Highlight; background: Highlight; }
+  .tr-switch[aria-checked="true"]::before { background: HighlightText; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Lo stato finale resta, la corsa no. */
+  .tr-switch,
+  .tr-switch::before { transition: none; }
+}
+
+/* ==========================================================================
+   Cifra in evidenza e riga di dati
+   Il numero che riassume una pagina — installazioni, sedi, anni — e' un dato
+   in evidenza, non una parola dentro un paragrafo: si compone in display, con
+   il tratto d'accento sotto e l'etichetta mono a seguire. Le cifre sono
+   tabellari perche' una cifra si confronta con un'altra, e deve pesare uguale.
+   ========================================================================== */
+.tr-figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tr-space-2);
+  margin: 0;
+}
+.tr-figure__number {
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-display);
+  font-size: var(--tr-text-figure);
+  line-height: var(--tr-leading-figure);
+  letter-spacing: var(--tr-tracking-display);
+  color: var(--tr-ink-900);
+  font-variant-numeric: tabular-nums;
+}
+.tr-figure__number::after {
+  content: "";
+  display: block;
+  width: var(--tr-accent-dash-w);
+  height: var(--tr-rule-accent);
+  margin-top: var(--tr-space-3);
+  border-radius: var(--tr-radius-line);
+  background: var(--tr-brand-500);
+}
+/* L'etichetta va a capo dove decide il markup (<br>): un'interlinea piena
+   tiene leggibili le due righe in mono. */
+.tr-figure__label { line-height: 1.5; }
+
+/* Riga di 2–4 dati piccoli sotto la cifra: <dl> con un <div> per dato,
+   etichetta mono grigia sopra, valore in Archivo semibold sotto. Filetto sopra
+   come .tr-specs: e' la stessa famiglia, con i numeri al posto delle voci. */
+.tr-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--tr-space-3) var(--tr-space-5);
+  margin: 0;
+  padding-top: var(--tr-space-4);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-facts > div { margin: 0; }
+.tr-facts dt {
+  margin: 0 0 var(--tr-space-1);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-body);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+.tr-facts dd {
+  margin: 0;
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-lead);
+  line-height: var(--tr-leading-display);
+  color: var(--tr-ink-900);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Blocco introduttivo (dato + testo)
+   Il modo in cui si apre una pagina di contenuto. Un testo lungo non sta mai
+   da solo in un contenitore largo: a sinistra la colonna di servizio —
+   eyebrow, cifra, dati — che resta ferma mentre si scorre; a destra il
+   titolo, il lead, l'elenco e la prosa, ciascuno con la propria misura. Se
+   una pagina ha un numero che la riassume, quel numero apre la pagina.
+   ========================================================================== */
+.tr-intro {
+  display: grid;
+  grid-template-columns: minmax(var(--tr-intro-aside-min), 5fr) minmax(0, 12fr);
+  gap: var(--tr-space-6) var(--tr-space-8);
+  align-items: start;
+}
+/* La colonna del dato segue lo scorrimento finche' la colonna del testo non
+   finisce: il numero resta in vista mentre si legge cio' che lo spiega. */
+.tr-intro__aside {
+  position: sticky;
+  top: var(--tr-space-9);
+}
+.tr-intro__aside .tr-facts { margin-top: var(--tr-space-5); }
+.tr-intro__main { min-width: 0; }
+.tr-intro__title { max-width: var(--tr-measure-title); }
+.tr-intro__lead {
+  margin: var(--tr-space-4) 0 0;
+  font-size: var(--tr-text-lead);
+  line-height: 1.5;
+  max-width: var(--tr-measure-lead);
+  color: var(--tr-ink-600);
+}
+.tr-intro__main > .tr-numbered-list,
+.tr-intro__main > .tr-list { margin-top: var(--tr-space-5); }
+/* La prosa: paragrafi di pari misura, uno sotto l'altro, senza margini propri. */
+.tr-intro__prose {
+  margin-top: var(--tr-space-5);
+  display: grid;
+  gap: var(--tr-space-3);
+}
+.tr-intro__prose > .tr-body { margin: 0; max-width: var(--tr-measure-prose); }
+
+/* ==========================================================================
+   Pannello
+   Il piano 1 senza essere una card: un contenitore bianco per una sezione
+   intera di pagina. Nessun bordo, nessuna ombra, nessun raggio; ridefinisce
+   --tr-field-bg come chiede la regola delle superfici. Con --over sale sopra
+   l'hero fotografico che lo precede: sopra una foto il piano e' l'unico modo
+   lecito di staccare il contenuto.
+   ========================================================================== */
+.tr-panel {
+  --tr-field-bg: var(--tr-surface);
+  display: block;
+  padding: var(--tr-space-7);
+  border: 0;
+  border-radius: var(--tr-radius-ui);
+  background: var(--tr-surface);
+}
+.tr-panel--over {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(-1 * var(--tr-space-8));
+}
+
+/* ==========================================================================
+   Hero fotografico con parallasse
+   L'unico elemento della pagina che si muove. Lo sfondo e' un livello a parte,
+   piu' alto del riquadro dello sbordo sopra e sotto, cosi' puo' scorrere piu'
+   lento della pagina senza scoprire il bordo; il velo e' ink/900 con alpha,
+   non un colore nuovo. Il movimento lo governa js/tr-parallax.js sugli
+   attributi data-tr-parallax="hero|bg|content"; senza script, o con
+   prefers-reduced-motion, l'hero e' semplicemente fermo.
+   ========================================================================== */
+.tr-hero {
+  position: relative;
+  min-height: var(--tr-hero-min-h);
+  display: flex;
+  align-items: center;
+  color: var(--tr-ink-on-solid);
+  overflow: hidden;
+  isolation: isolate;
+}
+.tr-hero__bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(-1 * var(--tr-parallax-bleed));
+  bottom: calc(-1 * var(--tr-parallax-bleed));
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+}
+.tr-hero__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--tr-ink-900) var(--tr-hero-overlay), transparent);
+}
+.tr-hero__content {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  padding: var(--tr-space-7) var(--tr-space-5) var(--tr-space-9);
+  will-change: transform, opacity;
+}
+/* Sul velo scuro il testo eredita il bianco; la parola chiave resta blu logo. */
+.tr-hero__content .tr-h1,
+.tr-hero__content .tr-h2,
+.tr-hero__content .tr-h3,
+.tr-hero__content .tr-body { color: inherit; }
+.tr-hero__content .tr-body { margin-left: auto; margin-right: auto; }
+.tr-hero__content .tr-mono { color: var(--tr-brand-300); }
+
+/* Chi ha chiesto meno movimento vede l'hero fermo: qui non c'e' uno stato
+   finale da raggiungere, c'e' solo la corsa, e la corsa non si fa. */
+@media (prefers-reduced-motion: reduce) {
+  .tr-hero__bg,
+  .tr-hero__content {
+    transform: none !important;
+    opacity: 1 !important;
+    will-change: auto;
+  }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+/* Sotto i 900px il blocco introduttivo va su una colonna e la colonna del dato
+   torna nel flusso: fissa in testa coprirebbe il titolo. */
+@media (max-width: 900px) {
+  .tr-intro { grid-template-columns: 1fr; }
+  .tr-intro__aside { position: static; }
+}
+@media (max-width: 720px) {
+  .tr-panel { padding: var(--tr-space-5); }
+  .tr-hero__content { padding-left: var(--tr-space-4); padding-right: var(--tr-space-4); }
+}
+@media (max-width: 720px) {
+  .tr-h1 { font-size: 34px; }
+  .tr-h2 { font-size: 26px; }
+  .tr-steps { grid-template-columns: repeat(2, 1fr); }
+  .tr-steps--linked::before { display: none; }
+  .tr-footer__certs-line { min-width: 40px; }
+  .tr-login__header,
+  .tr-login__main,
+  .tr-login__footer { padding-left: var(--tr-space-5); padding-right: var(--tr-space-5); }
+  .tr-login__main { padding-top: var(--tr-space-6); padding-bottom: var(--tr-space-6); }
+  .tr-clientmark__logo { height: 32px; }
+  .tr-clientmark { gap: var(--tr-space-3); }
+}
+@media (max-width: 720px) {
+  .tr-tabs { gap: var(--tr-space-4); padding: 0 var(--tr-space-4); }
+  .tr-tab { height: var(--tr-btn-h); font-size: var(--tr-text-caption); }
+}

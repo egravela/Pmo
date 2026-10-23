@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 717" width="594" height="717" role="img" aria-label="La Traccia">
+  <!-- Solo il marchio (chevron), normalizzato sul proprio riquadro: e' la
+       sorgente dei tracciati del <symbol id="tr-mark"> usato dallo spinner. -->
+  <path fill="#4194d7" d="M197.4 0.6 593 351.7 396.1 526.2 0.5 175.2Z"/>
+  <path fill="#4194d7" d="M183.2 714.5C183.7 649.2 183.8 531.5 183.1 362.4L386 538.4C386 538.4 185.3 716.3 183.2 714.5Z"/>
+</svg>

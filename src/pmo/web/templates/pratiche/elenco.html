@@ -1,33 +1,75 @@
 {% extends "base.html" %}
+{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, icona with context %}
 {% block titolo %}Pratiche · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="intestazione"><h1>Pratiche</h1><a class="btn primario" href="/pratiche/nuova">Nuova pratica</a></div>
-<form method="get" class="filtri card">
-  <div class="campo" style="min-width:240px"><label>Cerca</label><input type="text" name="q" value="{{ filtri.q }}" placeholder="codice, titolo, descrizione"></div>
-  <div class="campo"><label>Stato</label><select name="stato"><option value="">attive</option>{% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if filtri.stato == k }}>{{ v }}</option>{% endfor %}</select></div>
-  <div class="campo"><label>Cliente</label><select name="cliente_id"><option value="">tutti</option>{% for c in clienti %}<option value="{{ c.id }}" {{ 'selected' if filtri.cliente_id == c.id }}>{{ c.nome }}</option>{% endfor %}</select></div>
-  <div class="campo"><label>Prodotto</label><select name="prodotto_id"><option value="">tutti</option>{% for p in prodotti %}<option value="{{ p.id }}" {{ 'selected' if filtri.prodotto_id == p.id }}>{{ p.nome }}</option>{% endfor %}</select></div>
-  <div class="campo"><label>Responsabile</label><select name="responsabile_id"><option value="">tutti</option>{% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if filtri.responsabile_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}</select></div>
-  <div class="campo"><label>Verifica</label><select name="verifica"><option value="">tutte</option><option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>solo proposte dall'IA</option></select></div>
-  <div class="campo"><label>&nbsp;</label><label><input type="checkbox" name="tutte" value="1" {{ 'checked' if filtri.tutte }}> incluse chiuse</label></div>
-  <button class="primario">Filtra</button>
-</form>
-<div class="card">
-<table>
-  <tr><th>Codice</th><th>Titolo</th><th>Cliente</th><th>Prodotto</th><th>Stato</th><th>Ultimo evento</th><th>Scadenza</th><th>Ordinato</th><th>Solleciti</th></tr>
-  {% for p in pratiche %}
-  <tr>
-    <td class="mono"><a href="/pratiche/{{ p.id }}">{{ p.codice }}</a></td>
-    <td><a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a>{% if p.stato_verifica == 'proposto' %} <span class="badge proposto">proposta IA</span>{% endif %}{% if p.priorita == 'alta' %} <span class="badge critico">alta</span>{% endif %}</td>
-    <td>{{ p.cliente.nome if p.cliente else '-' }}</td>
-    <td>{{ p.prodotto.nome if p.prodotto else '-' }}</td>
-    <td><span class="badge stato {{ p.stato }}">{{ p.stato | stato }}</span> <span class="muto piccolo">{{ p.stato_dal | giorni_fa }}</span></td>
-    <td class="piccolo">{{ p.ultimo_evento_at | giorni_fa }}</td>
-    <td class="piccolo">{{ p.data_scadenza | data }}</td>
-    <td class="piccolo">{{ p.importo_ordine | euro }}</td>
-    <td>{% set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}{% if aperti %}<span class="badge {{ aperti[0].gravita }}">{{ aperti | length }}</span>{% endif %}</td>
-  </tr>
-  {% else %}<tr><td colspan="9" class="vuoto">Nessuna pratica trovata.</td></tr>{% endfor %}
-</table>
+<div class="pmo-head">
+  <div class="pmo-head__title">
+    {{ eyebrow("Pratiche", pratiche | length ~ " risultati") }}
+    <h1 class="tr-h2">Tutte le <em>pratiche</em></h1>
+  </div>
+  <div class="tr-btn-group">
+    <a class="tr-btn tr-btn--primary" href="/pratiche/nuova"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Nuova pratica</span></a>
+  </div>
 </div>
+
+<form method="get" class="pmo-section" aria-label="Filtri">
+  <div class="pmo-grid">
+    {{ campo("q", "Cerca", filtri.q, segnaposto="codice, titolo, descrizione") }}
+    {% call selezione("stato", "Fase") %}
+      <option value="">attive</option>
+      {% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if filtri.stato == k }}>{{ v }}</option>{% endfor %}
+    {% endcall %}
+    {% call selezione("cliente_id", "Cliente") %}
+      <option value="">tutti</option>
+      {% for c in clienti %}<option value="{{ c.id }}" {{ 'selected' if filtri.cliente_id == c.id }}>{{ c.nome }}</option>{% endfor %}
+    {% endcall %}
+    {% call selezione("prodotto_id", "Prodotto") %}
+      <option value="">tutti</option>
+      {% for p in prodotti %}<option value="{{ p.id }}" {{ 'selected' if filtri.prodotto_id == p.id }}>{{ p.nome }}</option>{% endfor %}
+    {% endcall %}
+    {% call selezione("responsabile_id", "Responsabile") %}
+      <option value="">tutti</option>
+      {% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if filtri.responsabile_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}
+    {% endcall %}
+    {% call selezione("verifica", "Verifica") %}
+      <option value="">tutte</option>
+      <option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>solo proposte dall'IA</option>
+    {% endcall %}
+  </div>
+  <div class="pmo-bar pmo-form-foot">
+    {{ spunta("tutte", "incluse chiuse", filtri.tutte) }}
+    <div class="tr-btn-group">
+      <button class="tr-btn tr-btn--secondary" type="submit">Filtra</button>
+    </div>
+  </div>
+</form>
+
+<section class="pmo-section" aria-label="Elenco delle pratiche">
+  <table class="pmo-table">
+    <thead>
+      <tr><th>Codice</th><th>Titolo</th><th>Cliente</th><th>Prodotto</th><th>Fase</th><th>Ultimo evento</th><th>Scadenza</th><th class="pmo-num">Ordinato</th><th>Solleciti</th></tr>
+    </thead>
+    <tbody>
+    {% for p in pratiche %}
+      <tr>
+        <td><a href="/pratiche/{{ p.id }}"><span class="pmo-code">{{ p.codice }}</span></a></td>
+        <td>
+          <a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a>
+          {% if p.stato_verifica == 'proposto' %} {{ da_confermare("Proposta IA") }}{% endif %}
+          {% if p.priorita == 'alta' %} <span class="tr-chip">Priorità alta</span>{% endif %}
+        </td>
+        <td>{{ p.cliente.nome if p.cliente else '-' }}</td>
+        <td>{{ p.prodotto.nome if p.prodotto else '-' }}</td>
+        <td>{{ fase(p.stato) }}<p class="pmo-meta">{{ p.stato_dal | giorni_fa }}</p></td>
+        <td>{{ p.ultimo_evento_at | giorni_fa }}</td>
+        <td>{{ p.data_scadenza | data }}</td>
+        <td class="pmo-num">{{ p.importo_ordine | euro }}</td>
+        <td>{% set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}{% if aperti %}<span class="pmo-code">{{ aperti | length }}</span> {{ gravita(aperti[0].gravita) }}{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="9" class="pmo-empty">Nessuna pratica trovata</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
 {% endblock %}

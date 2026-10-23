@@ -1,0 +1,104 @@
+{#- ==========================================================================
+   Componenti del design system La Traccia come macro Jinja.
+   Il markup e' quello descritto nel README del sistema (static/ds/README.md
+   rimanda al repository): ogni macro lo scrive una volta sola, cosi' una
+   pagina non puo' sbagliarlo. Si importa con `with context` perche' alcune
+   macro leggono csrf_token.
+   ========================================================================== -#}
+{% set ns = namespace(n=0) %}
+
+{%- macro csrf() -%}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{%- endmacro -%}
+
+{#- Icona del registro: decorativa, accompagna sempre un'etichetta (aria-hidden). -#}
+{%- macro icona(nome) -%}<span class="tr-icon tr-icon--{{ nome }}" aria-hidden="true"></span>{%- endmacro -%}
+
+{#- Eyebrow: etichetta mono blu con il filetto che riempie la riga, nota mono in coda. -#}
+{%- macro eyebrow(etichetta, nota=none) -%}
+<div class="tr-eyebrow"><span class="tr-eyebrow__label">{{ etichetta }}</span><span class="tr-eyebrow__line"></span>{% if nota %}<span class="tr-eyebrow__note">{{ nota }}</span>{% endif %}</div>
+{%- endmacro -%}
+
+{#- Campo con etichetta flottante. L'etichetta viene DOPO il controllo, che ha sempre
+    un placeholder (anche solo uno spazio). In versione compatta l'etichetta resta
+    per le tecnologie assistive e il controllo porta anche aria-label. -#}
+{%- macro campo(nome, etichetta, valore="", tipo="text", obbligatorio=false, aiuto=none, compatto=false, largo=false, stretto=false, segnaposto=" ", attr="", id=none) -%}
+{%- set ns.n = ns.n + 1 -%}
+{%- set fid = id or ("f-" ~ nome ~ "-" ~ ns.n) -%}
+<div class="tr-field{{ ' tr-field--compact' if compatto }}{{ ' pmo-field--wide' if largo }}{{ ' pmo-field--narrow' if stretto }}">
+  <input class="tr-field__control" id="{{ fid }}" name="{{ nome }}" type="{{ tipo }}" value="{{ valore if valore is not none else '' }}" placeholder="{{ segnaposto }}"{% if obbligatorio %} required{% endif %}{% if compatto %} aria-label="{{ etichetta }}"{% endif %} {{ attr | safe }}>
+  <label class="{{ 'tr-sr-only' if compatto else 'tr-field__label' }}" for="{{ fid }}">{{ etichetta }}{% if obbligatorio and not compatto %} <span class="tr-field__required">*</span>{% endif %}</label>
+  {% if not compatto %}<div class="tr-field__assist">{% if aiuto %}<p class="tr-field__hint">{{ aiuto }}</p>{% endif %}</div>{% endif %}
+</div>
+{%- endmacro -%}
+
+{#- Area di testo: stesso campo, il controllo e' una textarea. -#}
+{%- macro area(nome, etichetta, valore="", righe=3, aiuto=none, segnaposto=" ", attr="", id=none) -%}
+{%- set ns.n = ns.n + 1 -%}
+{%- set fid = id or ("f-" ~ nome ~ "-" ~ ns.n) -%}
+<div class="tr-field">
+  <textarea class="tr-field__control" id="{{ fid }}" name="{{ nome }}" rows="{{ righe }}" placeholder="{{ segnaposto }}" {{ attr | safe }}>{{ valore if valore is not none else '' }}</textarea>
+  <label class="tr-field__label" for="{{ fid }}">{{ etichetta }}</label>
+  <div class="tr-field__assist">{% if aiuto %}<p class="tr-field__hint">{{ aiuto }}</p>{% endif %}</div>
+</div>
+{%- endmacro -%}
+
+{#- Select: il <select> nativo resta nel DOM e tiene il valore; js/tr-select.js ne
+    costruisce la listbox. Le <option> arrivano dal blocco {% call %}. -#}
+{%- macro selezione(nome, etichetta, compatto=false, stretto=false, aiuto=none, attr="", id=none) -%}
+{%- set ns.n = ns.n + 1 -%}
+{%- set fid = id or ("f-" ~ nome ~ "-" ~ ns.n) -%}
+<div class="tr-field tr-select tr-field--with-suffix{{ ' tr-field--compact tr-select--compact' if compatto }}{{ ' pmo-field--narrow' if stretto }}">
+  <select class="tr-field__control" id="{{ fid }}" name="{{ nome }}" {{ attr | safe }}>{{ caller() }}</select>
+  <label class="{{ 'tr-sr-only' if compatto else 'tr-field__label' }}" for="{{ fid }}">{{ etichetta }}</label>
+  {% if not compatto %}<div class="tr-field__assist">{% if aiuto %}<p class="tr-field__hint">{{ aiuto }}</p>{% endif %}</div>{% endif %}
+</div>
+{%- endmacro -%}
+
+{#- Casella di spunta. Con visibile=false l'etichetta resta come aria-label (la
+    colonna di una tabella la dice gia'). -#}
+{%- macro spunta(nome, etichetta, attivo=false, valore="1", visibile=true) -%}
+<label class="pmo-check"><input type="checkbox" name="{{ nome }}" value="{{ valore }}"{% if attivo %} checked{% endif %}{% if not visibile %} aria-label="{{ etichetta }}"{% endif %}>{% if visibile %}<span>{{ etichetta }}</span>{% endif %}</label>
+{%- endmacro -%}
+
+{#- Fase di una pratica: e' un'etichetta, non uno stato di sistema. In corso: chip.
+    Chiusa o annullata: indicatore neutro. -#}
+{%- macro fase(stato) -%}
+{%- if stato in ["chiusa", "annullata"] -%}<span class="tr-status">{{ stato | stato }}</span>{%- else -%}<span class="tr-chip">{{ stato | stato }}</span>{%- endif -%}
+{%- endmacro -%}
+
+{#- Gravita' di un sollecito: stato semantico, sempre col testo. -#}
+{%- macro gravita(g) -%}
+{%- set famiglia = {"critico": "critical", "avviso": "warning", "info": "info"}.get(g) -%}
+{%- set testo = {"critico": "Critico", "avviso": "Avviso", "info": "Info"}.get(g, g) -%}
+<span class="tr-status{{ ' tr-status--' ~ famiglia if famiglia }}">{{ testo }}</span>
+{%- endmacro -%}
+
+{#- Stato di lavorazione di un sollecito. -#}
+{%- macro stato_sollecito(s) -%}
+{%- set famiglia = {"in_carico": "info", "risolto": "success"}.get(s) -%}
+{%- set testo = {"aperto": "Aperto", "in_carico": "In carico", "silenziato": "Silenziato", "risolto": "Risolto"}.get(s, s) -%}
+<span class="tr-status{{ ' tr-status--' ~ famiglia if famiglia }}">{{ testo }}</span>
+{%- endmacro -%}
+
+{#- Esito di un'esecuzione di sincronizzazione. -#}
+{%- macro esito(s) -%}
+{%- set famiglia = {"ok": "success", "errore": "danger"}.get(s) -%}
+{%- set testo = {"ok": "Ok", "errore": "Errore", "in_corso": "In corso", "mai": "Mai eseguita"}.get(s, s) -%}
+<span class="tr-status{{ ' tr-status--' ~ famiglia if famiglia }}">{{ testo }}</span>
+{%- endmacro -%}
+
+{#- Cio' che l'IA ha proposto e una persona deve ancora confermare: azione da confermare = warning. -#}
+{%- macro da_confermare(testo="Da confermare") -%}<span class="tr-status tr-status--warning">{{ testo }}</span>{%- endmacro -%}
+
+{#- Sollecito come avviso strutturato: il filetto verticale porta la gravita', il
+    titolo mono la dice a parole. Il corpo e i comandi arrivano dal blocco {% call %}. -#}
+{%- macro sollecito(s) -%}
+{%- set famiglia = {"critico": "critical", "avviso": "warning", "info": "info"}.get(s.gravita, "info") -%}
+{%- set testo = {"critico": "Critico", "avviso": "Avviso", "info": "Info"}.get(s.gravita, s.gravita) -%}
+<div class="tr-notice tr-notice--{{ famiglia }}">
+  <span class="tr-notice__icon" aria-hidden="true"></span>
+  <div class="tr-notice__content">
+    <p class="tr-notice__title">{{ testo }} · {{ s.titolo }}</p>
+    {% if caller is defined %}{{ caller() }}{% endif %}
+  </div>
+</div>
+{%- endmacro -%}

@@ -1,0 +1,566 @@
+/* ==========================================================================
+   LA TRACCIA — Tempo: cronologia e cronoprogramma
+   Caricare dopo tokens/tokens.css e css/traccia.css. Il cronoprogramma prende
+   le serie da css/traccia-categories.css e lo stato da css/traccia-states.css,
+   quando servono.
+
+   Il sistema sapeva gia' rappresentare il tempo, solo non lo diceva: il
+   segmento verticale e' "pieno sopra il contenuto, tinta chiara sotto", cioe'
+   fatto e da fare; il dot e' un istante; il mono e' la voce delle date; la
+   riga del grafico a barre e' alta circa 40px. Questi due componenti non
+   inventano una forma: mettono in fila quelle che c'erano.
+
+   CRONOLOGIA (.tr-timeline). Una sequenza di eventi datati — la storia di
+   una pratica, il registro delle revisioni, le tappe di un progetto. Un
+   binario di 2px con un dot per evento. Tre stati, e li dice la forma prima
+   del colore: PASSATO e' pieno, IN CORSO e' un anello vuoto, FUTURO e' tinta
+   chiara con il titolo in grigio. Il binario e' pieno fino all'evento in
+   corso e chiaro dopo, come .tr-vseg.
+
+   CRONOPROGRAMMA (.tr-gantt). Attivita' su righe, tempo su colonne, una
+   barra per attivita'. La colonna e' l'unita' minima del piano: se il piano
+   si misura in giorni le colonne sono giorni, e la scala in testa raggruppa
+   le tacche per settimana o per mese. La barra e' il tassello categoriale
+   allungato — fondo tenue, filetto — e si riempie con l'avanzamento: e' la
+   pienezza a dire "fatto", non un secondo colore. Le serie prendono la scala
+   categoriale, lo stato (in ritardo, bloccata) prende la famiglia semantica
+   e OBBLIGA un .tr-status accanto al nome, perche' il colore da solo non
+   basta mai.
+
+   Le variabili --tr-tl-* e --tr-gantt-track/-fill non sono token: vivono
+   dentro il componente. I token sono le misure in tokens.css.
+   ========================================================================== */
+
+.tr-timeline,
+.tr-timeline__event,
+.tr-gantt,
+.tr-gantt__head,
+.tr-gantt__row,
+.tr-gantt__bar { box-sizing: border-box; }
+
+/* ==========================================================================
+   Cronologia
+   ========================================================================== */
+
+.tr-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tr-timeline__event {
+  /* Il futuro e' lo stato di partenza: tinta chiara, come la meta' bassa
+     del segmento verticale. Il binario che scende da questo evento e'
+     chiaro perche' cio' che segue e' ancora da fare. */
+  --tr-tl-dot: var(--tr-brand-100);
+  --tr-tl-ring: var(--tr-brand-100);
+  --tr-tl-seg: var(--tr-brand-100);
+  /* Ascissa del binario: centro del dot, nella seconda colonna. */
+  --tr-tl-rail-x: calc(var(--tr-timeline-when-col) + var(--tr-space-4) + (var(--tr-dot-size-lg) - var(--tr-rule-medium)) / 2);
+  /* Il dot sta al centro ottico della prima riga del titolo. */
+  --tr-tl-dot-y: calc((var(--tr-leading-body) * var(--tr-text-body) - var(--tr-dot-size-lg)) / 2);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--tr-timeline-when-col) var(--tr-dot-size-lg) minmax(0, 1fr);
+  column-gap: var(--tr-space-4);
+  padding-bottom: var(--tr-space-5);
+}
+.tr-timeline__event:last-child { padding-bottom: 0; }
+
+/* Il dot: un istante. */
+.tr-timeline__event::before {
+  content: "";
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  margin-top: var(--tr-tl-dot-y);
+  width: var(--tr-dot-size-lg);
+  height: var(--tr-dot-size-lg);
+  border-radius: var(--tr-radius-pill);
+  background: var(--tr-tl-dot);
+  box-shadow: inset 0 0 0 var(--tr-rule-medium) var(--tr-tl-ring);
+}
+
+/* Il binario: dal dot all'evento successivo. L'ultimo evento non ha un dopo. */
+.tr-timeline__event::after {
+  content: "";
+  position: absolute;
+  left: var(--tr-tl-rail-x);
+  top: calc(var(--tr-tl-dot-y) + var(--tr-dot-size-lg) + var(--tr-space-1));
+  bottom: var(--tr-space-1);
+  width: var(--tr-rule-medium);
+  border-radius: var(--tr-radius-line);
+  background: var(--tr-tl-seg);
+}
+.tr-timeline__event:last-child::after { display: none; }
+
+.tr-timeline__when {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  /* Stessa riga del titolo: la data condivide la sua interlinea. */
+  line-height: calc(var(--tr-leading-body) * var(--tr-text-body));
+  text-align: right;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tr-timeline__body {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+}
+
+/* Il titolo e' contenuto: in frase, non in maiuscolo — come il titolo di
+   una card. Nel futuro sbiadisce: e' il secondo segnale, dopo la forma. */
+.tr-timeline__title {
+  margin: 0;
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-body);
+  line-height: var(--tr-leading-body);
+  color: var(--tr-ink-400);
+}
+.tr-timeline__text {
+  margin: var(--tr-space-1) 0 0;
+  font-size: 14px;
+  color: var(--tr-ink-600);
+  max-width: var(--tr-measure-short);
+}
+/* Stato, chip, azione di riga: tutto cio' che accompagna l'evento. */
+.tr-timeline__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tr-space-2) var(--tr-space-4);
+  margin-top: var(--tr-space-2);
+}
+
+/* ---- Gli stati ----
+   L'evento in corso lo dichiara aria-current="step"; quelli sopra sono
+   passati e lo ricava il CSS, cosi' chi scrive il markup segna un evento
+   solo. Senza aria-current la cronologia e' una storia: tutto e' gia'
+   accaduto, tutto e' pieno. Le classi .is-done e .is-current restano per i
+   browser senza :has() e per quando lo stato non e' "il corrente e cio' che
+   lo precede". */
+
+/* Passato: pieno, e il binario sotto e' pieno. */
+.tr-timeline__event.is-done,
+.tr-timeline__event:has(~ [aria-current]),
+.tr-timeline__event:has(~ .is-current),
+.tr-timeline:not(:has([aria-current], .is-current, .is-done)) > .tr-timeline__event {
+  --tr-tl-dot: var(--tr-brand-500);
+  --tr-tl-ring: var(--tr-brand-500);
+  --tr-tl-seg: var(--tr-brand-500);
+}
+.tr-timeline__event.is-done .tr-timeline__title,
+.tr-timeline__event:has(~ [aria-current]) .tr-timeline__title,
+.tr-timeline__event:has(~ .is-current) .tr-timeline__title,
+.tr-timeline:not(:has([aria-current], .is-current, .is-done)) > .tr-timeline__event .tr-timeline__title {
+  color: var(--tr-ink-900);
+}
+
+/* In corso: anello vuoto sul paper — aperto, come il cerchietto --outline.
+   Il binario sotto torna chiaro: da qui in poi e' da fare. */
+.tr-timeline__event[aria-current],
+.tr-timeline__event.is-current {
+  --tr-tl-dot: var(--tr-paper);
+  --tr-tl-ring: var(--tr-brand-500);
+  --tr-tl-seg: var(--tr-brand-100);
+}
+.tr-timeline__event[aria-current] .tr-timeline__title,
+.tr-timeline__event.is-current .tr-timeline__title {
+  color: var(--tr-ink-900);
+}
+
+/* ---- Variante in riga ----
+   Le tappe di un progetto o di un'offerta, una accanto all'altra: dot in
+   alto, binario orizzontale, data e titolo sotto. E' lo stesso componente
+   girato, non un secondo componente. */
+.tr-timeline--row {
+  flex-direction: row;
+  align-items: start;
+}
+.tr-timeline--row .tr-timeline__event {
+  --tr-tl-dot-y: 0px;
+  flex: 1 1 0;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  row-gap: var(--tr-space-3);
+  padding: 0 var(--tr-space-4) 0 0;
+}
+.tr-timeline--row .tr-timeline__event::before {
+  grid-column: 1;
+  grid-row: 1;
+  margin-top: 0;
+}
+.tr-timeline--row .tr-timeline__event::after {
+  left: calc(var(--tr-dot-size-lg) + var(--tr-space-2));
+  right: var(--tr-space-2);
+  top: calc((var(--tr-dot-size-lg) - var(--tr-rule-medium)) / 2);
+  bottom: auto;
+  width: auto;
+  height: var(--tr-rule-medium);
+}
+.tr-timeline--row .tr-timeline__when {
+  grid-column: 1;
+  grid-row: 2;
+  text-align: left;
+  line-height: 1.4;
+}
+.tr-timeline--row .tr-timeline__body {
+  grid-column: 1;
+  grid-row: 3;
+}
+.tr-timeline--row .tr-timeline__text { max-width: none; }
+
+/* ==========================================================================
+   Cronoprogramma
+   ========================================================================== */
+
+.tr-gantt {
+  /* Quante colonne ha il piano: l'unita' minima (giorni, settimane, mesi). */
+  --tr-gantt-cols: 12;
+
+  position: relative;
+  /* Fluido finche' la colonna regge; sotto la larghezza minima per colonna
+     il piano si allarga e scorre dentro .tr-gantt-scroll. */
+  min-width: calc(var(--tr-gantt-label-col) + var(--tr-gantt-cols) * var(--tr-gantt-col-min));
+  color: var(--tr-ink-600);
+  font-family: var(--tr-font-display);
+  font-size: 14px;
+  line-height: var(--tr-leading-body);
+}
+
+/* Il contenitore che scorre: solo quando le colonne sono troppe. */
+.tr-gantt-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* Testata e righe hanno la stessa gabbia: nomi a sinistra, tempo a destra. */
+.tr-gantt__head,
+.tr-gantt__row {
+  display: grid;
+  grid-template-columns: var(--tr-gantt-label-col) minmax(0, 1fr);
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.tr-gantt__head { border-bottom-color: var(--tr-border-soft-2); }
+
+/* ---- Testata ---- */
+.tr-gantt__corner {
+  display: flex;
+  align-items: flex-end;
+  min-height: var(--tr-gantt-row-h);
+  padding: 0 var(--tr-space-4) var(--tr-space-2) 0;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+/* La scala: una griglia con le stesse colonne delle corsie, cosi' le tacche
+   e le barre non possono sfasarsi. Una tacca copre --tr-gantt-span colonne. */
+.tr-gantt__scale {
+  display: grid;
+  grid-template-columns: repeat(var(--tr-gantt-cols), minmax(0, 1fr));
+  align-items: end;
+  min-height: var(--tr-gantt-row-h);
+  min-width: 0;
+}
+.tr-gantt__tick {
+  grid-column: span var(--tr-gantt-span, 1);
+  min-width: 0;
+  padding: 0 var(--tr-space-1) var(--tr-space-2) var(--tr-space-2);
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Il filetto della tacca scende per tutto il piano. Non ha left: prende la
+   posizione statica, cioe' il bordo sinistro della tacca, e prende l'altezza
+   da .tr-gantt, che e' l'antenato posizionato. Ne' la testata ne' la scala
+   ne' la tacca devono quindi essere posizionate. */
+.tr-gantt__tick::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin-left: calc(-1 * var(--tr-space-2));
+  width: var(--tr-rule-thin);
+  background: var(--tr-border-soft);
+  pointer-events: none;
+}
+/* Tacca di un periodo non lavorativo: si spegne l'etichetta, non si colora
+   il fondo. Il fondo di un piano resta il paper. */
+.tr-gantt__tick--off { color: var(--tr-border-soft-2); }
+
+/* ---- Righe ----
+   Il nome va a capo, non si tronca: e' la colonna dei nomi, non l'asse di un
+   grafico, e la riga puo' crescere. Lo stato sta sotto il nome, non accanto:
+   accanto si mangerebbe la colonna. */
+.tr-gantt__label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--tr-space-1);
+  min-height: var(--tr-gantt-row-h);
+  min-width: 0;
+  padding: var(--tr-space-2) var(--tr-space-4) var(--tr-space-2) 0;
+  line-height: 1.35;
+  color: var(--tr-ink-900);
+}
+.tr-gantt__name { min-width: 0; overflow-wrap: anywhere; }
+
+/* La fase: un titolo di gruppo, in display maiuscolo come lo step di
+   processo. Le attivita' che contiene rientrano di un passo e mezzo. */
+.tr-gantt__row--group .tr-gantt__label {
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-display);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-display);
+  text-transform: uppercase;
+}
+.tr-gantt__row--sub .tr-gantt__label { padding-left: var(--tr-space-5); }
+
+/* La corsia: le stesse colonne della scala. Una riga sola, quindi tutte le
+   barre della corsia si sovrappongono sulla stessa quota: due barre nella
+   stessa attivita' vanno su due righe. */
+.tr-gantt__lane {
+  display: grid;
+  grid-template-columns: repeat(var(--tr-gantt-cols), minmax(0, 1fr));
+  grid-template-rows: minmax(var(--tr-gantt-row-h), auto);
+  align-items: center;
+  min-width: 0;
+}
+
+/* ---- La barra ----
+   Il tassello categoriale allungato: fondo tenue, filetto attorno. Se sulla
+   barra c'e' una classe .tr-cat--n i tre ruoli arrivano da li'; altrimenti
+   e' di marca. L'avanzamento riempie il tassello con il colore del filetto:
+   una barra piena e' finita, una vuota non e' iniziata. */
+.tr-gantt__bar {
+  --tr-gantt-track: var(--tr-cat-surface, var(--tr-brand-50));
+  --tr-gantt-fill: var(--tr-cat-border, var(--tr-brand-500));
+
+  position: relative;
+  grid-column: var(--tr-gantt-start, 1) / span var(--tr-gantt-span, 1);
+  grid-row: 1;
+  height: var(--tr-gantt-bar-h);
+  min-width: 0;
+  border: var(--tr-rule-thin) solid var(--tr-gantt-fill);
+  border-radius: var(--tr-radius-ui);
+  background: var(--tr-gantt-track);
+}
+.tr-gantt__bar::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--tr-gantt-progress, 0%);
+  max-width: 100%;
+  background: var(--tr-gantt-fill);
+}
+
+/* La didascalia della barra sta fuori, in coda: dentro 14px non ci sta
+   niente. Con --start si mette in testa, per le barre in fondo al piano. */
+.tr-gantt__bar-label {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + var(--tr-space-2));
+  transform: translateY(-50%);
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  color: var(--tr-ink-400);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.tr-gantt__bar-label--start {
+  left: auto;
+  right: calc(100% + var(--tr-space-2) + var(--tr-rule-thin));
+}
+
+/* Pietra miliare: un istante, quindi un dot, seduto sul filetto della
+   colonna in cui cade. Non ha durata e non ha avanzamento. */
+.tr-gantt__bar--milestone {
+  grid-column: var(--tr-gantt-start, 1) / span 1;
+  justify-self: start;
+  width: var(--tr-dot-size-lg);
+  height: var(--tr-dot-size-lg);
+  margin-left: calc(-1 * var(--tr-dot-size-lg) / 2);
+  border: 0;
+  border-radius: var(--tr-radius-pill);
+  background: var(--tr-gantt-fill);
+}
+.tr-gantt__bar--milestone::before { display: none; }
+
+/* La fase: il segmento del sistema in orizzontale — pieno per quanto e'
+   fatto, tinta chiara per il resto. E' sempre di marca: una fase non e' una
+   serie. */
+.tr-gantt__bar--summary {
+  --tr-gantt-track: var(--tr-brand-100);
+  --tr-gantt-fill: var(--tr-brand-500);
+
+  height: var(--tr-rule-accent);
+  border: 0;
+  border-radius: var(--tr-radius-line);
+}
+.tr-gantt__bar--summary::before { border-radius: inherit; }
+
+/* Lo stato: la famiglia semantica sostituisce la serie, e il nome della
+   riga porta il .tr-status corrispondente. Senza quello il rosso e' solo
+   rosso. */
+.tr-gantt__bar--warning {
+  --tr-gantt-track: var(--tr-state-warning-tint);
+  --tr-gantt-fill: var(--tr-state-warning);
+}
+.tr-gantt__bar--danger {
+  --tr-gantt-track: var(--tr-state-danger-tint);
+  --tr-gantt-fill: var(--tr-state-danger);
+}
+
+/* ---- Oggi ----
+   Un segmento di marca a tutta altezza, sulla colonna in cui cade la data —
+   anche frazionaria: 3.5 e' meta' della terza. Va scritto dopo le righe,
+   cosi' passa sopra le barre. L'etichetta la porta data-label. */
+.tr-gantt__now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--tr-gantt-label-col) + (100% - var(--tr-gantt-label-col)) * (var(--tr-gantt-today, 1) - 1) / var(--tr-gantt-cols));
+  width: var(--tr-rule-medium);
+  margin-left: calc(-1 * var(--tr-rule-medium) / 2);
+  border-radius: var(--tr-radius-line);
+  background: var(--tr-brand-500);
+  pointer-events: none;
+}
+.tr-gantt__now::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 var(--tr-space-1);
+  background: var(--tr-paper);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  line-height: 1.4;
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-brand-500);
+}
+
+/* ==========================================================================
+   Ambienti
+   ========================================================================== */
+
+@media (max-width: 720px) {
+  /* Le tappe in riga tornano in colonna: a quattro in 360px non si leggono. */
+  .tr-timeline--row { flex-direction: column; }
+  .tr-timeline--row .tr-timeline__event {
+    --tr-tl-dot-y: calc((var(--tr-leading-body) * var(--tr-text-body) - var(--tr-dot-size-lg)) / 2);
+    --tr-tl-rail-x: calc((var(--tr-dot-size-lg) - var(--tr-rule-medium)) / 2);
+    flex: none;
+    grid-template-columns: var(--tr-dot-size-lg) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    row-gap: 0;
+    padding: 0 0 var(--tr-space-5);
+  }
+  .tr-timeline--row .tr-timeline__event:last-child { padding-bottom: 0; }
+  .tr-timeline--row .tr-timeline__event::before { grid-column: 1; grid-row: 1; margin-top: var(--tr-tl-dot-y); }
+  .tr-timeline--row .tr-timeline__event::after {
+    left: var(--tr-tl-rail-x);
+    right: auto;
+    top: calc(var(--tr-tl-dot-y) + var(--tr-dot-size-lg) + var(--tr-space-1));
+    bottom: var(--tr-space-1);
+    width: var(--tr-rule-medium);
+    height: auto;
+  }
+  .tr-timeline--row .tr-timeline__when { grid-column: 2; grid-row: 1; line-height: calc(var(--tr-leading-body) * var(--tr-text-body)); }
+  .tr-timeline--row .tr-timeline__body { grid-column: 2; grid-row: 2; }
+
+  /* La colonna dei nomi cede spazio al piano. */
+  .tr-gantt { --tr-gantt-label-col: 132px; }
+}
+
+@media (max-width: 560px) {
+  /* La cronologia verticale impila la data sopra il titolo: la colonna della
+     data a sinistra si mangerebbe meta' della riga. */
+  .tr-timeline:not(.tr-timeline--row) .tr-timeline__event {
+    --tr-tl-rail-x: calc((var(--tr-dot-size-lg) - var(--tr-rule-medium)) / 2);
+    grid-template-columns: var(--tr-dot-size-lg) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+  .tr-timeline:not(.tr-timeline--row) .tr-timeline__event::before { grid-column: 1; grid-row: 1; }
+  .tr-timeline:not(.tr-timeline--row) .tr-timeline__when { grid-column: 2; grid-row: 1; text-align: left; }
+  .tr-timeline:not(.tr-timeline--row) .tr-timeline__body { grid-column: 2; grid-row: 2; }
+}
+
+@media (forced-colors: active) {
+  /* Qui il colore non esiste piu'. Nella cronologia resta la forma, che gia'
+     distingueva gli stati: pieno, anello, vuoto. */
+  .tr-timeline__event::before,
+  .tr-timeline__event::after {
+    forced-color-adjust: none;
+    background: GrayText;
+    box-shadow: none;
+  }
+  .tr-timeline__event.is-done::before,
+  .tr-timeline__event.is-done::after,
+  .tr-timeline__event:has(~ [aria-current])::before,
+  .tr-timeline__event:has(~ [aria-current])::after,
+  .tr-timeline__event:has(~ .is-current)::before,
+  .tr-timeline__event:has(~ .is-current)::after,
+  .tr-timeline:not(:has([aria-current], .is-current, .is-done)) > .tr-timeline__event::before,
+  .tr-timeline:not(:has([aria-current], .is-current, .is-done)) > .tr-timeline__event::after { background: CanvasText; }
+  .tr-timeline__event[aria-current]::before,
+  .tr-timeline__event.is-current::before {
+    background: Canvas;
+    box-shadow: inset 0 0 0 var(--tr-rule-medium) CanvasText;
+  }
+
+  /* Nel cronoprogramma restano il filetto della barra e la pienezza. */
+  .tr-gantt__bar {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+  }
+  .tr-gantt__bar::before,
+  .tr-gantt__bar--milestone,
+  .tr-gantt__bar--summary { background: CanvasText; }
+  .tr-gantt__bar--summary { background: GrayText; }
+  .tr-gantt__tick::before { forced-color-adjust: none; background: GrayText; }
+  .tr-gantt__now { forced-color-adjust: none; background: Highlight; }
+  .tr-gantt__now::before { background: Canvas; color: Highlight; }
+}
+
+@media print {
+  /* Barre, dot e binari sono fondi, e i browser li tolgono in stampa: qui
+     sono il contenuto, e restano. */
+  .tr-timeline__event::before,
+  .tr-timeline__event::after,
+  .tr-gantt__bar,
+  .tr-gantt__bar::before,
+  .tr-gantt__tick::before,
+  .tr-gantt__now {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .tr-gantt-scroll { overflow: visible; }
+}

@@ -4,43 +4,69 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titolo %}{{ app_name }}{% endblock %}</title>
-  <link rel="stylesheet" href="/static/pmo.css">
+  <link rel="icon" type="image/svg+xml" href="/static/ds/assets/logo-traccia-mark.svg">
+  <!-- Design system La Traccia: font in locale (l'app gira sul PC, anche senza rete), poi token e componenti. -->
+  <link rel="stylesheet" href="/static/ds/css/traccia-fonts.css?v={{ asset_v }}">
+  <link rel="stylesheet" href="/static/ds/tokens/tokens.css?v={{ asset_v }}">
+  <link rel="stylesheet" href="/static/ds/css/traccia.css?v={{ asset_v }}">
+  <link rel="stylesheet" href="/static/ds/css/traccia-icons.css?v={{ asset_v }}">
+  <link rel="stylesheet" href="/static/ds/css/traccia-states.css?v={{ asset_v }}">
+  <link rel="stylesheet" href="/static/ds/css/traccia-time.css?v={{ asset_v }}">
+  <link rel="stylesheet" href="/static/pmo.css?v={{ asset_v }}">
 </head>
-<body>
-<header class="top">
-  <a class="brand" href="/">{{ app_name }}</a>
-  {% if utente %}
-  <nav>
-    <a href="/" class="{{ 'attivo' if request.url.path == '/' else '' }}">Cruscotto</a>
-    <a href="/pratiche" class="{{ 'attivo' if request.url.path.startswith('/pratiche') else '' }}">Pratiche</a>
-    <a href="/solleciti" class="{{ 'attivo' if request.url.path.startswith('/solleciti') else '' }}">Solleciti</a>
-    <a href="/revisione" class="{{ 'attivo' if request.url.path.startswith('/revisione') else '' }}">Revisione</a>
-    <a href="/caselle" class="{{ 'attivo' if request.url.path.startswith('/caselle') else '' }}">Caselle</a>
-    {% if utente.is_admin %}<a href="/impostazioni" class="{{ 'attivo' if request.url.path.startswith('/impostazioni') else '' }}">Impostazioni</a>{% endif %}
-  </nav>
-  <div class="utente">
-    <span>{{ utente.nome or utente.email }}</span>
-    <form method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Esci</button></form>
+<body class="{% block classe_body %}tr-page{% endblock %}">
+{% block corpo %}
+{% set percorso = request.url.path %}
+<div class="tr-shell pmo-shell">
+  <div class="tr-shell__body">
+    <div class="pmo-container pmo-top">
+      <header class="tr-header">
+        <a class="tr-brandmark" href="/" aria-label="{{ app_name }}">
+          <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="">
+          <span class="tr-brandmark__wordmark">traccia</span>
+        </a>
+        {% if utente %}
+        <div class="pmo-user">
+          <span class="tr-mono tr-mono--brand tr-mono--wide">{{ utente.nome or utente.email }}</span>
+          <form method="post" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="tr-btn tr-btn--quiet tr-btn--sm" type="submit">Esci</button>
+          </form>
+        </div>
+        {% endif %}
+      </header>
+      {% if utente %}
+      <nav class="tr-tabs pmo-nav" aria-label="Sezioni">
+        <a class="tr-tab" href="/"{% if percorso == '/' %} aria-current="page"{% endif %}>Cruscotto</a>
+        <a class="tr-tab" href="/pratiche"{% if percorso.startswith('/pratiche') %} aria-current="page"{% endif %}>Pratiche</a>
+        <a class="tr-tab" href="/solleciti"{% if percorso.startswith('/solleciti') %} aria-current="page"{% endif %}>Solleciti</a>
+        <a class="tr-tab" href="/revisione"{% if percorso.startswith('/revisione') %} aria-current="page"{% endif %}>Revisione</a>
+        <a class="tr-tab" href="/caselle"{% if percorso.startswith('/caselle') %} aria-current="page"{% endif %}>Caselle</a>
+        {% if utente.is_admin %}<a class="tr-tab" href="/impostazioni"{% if percorso.startswith('/impostazioni') %} aria-current="page"{% endif %}>Impostazioni</a>{% endif %}
+      </nav>
+      {% endif %}
+    </div>
+    <main class="pmo-container pmo-main">
+      {% block contenuto %}{% endblock %}
+    </main>
   </div>
-  {% endif %}
-</header>
-<main>
-  {% for livello, testo in flash_messaggi %}
-    <div class="flash {{ livello }}">{{ testo }}</div>
-  {% endfor %}
-  {% block contenuto %}{% endblock %}
-</main>
-<script>
-  document.querySelectorAll("[data-copia]").forEach(function (el) {
-    el.addEventListener("click", function () {
-      navigator.clipboard.writeText(el.getAttribute("data-copia")).then(function () {
-        var orig = el.textContent; el.textContent = "Copiato!"; setTimeout(function () { el.textContent = orig; }, 1500);
-      });
-    });
-  });
-  document.querySelectorAll("form[data-conferma]").forEach(function (f) {
-    f.addEventListener("submit", function (e) { if (!confirm(f.getAttribute("data-conferma"))) e.preventDefault(); });
-  });
-</script>
+  <div class="pmo-container pmo-bottom">
+    <!-- Dentro l'applicazione il footer e' nudo: la riga certificazioni sta solo sulle superfici pubbliche. -->
+    <footer class="tr-footer">
+      <span class="tr-brandmark">
+        <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
+        <span class="tr-brandmark__wordmark">traccia</span>
+      </span>
+      <span class="tr-footer__contacts">
+        <a class="tr-footer__contact" href="mailto:info@latraccia.it"><span class="tr-dot"></span>info@latraccia.it</a>
+        <span class="tr-footer__ref">PMO</span>
+      </span>
+    </footer>
+  </div>
+</div>
+{% endblock %}
+{% include "_toasts.html" %}
+<script src="/static/ds/js/tr-select.js?v={{ asset_v }}"></script>
+<script src="/static/pmo.js?v={{ asset_v }}"></script>
 </body>
 </html>

@@ -1,21 +1,46 @@
 {% extends "base.html" %}
+{% from "_ds.html" import eyebrow, campo, area, selezione, csrf with context %}
 {% block titolo %}Nuova pratica · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<h1>Nuova pratica</h1>
-<form method="post" action="/pratiche" class="card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <div class="campo"><label>Titolo</label><input type="text" name="titolo" required placeholder="es. Banca degli Occhi – canone e giornate 2027"></div>
-  <div class="campo"><label>Descrizione</label><textarea name="descrizione"></textarea></div>
-  <div class="campi">
-    <div class="campo"><label>Cliente</label><select name="cliente_id"><option value="">-</option>{% for c in clienti %}<option value="{{ c.id }}">{{ c.nome }}</option>{% endfor %}</select></div>
-    <div class="campo"><label>Prodotto</label><select name="prodotto_id"><option value="">-</option>{% for p in prodotti %}<option value="{{ p.id }}">{{ p.nome }}</option>{% endfor %}</select></div>
-    <div class="campo"><label>Stato iniziale</label><select name="stato">{% for k, v in stati.items() if k not in ['chiusa', 'annullata'] %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
-    <div class="campo"><label>Responsabile</label><select name="responsabile_id"><option value="">io</option>{% for u in utenti %}<option value="{{ u.id }}">{{ u.nome or u.email }}</option>{% endfor %}</select></div>
-    <div class="campo"><label>Priorità</label><select name="priorita"><option value="media">media</option><option value="alta">alta</option><option value="bassa">bassa</option></select></div>
-    <div class="campo"><label>Scadenza</label><input type="date" name="data_scadenza"></div>
-    <div class="campo"><label>Importo offerta (€)</label><input type="text" name="importo_offerta"></div>
-    <div class="campo"><label>Importo ordine (€)</label><input type="text" name="importo_ordine"></div>
+<div class="pmo-head">
+  <div class="pmo-head__title">
+    {{ eyebrow("Pratiche") }}
+    <h1 class="tr-h2">Nuova <em>pratica</em></h1>
   </div>
-  <button class="primario">Crea pratica</button>
+</div>
+
+<form method="post" action="/pratiche" class="tr-card pmo-section">
+  {{ csrf() }}
+  <div class="pmo-stack">
+    {{ campo("titolo", "Titolo", obbligatorio=true, segnaposto="es. Banca degli Occhi – canone e giornate 2027") }}
+    {{ area("descrizione", "Descrizione") }}
+    <div class="pmo-grid">
+      {% call selezione("cliente_id", "Cliente") %}
+        <option value="">-</option>
+        {% for c in clienti %}<option value="{{ c.id }}">{{ c.nome }}</option>{% endfor %}
+      {% endcall %}
+      {% call selezione("prodotto_id", "Prodotto") %}
+        <option value="">-</option>
+        {% for p in prodotti %}<option value="{{ p.id }}">{{ p.nome }}</option>{% endfor %}
+      {% endcall %}
+      {% call selezione("stato", "Fase iniziale") %}
+        {% for k, v in stati.items() if k not in ['chiusa', 'annullata'] %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
+      {% endcall %}
+      {% call selezione("responsabile_id", "Responsabile") %}
+        <option value="">io</option>
+        {% for u in utenti %}<option value="{{ u.id }}">{{ u.nome or u.email }}</option>{% endfor %}
+      {% endcall %}
+      {% call selezione("priorita", "Priorità") %}
+        <option value="media">media</option><option value="alta">alta</option><option value="bassa">bassa</option>
+      {% endcall %}
+      {{ campo("data_scadenza", "Scadenza", tipo="date") }}
+      {{ campo("importo_offerta", "Importo offerta (€)", segnaposto="12.000,00") }}
+      {{ campo("importo_ordine", "Importo ordine (€)", segnaposto="12.000,00") }}
+    </div>
+  </div>
+  <div class="tr-card__foot">
+    <a class="tr-btn tr-btn--neutral" href="/pratiche">Annulla</a>
+    <button class="tr-btn tr-btn--primary" type="submit">Crea pratica</button>
+  </div>
 </form>
 {% endblock %}

@@ -1,0 +1,333 @@
+/* ==========================================================================
+   LA TRACCIA — Stati semantici per interfacce software
+   Caricare dopo tokens/tokens.css, css/traccia.css e css/traccia-icons.css:
+   la variante porta con se' la propria icona, e le icone stanno li'.
+
+   I colori di stato comunicano significato, non decorazione. Ogni stato deve
+   essere accompagnato da testo, icona o forma; il colore da solo non basta.
+   ========================================================================== */
+
+/* Variabili locali della famiglia.
+   Le dichiarano insieme .tr-notice (messaggio che resta in pagina) e .tr-toast
+   (conferma che passa): un solo blocco per variante, quindi i due componenti
+   non possono divergere. Ogni variante porta anche la propria icona, cosi' il
+   segno d'allarme non puo' finire su un messaggio di conferma. */
+.tr-notice,
+.tr-toast {
+  --tr-notice-icon: var(--tr-i-info);
+  --tr-notice-accent: var(--tr-border-soft-2);
+  --tr-notice-dark: var(--tr-ink-900);
+  --tr-notice-tint: var(--tr-surface);
+  --tr-notice-tint-2: var(--tr-surface-tint);
+  --tr-notice-border: var(--tr-border-soft-2);
+
+  border-left-color: var(--tr-notice-border);
+}
+
+.tr-notice--info,
+.tr-toast--info {
+  --tr-notice-icon: var(--tr-i-info);
+  --tr-notice-accent: var(--tr-state-info);
+  --tr-notice-dark: var(--tr-state-info-dark);
+  --tr-notice-tint: var(--tr-state-info-tint);
+  --tr-notice-tint-2: var(--tr-state-info-tint-2);
+  --tr-notice-border: var(--tr-state-info-border);
+  color: var(--tr-state-info);
+}
+
+.tr-notice--success,
+.tr-toast--success {
+  --tr-notice-icon: var(--tr-i-check);
+  --tr-notice-accent: var(--tr-state-success);
+  --tr-notice-dark: var(--tr-state-success-dark);
+  --tr-notice-tint: var(--tr-state-success-tint);
+  --tr-notice-tint-2: var(--tr-state-success-tint-2);
+  --tr-notice-border: var(--tr-state-success-border);
+  color: var(--tr-state-success);
+}
+
+.tr-notice--warning,
+.tr-toast--warning {
+  --tr-notice-icon: var(--tr-i-alert);
+  --tr-notice-accent: var(--tr-state-warning);
+  --tr-notice-dark: var(--tr-state-warning-dark);
+  --tr-notice-tint: var(--tr-state-warning-tint);
+  --tr-notice-tint-2: var(--tr-state-warning-tint-2);
+  --tr-notice-border: var(--tr-state-warning-border);
+  color: var(--tr-state-warning);
+}
+
+.tr-notice--danger,
+.tr-toast--danger {
+  --tr-notice-icon: var(--tr-i-alert);
+  --tr-notice-accent: var(--tr-state-danger);
+  --tr-notice-dark: var(--tr-state-danger-dark);
+  --tr-notice-tint: var(--tr-state-danger-tint);
+  --tr-notice-tint-2: var(--tr-state-danger-tint-2);
+  --tr-notice-border: var(--tr-state-danger-border);
+  color: var(--tr-state-danger);
+}
+
+.tr-notice--critical,
+.tr-toast--critical {
+  --tr-notice-icon: var(--tr-i-alert);
+  --tr-notice-accent: var(--tr-state-critical);
+  --tr-notice-dark: var(--tr-state-critical-dark);
+  --tr-notice-tint: var(--tr-state-critical-tint);
+  --tr-notice-tint-2: var(--tr-state-critical-tint-2);
+  --tr-notice-border: var(--tr-state-critical-border);
+  border-left-width: var(--tr-rule-accent);
+  color: var(--tr-state-critical);
+}
+
+/* Markup strutturato facoltativo. Il testo lungo torna all'inchiostro neutro:
+   il colore semantico resta su icona, titolo e filetto. */
+.tr-notice__icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--tr-notice-accent);
+}
+
+.tr-notice__icon > svg {
+  display: block;
+  width: var(--tr-icon-lg);
+  height: var(--tr-icon-lg);
+}
+
+/* Riquadro vuoto: l'icona la mette la variante. E' il punto in cui il registro
+   delle icone ripaga la scelta della mascheratura — qui il segno non lo puo'
+   sbagliare nessuno, perche' non lo scrive nessuno. */
+.tr-notice__icon:empty,
+.tr-toast__icon {
+  display: inline-block;
+  flex: none;
+  width: var(--tr-icon-lg);
+  height: var(--tr-icon-lg);
+  background-color: currentColor;
+  -webkit-mask: var(--tr-notice-icon) center / contain no-repeat;
+  mask: var(--tr-notice-icon) center / contain no-repeat;
+}
+
+.tr-notice__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tr-notice__title {
+  margin: 0;
+  color: var(--tr-notice-accent);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.tr-notice__body {
+  margin: var(--tr-space-1) 0 0;
+  color: var(--tr-ink-600);
+}
+
+/* Pannello tenue: ammesso solo nelle UI, per messaggi persistenti o contestuali.
+   Non va trasferito a brochure e slide. */
+.tr-notice--tint {
+  padding: var(--tr-space-4);
+  border-left-color: var(--tr-notice-accent);
+  background: var(--tr-notice-tint);
+}
+
+.tr-notice--tint-strong {
+  background: var(--tr-notice-tint-2);
+}
+
+/* Superficie piena: solo per errori bloccanti e allarmi. */
+.tr-notice--solid {
+  padding: var(--tr-space-4);
+  border-left-color: var(--tr-notice-dark);
+  background: var(--tr-notice-accent);
+  color: var(--tr-state-on-solid);
+}
+
+.tr-notice--solid .tr-notice__icon,
+.tr-notice--solid .tr-notice__title,
+.tr-notice--solid .tr-notice__body,
+.tr-notice--solid a {
+  color: inherit;
+}
+
+.tr-notice--solid a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+/* Allarme ad alta priorità. Usare con role="alert" e, solo quando l'evento
+   dinamico richiede annuncio immediato, aria-live="assertive". */
+.tr-notice--alarm {
+  --tr-notice-icon: var(--tr-i-alert);
+  --tr-notice-accent: var(--tr-state-critical);
+  --tr-notice-dark: var(--tr-state-critical-dark);
+  --tr-notice-tint: var(--tr-state-critical-tint);
+  --tr-notice-tint-2: var(--tr-state-critical-tint-2);
+  --tr-notice-border: var(--tr-state-critical-border);
+
+  padding: var(--tr-space-4);
+  border-left: 6px solid var(--tr-state-critical-dark);
+  background: var(--tr-state-critical);
+  color: var(--tr-state-on-solid);
+}
+
+.tr-notice--alarm .tr-notice__icon,
+.tr-notice--alarm .tr-notice__title,
+.tr-notice--alarm .tr-notice__body,
+.tr-notice--alarm a {
+  color: inherit;
+}
+
+/* Indicatore compatto: il testo è obbligatorio, quindi il significato non
+   dipende dal solo pallino. */
+.tr-status {
+  --tr-status-color: var(--tr-ink-400);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-2);
+  color: var(--tr-status-color);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+}
+
+.tr-status::before {
+  content: "";
+  width: var(--tr-dot-size);
+  height: var(--tr-dot-size);
+  border-radius: var(--tr-radius-pill);
+  background: currentColor;
+  flex: none;
+}
+
+.tr-status--info { --tr-status-color: var(--tr-state-info); }
+.tr-status--success { --tr-status-color: var(--tr-state-success); }
+.tr-status--warning { --tr-status-color: var(--tr-state-warning); }
+.tr-status--danger { --tr-status-color: var(--tr-state-danger); }
+.tr-status--critical { --tr-status-color: var(--tr-state-critical); }
+
+/* ==========================================================================
+   Messaggio transitorio
+   .tr-notice copre cio' che resta in pagina; questo copre la conferma che
+   passa — "copiato", "salvato", "porta occupata". Sono due tempi diversi
+   dello stesso vocabolario, quindi condividono le variabili di variante
+   dichiarate in testa al file: nessuna famiglia parallela, nessuna deriva.
+
+   La superficie qui e' piena e scura. E' l'eccezione che il messaggio si
+   guadagna arrivando non richiesto sopra il contenuto: senza un piano proprio
+   il testo si mescolerebbe a quello che c'e' sotto, e una conferma illeggibile
+   non conferma niente. Il filetto d'accento sta sul fianco, come nell'avviso,
+   ma prende il gradino chiaro della famiglia (--tr-notice-border) perche' su
+   fondo scuro le tinte di stato piene non si staccano.
+   ========================================================================== */
+
+/* La zona: i messaggi si impilano, il piu' recente in basso, vicino al pollice
+   e lontano dalla testata. `pointer-events: none` sulla zona e `auto` sul
+   singolo messaggio, cosi' l'area vuota non ruba i clic alla pagina. */
+.tr-toast-region {
+  position: fixed;
+  z-index: 60;
+  inset: auto var(--tr-space-6) var(--tr-space-6) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tr-space-3);
+  width: min(420px, calc(100vw - 2 * var(--tr-space-6)));
+  pointer-events: none;
+}
+
+.tr-toast {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tr-space-3);
+  padding: var(--tr-space-4);
+  border-left: var(--tr-rule-accent) solid var(--tr-notice-border);
+  border-radius: var(--tr-radius-ui);
+  background: var(--tr-ink-900);
+  color: var(--tr-state-on-solid);
+  font-size: 14px;
+  line-height: var(--tr-leading-body);
+  pointer-events: auto;
+  animation: tr-toast-in 180ms var(--tr-motion-ease);
+}
+
+.tr-toast__icon { color: var(--tr-notice-border); }
+
+.tr-toast__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Sul fondo scuro il titolo prende il gradino chiaro della stessa famiglia:
+   non e' una variabile parallela, e' un altro passo della stessa scala. */
+.tr-toast__title {
+  margin: 0;
+  color: var(--tr-notice-border);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.tr-toast__body { margin: var(--tr-space-1) 0 0; }
+.tr-toast p { margin: 0; }
+
+/* Il comando di chiusura e quello d'azione vivono sul fondo scuro: prendono
+   l'inchiostro di chi li ospita, non il proprio. */
+.tr-toast .tr-btn,
+.tr-toast .tr-btn--icon { color: inherit; }
+.tr-toast .tr-btn:hover:not(:disabled),
+.tr-toast .tr-btn--icon:hover:not(:disabled) { color: var(--tr-notice-border); }
+.tr-toast .tr-btn { --tr-btn-rule: var(--tr-notice-border); }
+.tr-toast .tr-btn--icon { margin: calc(-1 * var(--tr-space-2)) calc(-1 * var(--tr-space-2)) 0 0; }
+.tr-toast .tr-btn:focus-visible,
+.tr-toast .tr-btn--icon:focus-visible { outline-color: var(--tr-state-on-solid); }
+
+@keyframes tr-toast-in {
+  from { opacity: 0; transform: translateY(var(--tr-space-2)); }
+}
+
+@media (max-width: 720px) {
+  /* Su schermo stretto il messaggio prende la larghezza: a 420px in un
+     viewport da 360 sborderebbe, e la conferma finirebbe fuori pagina. */
+  .tr-toast-region {
+    inset: auto var(--tr-space-4) var(--tr-space-4) var(--tr-space-4);
+    width: auto;
+  }
+}
+
+/* Il colore non deve essere l'unico segnale negli ambienti ad alto rischio. */
+@media (forced-colors: active) {
+  .tr-notice,
+  .tr-notice--alarm,
+  .tr-toast {
+    border: 2px solid CanvasText;
+    forced-color-adjust: auto;
+  }
+
+  .tr-status::before {
+    border: 1px solid CanvasText;
+  }
+
+  /* Le icone sono mascherature: senza questo il sistema ne sostituisce il
+     fondo e il segno sparisce. Resta la forma, si perde la tinta semantica —
+     che qui non era comunque un canale disponibile. */
+  .tr-notice__icon:empty,
+  .tr-toast__icon { background-color: CanvasText; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Il messaggio compare, non entra. */
+  .tr-toast { animation: none; }
+}

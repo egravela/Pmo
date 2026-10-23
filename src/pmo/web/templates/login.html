@@ -1,23 +1,67 @@
 {% extends "base.html" %}
+{% from "_ds.html" import eyebrow, campo, csrf with context %}
 {% block titolo %}Accesso · {{ app_name }}{% endblock %}
-{% block contenuto %}
-<div class="card login">
-  <h1>{{ app_name }}</h1>
-  <p class="muto">Tracciabilità delle pratiche dalla stima alla fattura, con solleciti automatici.</p>
-  {% if google %}
-    <a class="btn primario" href="/auth/google?next={{ next | urlencode }}">Accedi con Google</a>
-    <p class="piccolo muto">Sono ammessi gli indirizzi dei domini: {{ settings.allowed_domains | join(", ") }}</p>
-  {% else %}
-    <div class="flash avviso">Google OAuth non configurato (PMO_GOOGLE_CLIENT_ID / PMO_GOOGLE_CLIENT_SECRET): vedi il README.</div>
-  {% endif %}
-  {% if dev_login %}
-    <hr>
-    <form method="post" action="/auth/dev">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <input type="hidden" name="next" value="{{ next }}">
-      <div class="campo"><label>Accesso di sviluppo (solo email)</label><input type="email" name="email" placeholder="nome@latraccia.it" required></div>
-      <button>Entra senza Google</button>
-    </form>
-  {% endif %}
+{% block classe_body %}tr-page tr-login tr-watermark-host{% endblock %}
+{% block corpo %}
+<img class="tr-watermark tr-watermark--top-right" src="/static/ds/assets/logo-traccia-outline.svg" alt="" aria-hidden="true">
+
+<header class="tr-login__header">
+  <div class="tr-header">
+    <span class="tr-brandmark">
+      <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
+      <span class="tr-brandmark__wordmark">traccia</span>
+    </span>
+    <span class="tr-eyebrow__label">Accesso riservato</span>
+  </div>
+</header>
+
+<main class="tr-login__main">
+  <div class="tr-login__panel">
+    {{ eyebrow("Accesso") }}
+    <h1 class="tr-h2">Accedi a <em>PMO</em></h1>
+    <p class="tr-body pmo-small pmo-mt-4">Tracciabilità delle pratiche dalla stima alla fattura, con solleciti automatici.</p>
+
+    {% if google %}
+      <a class="tr-btn tr-btn--primary tr-btn--block pmo-mt-5" href="/auth/google?next={{ next | urlencode }}">Accedi con Google</a>
+      <p class="pmo-meta pmo-mt-4">Domini ammessi: {{ settings.allowed_domains | join(", ") }}</p>
+    {% else %}
+      <div class="tr-notice tr-notice--warning pmo-mt-5" role="status">
+        <span class="tr-notice__icon" aria-hidden="true"></span>
+        <div class="tr-notice__content">
+          <p class="tr-notice__title">Google OAuth non configurato</p>
+          <p class="tr-notice__body">Impostare PMO_GOOGLE_CLIENT_ID e PMO_GOOGLE_CLIENT_SECRET: vedi il README.</p>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if dev_login %}
+      <hr class="tr-rule pmo-mt-5">
+      <form method="post" action="/auth/dev" class="pmo-mt-5">
+        {{ csrf() }}
+        <input type="hidden" name="next" value="{{ next }}">
+        {{ campo("email", "Accesso di sviluppo (solo email)", tipo="email", obbligatorio=true, segnaposto="nome@latraccia.it") }}
+        <button class="tr-btn tr-btn--secondary tr-btn--block" type="submit">Entra senza Google</button>
+      </form>
+    {% endif %}
+  </div>
+</main>
+
+<div class="tr-login__footer">
+  <!-- La pagina di accesso e' ancora la soglia: qui la riga certificazioni c'e'. -->
+  <footer class="tr-footer">
+    <span class="tr-brandmark">
+      <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
+      <span class="tr-brandmark__wordmark">traccia</span>
+    </span>
+    <span class="tr-footer__contacts">
+      <a class="tr-footer__contact" href="mailto:info@latraccia.it"><span class="tr-dot"></span>info@latraccia.it</a>
+    </span>
+    <div class="tr-footer__certs">
+      <span class="tr-footer__certs-label">Certificazioni</span>
+      <span class="tr-footer__certs-list">ISO 9001:2015 · ISO 13485:2016 · ISO/IEC 27001:2022 · UNI PdR 125 · UNI EN ISO 14001:2015 · UNI ISO 37001:2025 · PASS 24000:2022</span>
+      <span class="tr-footer__certs-line"></span>
+      <img class="tr-footer__certs-badges" src="/static/ds/assets/certificazioni.png" alt="IMQ Certified ISO 9001:2015, ISO 13485:2016, ISO/IEC 27001:2022 — SI Cert UNI PdR 125">
+    </div>
+  </footer>
 </div>
 {% endblock %}

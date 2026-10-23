@@ -1,104 +1,298 @@
-:root {
-  --bg: #f4f6f9;
-  --card: #ffffff;
-  --testo: #1f2933;
-  --muto: #6b7280;
-  --bordo: #e2e6ea;
-  --primario: #1d4ed8;
-  --primario-chiaro: #dbe4ff;
-  --ok: #15803d;
-  --ok-chiaro: #dcfce7;
-  --avviso: #b45309;
-  --avviso-chiaro: #fef3c7;
-  --critico: #b91c1c;
-  --critico-chiaro: #fee2e2;
-  --info: #0369a1;
-  --info-chiaro: #e0f2fe;
-  --raggio: 8px;
+/* ==========================================================================
+   PMO La Traccia — strato dell'applicazione sopra il design system
+
+   Il design system sta in static/ds/ e non si tocca. Questo file contiene
+   soltanto cio' che il sistema non prevede e che un'applicazione a elenchi e
+   moduli deve pur avere: impaginazione, tabella a piu' colonne, link, casella
+   di spunta, riquadro apri/chiudi.
+
+   Regole che questo file si impone, le stesse del sistema:
+   - nessun valore letterale dove esiste un token (colori, spazi, font, filetti);
+   - nessun hue nuovo, nessuna ombra, nessun gradiente, nessun raggio;
+   - la struttura la danno filetti, spaziatura e allineamenti, non scatole;
+   - lo stato passa dall'attributo ARIA, non da una classe di comodo.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body.tr-page { min-height: 100vh; }
+
+/* ---- Impaginazione ---------------------------------------------------------
+   .tr-shell tiene il footer in fondo; il contenitore da' la misura massima. */
+.pmo-shell { min-height: 100vh; }
+.pmo-container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 var(--tr-space-6);
 }
-* { box-sizing: border-box; }
-body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--testo); font-size: 15px; line-height: 1.45; }
-a { color: var(--primario); text-decoration: none; }
-a:hover { text-decoration: underline; }
-header.top { background: #111827; color: #fff; padding: 0 20px; display: flex; align-items: center; gap: 24px; height: 52px; }
-header.top .brand { font-weight: 700; color: #fff; letter-spacing: .3px; }
-header.top nav a { color: #d1d5db; margin-right: 16px; font-size: 14px; }
-header.top nav a.attivo, header.top nav a:hover { color: #fff; text-decoration: none; }
-header.top .utente { margin-left: auto; font-size: 13px; color: #d1d5db; display: flex; gap: 12px; align-items: center; }
-header.top form { margin: 0; }
-main { max-width: 1240px; margin: 0 auto; padding: 20px; }
-h1 { font-size: 22px; margin: 0 0 14px; }
-h2 { font-size: 17px; margin: 0 0 10px; }
-h3 { font-size: 15px; margin: 0 0 8px; }
-.card { background: var(--card); border: 1px solid var(--bordo); border-radius: var(--raggio); padding: 16px; margin-bottom: 16px; }
-.griglia { display: grid; gap: 16px; }
-.griglia.due { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
-.griglia.tre { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.kpi { display: flex; flex-wrap: wrap; gap: 10px; }
-.kpi .box { background: var(--card); border: 1px solid var(--bordo); border-radius: var(--raggio); padding: 10px 14px; min-width: 120px; }
-.kpi .box .n { font-size: 24px; font-weight: 700; display: block; }
-.kpi .box .l { font-size: 12px; color: var(--muto); text-transform: uppercase; letter-spacing: .4px; }
-.kpi .box.critico { border-color: var(--critico); } .kpi .box.critico .n { color: var(--critico); }
-.kpi .box.avviso { border-color: var(--avviso); } .kpi .box.avviso .n { color: var(--avviso); }
-.kpi .box.info .n { color: var(--info); }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--bordo); vertical-align: top; }
-th { font-size: 12px; color: var(--muto); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; }
-tr:hover td { background: #fafbfc; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.badge.stato { background: var(--primario-chiaro); color: var(--primario); }
-.badge.stato.chiusa, .badge.stato.annullata { background: #e5e7eb; color: #374151; }
-.badge.stato.consegna, .badge.stato.fatturazione { background: var(--ok-chiaro); color: var(--ok); }
-.badge.stato.ordine, .badge.stato.specifiche, .badge.stato.sviluppo { background: var(--avviso-chiaro); color: var(--avviso); }
-.badge.critico { background: var(--critico-chiaro); color: var(--critico); }
-.badge.avviso { background: var(--avviso-chiaro); color: var(--avviso); }
-.badge.info { background: var(--info-chiaro); color: var(--info); }
-.badge.ok { background: var(--ok-chiaro); color: var(--ok); }
-.badge.muto { background: #e5e7eb; color: #374151; }
-.badge.proposto { background: #fdf4ff; color: #86198f; border: 1px dashed #c026d3; }
-.muto { color: var(--muto); }
-.piccolo { font-size: 12.5px; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-form.inline { display: inline; }
-button, .btn { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--bordo); background: #fff; color: var(--testo); cursor: pointer; }
-button:hover, .btn:hover { background: #f3f4f6; text-decoration: none; }
-button.primario, .btn.primario { background: var(--primario); border-color: var(--primario); color: #fff; }
-button.primario:hover, .btn.primario:hover { background: #1e40af; }
-button.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
-button.pericolo { color: var(--critico); border-color: var(--critico-chiaro); }
-button.piccolo, .btn.piccolo { padding: 3px 8px; font-size: 12px; }
-input[type=text], input[type=email], input[type=date], input[type=number], select, textarea { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--bordo); border-radius: 6px; background: #fff; width: 100%; }
-textarea { min-height: 70px; }
-label { font-size: 12.5px; color: var(--muto); display: block; margin-bottom: 3px; }
-.campo { margin-bottom: 10px; }
-.campi { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-.filtri { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
-.filtri .campo { margin: 0; min-width: 140px; }
-.flash { padding: 10px 14px; border-radius: var(--raggio); margin-bottom: 12px; border: 1px solid; }
-.flash.ok { background: var(--ok-chiaro); border-color: #86efac; color: #14532d; }
-.flash.errore { background: var(--critico-chiaro); border-color: #fca5a5; color: #7f1d1d; }
-.flash.avviso { background: var(--avviso-chiaro); border-color: #fcd34d; color: #78350f; }
-.timeline { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--bordo); }
-.timeline li { position: relative; padding: 6px 0 10px 18px; }
-.timeline li::before { content: ""; position: absolute; left: -7px; top: 12px; width: 10px; height: 10px; border-radius: 50%; background: var(--primario); }
-.timeline li.sistema::before { background: #9ca3af; }
-.timeline li.proposto::before { background: #c026d3; }
-.timeline .quando { font-size: 12px; color: var(--muto); }
-.timeline .titolo { font-weight: 600; }
-.timeline .desc { font-size: 13.5px; color: #374151; white-space: pre-wrap; }
-.schede { display: flex; gap: 4px; border-bottom: 1px solid var(--bordo); margin-bottom: 14px; }
-.schede a { padding: 8px 14px; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; color: var(--muto); }
-.schede a.attiva { background: var(--card); border-color: var(--bordo); color: var(--testo); font-weight: 600; }
-.azioni { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.testo-mail { white-space: pre-wrap; font-size: 13px; background: #f9fafb; border: 1px solid var(--bordo); border-radius: 6px; padding: 10px; max-height: 320px; overflow: auto; }
-details > summary { cursor: pointer; color: var(--primario); font-size: 13px; }
-.tag { font-family: ui-monospace, Menlo, monospace; background: #eef2ff; border: 1px solid #c7d2fe; padding: 2px 6px; border-radius: 4px; }
-.login { max-width: 420px; margin: 80px auto; }
-.vuoto { color: var(--muto); font-style: italic; padding: 10px 0; }
-.riga-sollecito { border-left: 4px solid var(--bordo); padding-left: 10px; margin-bottom: 10px; }
-.riga-sollecito.critico { border-color: var(--critico); }
-.riga-sollecito.avviso { border-color: var(--avviso); }
-.riga-sollecito.info { border-color: var(--info); }
-.intestazione { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: baseline; margin-bottom: 8px; }
-.intestazione h1 { margin: 0; }
-@media (max-width: 720px) { header.top { height: auto; flex-wrap: wrap; padding: 10px; } header.top nav { width: 100%; } main { padding: 12px; } }
+.pmo-top { padding-top: var(--tr-space-5); }
+.pmo-main { padding-top: var(--tr-space-6); padding-bottom: var(--tr-space-8); }
+.pmo-bottom { padding-bottom: var(--tr-space-6); }
+
+.pmo-user {
+  display: flex;
+  align-items: center;
+  gap: var(--tr-space-5);
+}
+.pmo-user form { margin: 0; }
+
+.pmo-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tr-space-4) var(--tr-space-6);
+}
+.pmo-head__title { min-width: 0; }
+.pmo-head__title .tr-eyebrow { margin-bottom: 0; }
+
+.pmo-section { margin-top: var(--tr-space-7); }
+.pmo-stack { display: grid; gap: var(--tr-space-5); }
+.pmo-stack--tight { gap: var(--tr-space-3); }
+.pmo-lead { margin: var(--tr-space-4) 0 0; font-size: 14px; color: var(--tr-ink-600); max-width: var(--tr-measure-body); }
+.pmo-mt-2 { margin-top: var(--tr-space-2); }
+.pmo-mt-3 { margin-top: var(--tr-space-3); }
+.pmo-mt-4 { margin-top: var(--tr-space-4); }
+.pmo-mt-5 { margin-top: var(--tr-space-5); }
+.pmo-mt-6 { margin-top: var(--tr-space-6); }
+
+/* Due colonne di pari dignita'; sotto i 900px una sola, come il blocco introduttivo. */
+.pmo-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--tr-space-5);
+  align-items: start;
+}
+.pmo-cols--even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pmo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--tr-space-2) var(--tr-space-5);
+}
+.pmo-grid--wide { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.pmo-grid > .pmo-field--wide { grid-column: 1 / -1; }
+.pmo-form-foot { margin-top: var(--tr-space-4); }
+.pmo-form-foot--rule { padding-top: var(--tr-space-4); border-top: var(--tr-rule-thin) solid var(--tr-border-soft); }
+
+@media (max-width: 900px) {
+  .pmo-cols, .pmo-cols--even { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .pmo-container { padding: 0 var(--tr-space-4); }
+  .pmo-main { padding-top: var(--tr-space-5); }
+}
+
+/* ---- Navigazione principale -------------------------------------------------
+   Il sistema non ha un menu: ha le tabs, e ne usa la grammatica — etichette mono
+   in fila, un filetto a dire dove si e'. Qui sono collegamenti fra pagine e lo
+   stato lo dice aria-current, non aria-selected. */
+.pmo-nav { margin-top: var(--tr-space-4); }
+.tr-tabs a.tr-tab { text-decoration: none; }
+.tr-tab[aria-current="page"] { color: var(--tr-ink-900); }
+.tr-tab[aria-current="page"]::after,
+.tr-tab[aria-current="page"]:hover::after {
+  transform: scaleX(1);
+  background: var(--tr-brand-500);
+}
+.tr-tab[aria-current="page"] .tr-tab__count { color: var(--tr-brand-600); }
+.pmo-tabs { margin-top: var(--tr-space-5); }
+.pmo-tabpanel { margin-top: var(--tr-space-5); }
+
+/* ---- Link --------------------------------------------------------------------
+   Il testo che porta un collegamento sta in brand/700 (6,5:1 sul bianco, 5,7:1
+   sul paper), come i link della firma email. Solo i link senza classe: quelli
+   dei componenti (.tr-btn, .tr-tab, .tr-footer__contact) hanno gia' la loro voce. */
+.tr-page a:where(:not([class])) {
+  color: var(--tr-brand-700);
+  text-decoration: none;
+}
+.tr-page a:where(:not([class])):hover {
+  text-decoration: underline;
+  text-decoration-thickness: var(--tr-rule-thin);
+  text-underline-offset: 0.18em;
+}
+.tr-page a:where(:not([class])):focus-visible {
+  outline: 2px solid var(--tr-brand-500);
+  outline-offset: 2px;
+}
+
+/* ---- Voci di testo ---------------------------------------------------------- */
+.pmo-muted { color: var(--tr-ink-400); }
+.pmo-small { font-size: 14px; }
+.pmo-code {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  color: var(--tr-ink-900);
+  white-space: nowrap;
+}
+.pmo-meta {
+  margin: var(--tr-space-1) 0 0;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  color: var(--tr-ink-400);
+}
+.pmo-title-cell { font-weight: var(--tr-weight-semibold); color: var(--tr-ink-900); }
+.pmo-text { margin: 0; white-space: pre-wrap; }
+
+/* ---- Tabella dati ------------------------------------------------------------
+   Il sistema ha la tabella a due colonne (.tr-datatable) ma non quella a molte:
+   qui e' composta con le sue parti. Intestazione in mono grigio, filetto piu'
+   scuro sotto, filetto leggero fra le righe, niente fondi, niente zebra. */
+.pmo-table { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--tr-ink-600); }
+.pmo-table th {
+  padding: var(--tr-space-3) var(--tr-space-4) var(--tr-space-3) 0;
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft-2);
+  text-align: left;
+  vertical-align: bottom;
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+  white-space: nowrap;
+}
+.pmo-table td {
+  padding: var(--tr-space-3) var(--tr-space-4) var(--tr-space-3) 0;
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+  vertical-align: top;
+}
+.pmo-table th:last-child, .pmo-table td:last-child { padding-right: 0; }
+.pmo-table .pmo-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pmo-table .tr-field { min-width: 120px; }
+.pmo-table .pmo-field--wide { min-width: 220px; }
+.pmo-table .tr-btn-group { gap: var(--tr-space-2) var(--tr-space-4); }
+.pmo-empty {
+  padding: var(--tr-space-7) var(--tr-space-5);
+  text-align: center;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+td.pmo-empty { border-bottom: 0; }
+
+@media (max-width: 720px) {
+  .pmo-scroll { overflow-x: auto; }
+  .pmo-scroll .pmo-table { min-width: 640px; }
+}
+
+/* ---- Moduli ------------------------------------------------------------------ */
+.pmo-inline { display: inline-flex; align-items: center; gap: var(--tr-space-3); margin: 0; }
+.pmo-inline .tr-field { width: 180px; }
+.pmo-inline .pmo-field--narrow { width: 88px; }
+.pmo-inline .pmo-field--wide { width: 240px; }
+.pmo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3) var(--tr-space-5); margin: 0; }
+.pmo-bar .tr-field { width: 200px; }
+.pmo-bar .pmo-field--wide { width: 280px; }
+
+/* Casella di spunta: il sistema non ne ha una sua; si usa quella nativa con
+   l'accento del sistema e l'etichetta nel corpo del testo. Se la scelta ha
+   effetto subito, il componente giusto e' .tr-switch. Qui c'e' sempre un Salva. */
+.pmo-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tr-space-2);
+  margin: 0;
+  font-size: 14px;
+  color: var(--tr-ink-600);
+  cursor: pointer;
+}
+.pmo-check input {
+  width: var(--tr-icon-md);
+  height: var(--tr-icon-md);
+  margin: 0;
+  accent-color: var(--tr-brand-600);
+  cursor: pointer;
+}
+.pmo-check input:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
+.pmo-checks { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3) var(--tr-space-5); }
+
+/* ---- Riquadro apri/chiudi ----------------------------------------------------
+   Il sommario e' un'etichetta mono con il chevron del registro icone, come un
+   comando: niente freccetta del browser. */
+.pmo-details > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--tr-space-2);
+  cursor: pointer;
+  list-style: none;
+}
+.pmo-details > summary::-webkit-details-marker { display: none; }
+.pmo-details > summary::before {
+  content: "";
+  flex: none;
+  width: var(--tr-icon-md);
+  height: var(--tr-icon-md);
+  background-color: var(--tr-brand-600);
+  -webkit-mask: var(--tr-i-chevron-down) center / contain no-repeat;
+  mask: var(--tr-i-chevron-down) center / contain no-repeat;
+  transform: rotate(-90deg);
+  transition: transform var(--tr-motion-fast) var(--tr-motion-ease);
+}
+.pmo-details[open] > summary::before { transform: none; }
+.pmo-details > summary:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 3px; }
+.pmo-details__body { margin-top: var(--tr-space-4); padding-left: calc(var(--tr-icon-md) + var(--tr-space-2)); }
+.pmo-details__label {
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  text-transform: uppercase;
+  color: var(--tr-brand-600);
+}
+.pmo-details__sum { min-width: 0; flex: 1 1 auto; }
+.pmo-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.pmo-list > li, .pmo-list > .pmo-details {
+  padding: var(--tr-space-4) 0;
+  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.pmo-list > li:first-child, .pmo-list > .pmo-details:first-child { border-top: var(--tr-rule-thin) solid var(--tr-border-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pmo-details > summary::before { transition: none; }
+}
+
+/* Testo di una mail: un filetto verticale lo separa dal resto, non una scatola. */
+.pmo-mail {
+  max-height: 320px;
+  margin: var(--tr-space-3) 0 0;
+  padding: 0 0 0 var(--tr-space-4);
+  border-left: var(--tr-rule-medium) solid var(--tr-border-soft);
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--tr-ink-600);
+}
+.pmo-mail--short { max-height: 200px; }
+
+/* Messaggio che porta un'azione: il filetto e il testo, i comandi sotto. */
+.pmo-notice-actions { margin-top: var(--tr-space-3); }
+
+/* Dati in coda a una riga di cronologia o di elenco. */
+.pmo-ledger { display: grid; gap: var(--tr-space-5); }
+.tr-timeline__meta .pmo-code { font-size: var(--tr-text-caption); }
+
+/* Collegamenti che portano una classe del sistema: il marchio e i valori della
+   tabella dati. Non hanno la sottolineatura del browser; il valore, sotto il
+   puntatore, prende il blu come ogni voce interattiva. */
+a.tr-brandmark,
+a.tr-datatable__value,
+a.tr-datatable__label { text-decoration: none; }
+a.tr-datatable__value:hover { color: var(--tr-brand-600); }
+a.tr-brandmark:focus-visible,
+a.tr-datatable__value:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
+
+.pmo-mb-5 { margin-bottom: var(--tr-space-5); }
+
+/* Campo compatto: il sistema ne toglie l'etichetta interna e, con essa, l'unico
+   modo di capire a cosa serve un campo di testo vuoto, perche' il placeholder e'
+   invisibile finche' non c'e' il focus. Dove manca l'etichetta il placeholder
+   resta visibile, nel tono delle didascalie. */
+.tr-field--compact .tr-field__control::placeholder { color: var(--tr-ink-400); opacity: 0.8; }

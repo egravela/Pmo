@@ -1,10 +1,34 @@
 {% extends "base.html" %}
+{% from "_ds.html" import eyebrow, esito with context %}
 {% block titolo %}Esecuzioni {{ account.email }} · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="intestazione"><h1>Esecuzioni · {{ account.email }}</h1><a href="/caselle">← caselle</a></div>
-<div class="card">
-<table><tr><th>Inizio</th><th>Fine</th><th>Tipo</th><th>Esito</th><th>Contatori</th><th>Errori</th></tr>
-{% for r in runs %}<tr><td class="piccolo">{{ r.started_at | datadt }}</td><td class="piccolo">{{ r.finished_at | datadt }}</td><td>{{ r.tipo }}</td><td><span class="badge {{ 'ok' if r.stato == 'ok' else ('critico' if r.stato == 'errore' else 'muto') }}">{{ r.stato }}</span></td><td class="piccolo mono">{{ r.contatori }}</td><td class="piccolo">{% for e in r.errori %}<div>{{ e }}</div>{% endfor %}</td></tr>
-{% else %}<tr><td colspan="6" class="vuoto">Nessuna esecuzione.</td></tr>{% endfor %}</table>
+<div class="pmo-head">
+  <div class="pmo-head__title">
+    {{ eyebrow("Caselle", account.email) }}
+    <h1 class="tr-h2">Storico <em>esecuzioni</em></h1>
+  </div>
+  <div class="tr-btn-group">
+    <a class="tr-btn tr-btn--neutral" href="/caselle"><span>Torna alle caselle</span></a>
+  </div>
 </div>
+
+<section class="pmo-section" aria-label="Esecuzioni della casella">
+  <table class="pmo-table">
+    <thead><tr><th>Inizio</th><th>Fine</th><th>Tipo</th><th>Esito</th><th>Contatori</th><th>Errori</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      <tr>
+        <td>{{ r.started_at | datadt }}</td>
+        <td>{{ r.finished_at | datadt }}</td>
+        <td>{{ r.tipo }}</td>
+        <td>{{ esito(r.stato) }}</td>
+        <td><span class="pmo-meta">{{ r.contatori }}</span></td>
+        <td>{% for e in r.errori %}<p class="pmo-text">{{ e }}</p>{% endfor %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="pmo-empty">Nessuna esecuzione</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
 {% endblock %}

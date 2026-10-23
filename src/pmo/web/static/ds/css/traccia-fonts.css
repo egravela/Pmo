@@ -1,0 +1,83 @@
+/* ==========================================================================
+   LA TRACCIA — Font in locale
+   Alternativa al <link> verso fonts.googleapis.com. Caricare PRIMA di
+   tokens/tokens.css.
+
+   Il CDN va benissimo per il sito e per le brochure: sono cose che vivono in
+   rete. Non va per un prodotto che gira offline, in rete chiusa, o che promette
+   esplicitamente di non uscire dalla macchina — li' quel <link> e' una
+   richiesta di rete al caricamento, e senza connessione i font non arrivano
+   affatto: la pagina ripiega su system-ui e due prodotti della stessa famiglia
+   finiscono con due tipografie diverse. Che e' esattamente cio' che un design
+   system esiste per impedire.
+
+   SOTTOINSIEME. Solo il latino: per l'italiano basta, e tiene i quattro file
+   sotto i 78 KB complessivi. Chi deve comporre in vietnamita o in cirillico scarica
+   da Google Fonts anche quei sottoinsiemi e aggiunge le @font-face con la
+   propria unicode-range: il meccanismo e' lo stesso.
+
+   SPACE GROTESK E' SOLO IL WORDMARK. Un peso (700), un uso: la scritta
+   «traccia» accanto al marchio (.tr-brandmark, .tr-spinner__wordmark). Non
+   e' un carattere di testo del sistema: titoli, corpo e interfaccia restano
+   in Archivo.
+
+   ARCHIVO E' VARIABILE. Un file solo copre l'intero arco 400–800, quindi i tre
+   pesi del sistema (body 400, semibold 600, display 800) non costano tre
+   richieste. Il font-weight si scrive come sempre.
+
+   LICENZA. Tutti e tre i caratteri sono SIL Open Font License 1.1, quindi
+   ridistribuibili: il testo integrale sta in assets/fonts/OFL-Archivo.txt,
+   assets/fonts/OFL-IBMPlexMono.txt e assets/fonts/OFL-SpaceGrotesk.txt e va
+   tenuto insieme ai file, anche nelle copie del sistema che finiscono dentro
+   un prodotto.
+
+   font-display: swap — il testo compare subito col carattere di sistema e
+   viene ridisegnato all'arrivo del font. Su una rete locale il salto e'
+   impercettibile; su nessuna rete, che e' il caso per cui questo file esiste,
+   non c'e' proprio.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 400 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("../assets/fonts/archivo-latin-var.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-mono-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-mono-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/space-grotesk-latin-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}

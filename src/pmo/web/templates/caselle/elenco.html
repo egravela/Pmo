@@ -1,74 +1,129 @@
 {% extends "base.html" %}
+{% from "_ds.html" import eyebrow, campo, spunta, esito, csrf with context %}
 {% block titolo %}Caselle · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="intestazione"><h1>Caselle collegate</h1></div>
+<div class="pmo-head">
+  <div class="pmo-head__title">
+    {{ eyebrow("Caselle", accounts | length ~ " collegate") }}
+    <h1 class="tr-h2">Caselle <em>collegate</em></h1>
+  </div>
+</div>
 
-<div class="card">
-  <h2>Collega una casella</h2>
-  <p class="piccolo muto">Il collegamento chiede a Google l'accesso in sola lettura a Gmail e Drive della casella scelta (e l'invio, se abilitato in configurazione). I token sono salvati cifrati. Ogni persona del team può collegare la propria casella; gli amministratori vedono tutte.</p>
+<section class="tr-card pmo-section" aria-labelledby="t-collega">
+  <div class="tr-card__head">
+    <div>
+      <h2 class="tr-card__title" id="t-collega">Collega una casella</h2>
+      <p class="tr-card__sub">Il collegamento chiede a Google l'accesso in sola lettura a Gmail e Drive della casella scelta (e l'invio, se abilitato in configurazione). I token sono salvati cifrati. Ogni persona del team può collegare la propria casella; gli amministratori vedono tutte.</p>
+    </div>
+  </div>
   {% if google %}
-  <form method="post" action="/caselle/collega" class="azioni">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <input type="email" name="login_hint" value="{{ utente.email }}" style="width:280px" placeholder="indirizzo della casella da collegare">
-    <button class="primario">Collega con Google</button>
+  <form method="post" action="/caselle/collega" class="pmo-bar">
+    {{ csrf() }}
+    {{ campo("login_hint", "Casella da collegare", utente.email, tipo="email", largo=true) }}
+    <div class="tr-btn-group"><button class="tr-btn tr-btn--primary" type="submit"><span>Collega con Google</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></button></div>
   </form>
-  {% else %}<div class="flash avviso">Google OAuth non configurato: impostare PMO_GOOGLE_CLIENT_ID e PMO_GOOGLE_CLIENT_SECRET (vedi README).</div>{% endif %}
-</div>
+  {% else %}
+  <div class="tr-notice tr-notice--warning" role="status">
+    <span class="tr-notice__icon" aria-hidden="true"></span>
+    <div class="tr-notice__content">
+      <p class="tr-notice__title">Google OAuth non configurato</p>
+      <p class="tr-notice__body">Impostare PMO_GOOGLE_CLIENT_ID e PMO_GOOGLE_CLIENT_SECRET (vedi README).</p>
+    </div>
+  </div>
+  {% endif %}
+</section>
 
+<div class="pmo-stack pmo-section">
 {% for a in accounts %}
-<div class="card">
-  <div class="intestazione">
-    <h2 style="margin:0">{{ a.email }}</h2>
-    {% if a.collegato %}<span class="badge ok">collegata</span>{% else %}<span class="badge critico">non collegata</span>{% endif %}
-    {% if not a.attivo %}<span class="badge muto">disattivata</span>{% endif %}
-    {% if in_sync.get(a.id) %}<span class="badge info">sincronizzazione in corso</span>{% endif %}
-    <span class="muto piccolo">proprietario: {{ a.owner.email if a.owner else '-' }} · ultima sync Gmail {{ a.gmail_last_sync_at | datadt }} · Drive {{ a.drive_last_sync_at | datadt }}</span>
-  </div>
-  {% if a.last_error %}<div class="flash errore piccolo">{{ a.last_error }}</div>{% endif %}
-  <div class="griglia due">
-    <div>
-      <h3>Sincronizzazione</h3>
-      <form method="post" action="/caselle/{{ a.id }}/sync" class="azioni">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button class="primario piccolo" {{ 'disabled' if not a.collegato }}>Sincronizza ora</button>
-        <label style="margin:0"><input type="checkbox" name="completa" value="1"> rileggi tutta la finestra</label>
-        <label style="margin:0">giorni <input type="number" name="giorni" min="1" max="730" style="width:70px" placeholder="{{ settings.sync_window_days }}"></label>
-      </form>
-      <form method="post" action="/caselle/{{ a.id }}/modifica" style="margin-top:10px">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <div class="campo"><label>Filtro Gmail aggiuntivo (sintassi di ricerca Gmail, es. <span class="mono">-label:personale -from:qualcuno@x.it</span>)</label><input type="text" name="query_filter" value="{{ a.query_filter }}"></div>
-        <div class="azioni piccolo">
-          <label style="margin:0"><input type="checkbox" name="sync_gmail" value="1" {{ 'checked' if a.sync_gmail }}> Gmail</label>
-          <label style="margin:0"><input type="checkbox" name="sync_drive" value="1" {{ 'checked' if a.sync_drive }}> Drive</label>
-          <label style="margin:0"><input type="checkbox" name="attivo" value="1" {{ 'checked' if a.attivo }}> attiva</label>
-          <button class="piccolo">Salva</button>
-        </div>
-      </form>
-      <div class="azioni" style="margin-top:10px">
-        <a class="btn piccolo" href="/caselle/{{ a.id }}/esecuzioni">Storico esecuzioni</a>
-        <form class="inline" method="post" action="/caselle/{{ a.id }}/scollega" data-conferma="Scollegare la casella? I token verranno eliminati."><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Scollega</button></form>
-        {% if utente.is_admin %}<form class="inline" method="post" action="/caselle/{{ a.id }}/elimina" data-conferma="Eliminare la casella con tutti i messaggi e documenti importati? Le pratiche restano."><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo pericolo">Elimina</button></form>{% endif %}
+  <section class="tr-card" aria-labelledby="t-account-{{ a.id }}">
+    <div class="tr-card__head">
+      <div>
+        <h2 class="tr-card__title" id="t-account-{{ a.id }}">{{ a.email }}</h2>
+        <p class="tr-card__sub">Proprietario: {{ a.owner.email if a.owner else '-' }} · ultima sincronizzazione Gmail {{ a.gmail_last_sync_at | datadt }} · Drive {{ a.drive_last_sync_at | datadt }}</p>
       </div>
-      {% if run_per_account.get(a.id) %}
-      <table style="margin-top:10px"><tr><th>Esecuzione</th><th>Tipo</th><th>Esito</th><th>Dettagli</th></tr>
-      {% for r in run_per_account[a.id] %}<tr><td class="piccolo">{{ r.started_at | datadt }}</td><td>{{ r.tipo }}</td><td><span class="badge {{ 'ok' if r.stato == 'ok' else ('critico' if r.stato == 'errore' else 'muto') }}">{{ r.stato }}</span></td><td class="piccolo mono">{{ r.contatori }}</td></tr>{% endfor %}</table>
-      {% endif %}
+      <span class="tr-card__aside">
+        {% if a.collegato %}<span class="tr-status tr-status--success">Collegata</span>{% else %}<span class="tr-status tr-status--danger">Non collegata</span>{% endif %}
+        {% if not a.attivo %} <span class="tr-status">Disattivata</span>{% endif %}
+        {% if in_sync.get(a.id) %} <span class="tr-status tr-status--info">Sincronizzazione in corso</span>{% endif %}
+      </span>
     </div>
-    <div>
-      <h3>Cartelle Drive monitorate</h3>
-      <table>{% for f in a.watched_folders %}<tr><td>{{ f.nome or f.drive_folder_id }}<div class="muto piccolo mono">{{ f.drive_folder_id }}{{ ' · ricorsiva' if f.ricorsivo }} · ultima scansione {{ f.last_sync_at | datadt }}</div></td>
-      <td><form class="inline" method="post" action="/caselle/{{ a.id }}/cartelle/{{ f.id }}/elimina"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="piccolo">Rimuovi</button></form></td></tr>
-      {% else %}<tr><td class="vuoto">Nessuna cartella: aggiungi le cartelle dove tieni offerte, ordini e specifiche.</td></tr>{% endfor %}</table>
-      <form method="post" action="/caselle/{{ a.id }}/cartelle" class="azioni" style="margin-top:8px">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="text" name="cartella" placeholder="URL o ID della cartella Drive" style="width:320px" required>
-        <label style="margin:0"><input type="checkbox" name="ricorsivo" value="1" checked> sottocartelle</label>
-        <button class="piccolo" {{ 'disabled' if not a.collegato }}>Aggiungi</button>
-      </form>
+
+    {% if a.last_error %}
+    <div class="tr-notice tr-notice--danger pmo-mb-5" role="alert">
+      <span class="tr-notice__icon" aria-hidden="true"></span>
+      <div class="tr-notice__content"><p class="tr-notice__title">Ultimo errore</p><p class="tr-notice__body">{{ a.last_error }}</p></div>
     </div>
-  </div>
-</div>
+    {% endif %}
+
+    <div class="pmo-cols pmo-cols--even">
+      <div class="pmo-stack">
+        {{ eyebrow("Sincronizzazione") }}
+        <form method="post" action="/caselle/{{ a.id }}/sync" class="pmo-bar">
+          {{ csrf() }}
+          <div class="tr-btn-group"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit" {{ 'disabled' if not a.collegato }}><span>Sincronizza ora</span></button></div>
+          {{ spunta("completa", "rileggi tutta la finestra") }}
+          {{ campo("giorni", "Giorni", tipo="number", compatto=true, stretto=true, segnaposto=settings.sync_window_days, attr='min="1" max="730"') }}
+        </form>
+
+        <form method="post" action="/caselle/{{ a.id }}/modifica">
+          {{ csrf() }}
+          <div class="pmo-stack">
+            {{ campo("query_filter", "Filtro Gmail aggiuntivo", a.query_filter, aiuto="Sintassi di ricerca Gmail, es. -label:personale -from:qualcuno@x.it") }}
+            <div class="pmo-checks">
+              {{ spunta("sync_gmail", "Gmail", a.sync_gmail) }}
+              {{ spunta("sync_drive", "Drive", a.sync_drive) }}
+              {{ spunta("attivo", "attiva", a.attivo) }}
+              <div class="tr-btn-group"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Salva</button></div>
+            </div>
+          </div>
+        </form>
+
+        <div class="tr-btn-group">
+          <a class="tr-btn tr-btn--quiet tr-btn--sm" href="/caselle/{{ a.id }}/esecuzioni"><span>Storico esecuzioni</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a>
+          <form method="post" action="/caselle/{{ a.id }}/scollega" data-conferma="Scollegare la casella? I token verranno eliminati.">{{ csrf() }}<button class="tr-btn tr-btn--neutral tr-btn--sm" type="submit"><span class="tr-icon tr-icon--unlock" aria-hidden="true"></span><span>Scollega</span></button></form>
+          {% if utente.is_admin %}<form method="post" action="/caselle/{{ a.id }}/elimina" data-conferma="Eliminare la casella con tutti i messaggi e documenti importati? Le pratiche restano.">{{ csrf() }}<button class="tr-btn tr-btn--danger tr-btn--sm" type="submit"><span class="tr-icon tr-icon--trash" aria-hidden="true"></span><span>Elimina</span></button></form>{% endif %}
+        </div>
+
+        {% if run_per_account.get(a.id) %}
+        <table class="pmo-table">
+          <thead><tr><th>Esecuzione</th><th>Tipo</th><th>Esito</th><th>Dettagli</th></tr></thead>
+          <tbody>
+          {% for r in run_per_account[a.id] %}
+            <tr><td>{{ r.started_at | datadt }}</td><td>{{ r.tipo }}</td><td>{{ esito(r.stato) }}</td><td><span class="pmo-meta">{{ r.contatori }}</span></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+
+      <div class="pmo-stack">
+        {{ eyebrow("Cartelle Drive monitorate") }}
+        {% if a.watched_folders %}
+        <table class="pmo-table">
+          <tbody>
+          {% for f in a.watched_folders %}
+            <tr>
+              <td>{{ f.nome or f.drive_folder_id }}<p class="pmo-meta">{{ f.drive_folder_id }}{{ ' · ricorsiva' if f.ricorsivo }} · ultima scansione {{ f.last_sync_at | datadt }}</p></td>
+              <td><form method="post" action="/caselle/{{ a.id }}/cartelle/{{ f.id }}/elimina">{{ csrf() }}<button class="tr-btn tr-btn--neutral tr-btn--sm" type="submit">Rimuovi</button></form></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="pmo-empty">Nessuna cartella: aggiungi le cartelle dove tieni offerte, ordini e specifiche</p>
+        {% endif %}
+
+        <form method="post" action="/caselle/{{ a.id }}/cartelle" class="pmo-bar">
+          {{ csrf() }}
+          {{ campo("cartella", "URL o ID della cartella Drive", obbligatorio=true, compatto=true, largo=true, segnaposto="URL o ID della cartella Drive") }}
+          {{ spunta("ricorsivo", "sottocartelle", true) }}
+          <div class="tr-btn-group"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit" {{ 'disabled' if not a.collegato }}><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Aggiungi</span></button></div>
+        </form>
+      </div>
+    </div>
+  </section>
 {% else %}
-<div class="card vuoto">Nessuna casella collegata.</div>
+  <p class="pmo-empty">Nessuna casella collegata</p>
 {% endfor %}
+</div>
 {% endblock %}
