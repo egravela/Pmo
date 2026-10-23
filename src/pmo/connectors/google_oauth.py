@@ -64,7 +64,11 @@ def redirect_uri_account(settings: Settings | None = None) -> str:
 
 def build_flow(scopes: list[str], redirect_uri: str, state: str | None = None, settings: Settings | None = None) -> Flow:
     settings = settings or get_settings()
-    flow = Flow.from_client_config(_client_config(settings, redirect_uri), scopes=scopes, state=state)
+    # Il Flow di avvio e quello del callback sono oggetti diversi: il verifier PKCE generato di default
+    # andrebbe perso ("Missing code verifier"). Il client è riservato (ha il secret), quindi si omette PKCE.
+    flow = Flow.from_client_config(
+        _client_config(settings, redirect_uri), scopes=scopes, state=state, autogenerate_code_verifier=False
+    )
     flow.redirect_uri = redirect_uri
     return flow
 
