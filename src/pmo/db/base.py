@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from sqlalchemy import JSON, DateTime, MetaData
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.types import TypeDecorator
 
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
@@ -17,7 +18,23 @@ NAMING_CONVENTION = {
 }
 
 JSONType = JSON().with_variant(JSONB(), "postgresql")
-TZDateTime = DateTime(timezone=True)
+
+
+class TZDateTime(TypeDecorator):
+    """DateTime con fuso orario: SQLite non lo conserva, quindi le date lette vengono riportate in UTC."""
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):  # noqa: ANN001, ARG002
+        if value is not None and value.tzinfo is not None:
+            value = value.astimezone(UTC)
+        return value
+
+    def process_result_value(self, value, dialect):  # noqa: ANN001, ARG002
+        if value is not None and value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return value
 
 
 def utcnow() -> datetime:
