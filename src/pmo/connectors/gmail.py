@@ -18,7 +18,16 @@ from pmo.ingest.filters import html_to_text, normalizza_spazi, parse_addresses
 
 log = logging.getLogger(__name__)
 
-BATCH_SIZE = 25
+BATCH_SIZE = 10  # Gmail limita le richieste simultanee per utente: lotti più grandi producono 403 rateLimitExceeded
+
+
+def _limite_richieste(exc: HttpError) -> bool:
+    """Gmail segnala il limite di richieste con 429 oppure con 403 (rateLimitExceeded / userRateLimitExceeded)."""
+    if exc.resp.status == 429:
+        return True
+    if exc.resp.status == 403:
+        return "ratelimitexceeded" in (exc.content or b"").decode("utf-8", "ignore").lower()
+    return False
 
 
 class HistoryScaduta(Exception):
@@ -234,15 +243,15 @@ class GmailClient:
                 ok[mid] = msg
         return [ok[mid] for mid in ids if mid in ok]
 
-    def _get_single(self, mid: str, fmt: str, tentativi: int = 3) -> dict[str, Any] | None:
+    def _get_single(self, mid: str, fmt: str, tentativi: int = 6) -> dict[str, Any] | None:
         for tentativo in range(tentativi):
             try:
                 return self.service.users().messages().get(userId="me", id=mid, format=fmt).execute()
             except HttpError as exc:
                 if exc.resp.status == 404:
                     return None
-                if exc.resp.status in (429, 500, 503) and tentativo < tentativi - 1:
-                    time.sleep(2**tentativo)
+                if (_limite_richieste(exc) or exc.resp.status in (500, 503)) and tentativo < tentativi - 1:
+                    time.sleep(min(2**tentativo, 16))
                     continue
                 log.error("Errore lettura messaggio %s: %s", mid, exc)
                 return None
