@@ -85,6 +85,27 @@ def serve(host: str = "0.0.0.0", port: int = 8000, reload: bool = False) -> None
     uvicorn.run("pmo.web.app:create_app", host=host, port=port, reload=reload, factory=True)
 
 
+@app.command("mcp")
+def mcp_server(
+    scrittura: bool = typer.Option(
+        False, "--scrittura", help="Abilita anche le azioni che modificano i dati (conferma o scarta pratiche, note, stati, solleciti)"
+    ),
+    utente: str | None = typer.Option(None, help="Email a cui attribuire le modifiche (default: primo amministratore)"),
+) -> None:
+    """Avvia il server MCP (stdio) per collegare l'applicazione a Claude Desktop o Claude Code."""
+    import os
+
+    try:
+        # avviato da Claude, il processo non parte dalla cartella del progetto: .env e il database SQLite sono relativi ad essa
+        os.chdir(_radice_progetto())
+    except typer.BadParameter:
+        pass
+    _logging()  # i log vanno su stderr: stdout è riservato al protocollo MCP
+    from pmo.mcp_server import avvia
+
+    avvia(scrittura=scrittura, utente_email=utente)
+
+
 @app.command()
 def sync(
     account: str | None = typer.Option(None, help="Email della casella (default: tutte)"),

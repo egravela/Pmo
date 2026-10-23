@@ -74,6 +74,11 @@ Il tag può stare ovunque nell'oggetto e sopravvive ai "Re:" e agli inoltri. Lo 
 | `pmo caselle cartella EMAIL URL` | aggiunge una cartella Drive da monitorare |
 | `pmo utenti aggiungi EMAIL --admin` | abilita un utente |
 | `pmo gen-keys` | genera le chiavi per `.env` |
+| `pmo mcp [--scrittura]` | avvia il server MCP (stdio) per collegare l'applicazione a Claude |
+
+## Collegare Claude (MCP)
+
+`pmo mcp` espone pratiche, solleciti e coda di revisione a Claude Desktop e Claude Code tramite il Model Context Protocol: si può chiedere "quali ordini sono senza specifiche?" o "riassumi la pratica PMO-2026-0042". Parte in sola lettura, gira sul proprio PC e non apre porte di rete. Configurazione, strumenti disponibili e note sulla sicurezza in [docs/mcp.md](docs/mcp.md).
 
 ## Regole di sollecito
 
@@ -122,11 +127,11 @@ src/pmo/
   rules/               regole di sollecito e motore
   services/            pratiche ed eventi, codici, digest, seed, orchestrazione
   web/                 FastAPI, template Jinja, CSS
-  cli.py, scheduler.py
+  cli.py, scheduler.py, mcp_server.py
 alembic/               migrazioni
 config/seed.yaml       anagrafiche iniziali
 docs/                  architettura, setup Google, regole
 tests/
 ```
 
-Documentazione: [docs/architettura.md](docs/architettura.md) · [docs/setup-google.md](docs/setup-google.md) · [docs/regole.md](docs/regole.md).
+Documentazione: [docs/architettura.md](docs/architettura.md) · [docs/setup-google.md](docs/setup-google.md) · [docs/regole.md](docs/regole.md) · [docs/mcp.md](docs/mcp.md).
