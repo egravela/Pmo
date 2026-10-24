@@ -1,15 +1,21 @@
 {% extends "base.html" %}
 {% from "_ds.html" import eyebrow, campo, csrf with context %}
 {% block titolo %}Accesso · {{ app_name }}{% endblock %}
-{% block classe_body %}tr-page tr-login tr-watermark-host{% endblock %}
 {% block corpo %}
+{#- La pagina di accesso sta in un contenitore suo: la zona dei messaggi resta fuori, fissa
+    sullo schermo (dentro un .tr-watermark-host finirebbe nel flusso, sotto il footer). -#}
+<div class="tr-login tr-watermark-host">
 <img class="tr-watermark tr-watermark--top-right" src="/static/ds/assets/logo-traccia-outline.svg" alt="" aria-hidden="true">
 
 <header class="tr-login__header">
   <div class="tr-header">
-    <span class="tr-brandmark">
-      <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
-      <span class="tr-brandmark__wordmark">traccia</span>
+    <span class="tr-clientmark">
+      <span class="tr-brandmark">
+        <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
+        <span class="tr-brandmark__wordmark">traccia</span>
+      </span>
+      <span class="tr-clientmark__sep"></span>
+      <span class="tr-clientmark__product">PMO · Pratiche</span>
     </span>
     <span class="tr-eyebrow__label">Accesso riservato</span>
   </div>
@@ -25,11 +31,11 @@
       <a class="tr-btn tr-btn--primary tr-btn--block pmo-mt-5" href="/auth/google?next={{ next | urlencode }}">Accedi con Google</a>
       <p class="pmo-meta pmo-mt-4">Domini ammessi: {{ settings.allowed_domains | join(", ") }}</p>
     {% else %}
-      <div class="tr-notice tr-notice--warning pmo-mt-5" role="status">
+      <div class="tr-notice tr-notice--warning pmo-mt-5">
         <span class="tr-notice__icon" aria-hidden="true"></span>
         <div class="tr-notice__content">
-          <p class="tr-notice__title">Google OAuth non configurato</p>
-          <p class="tr-notice__body">Impostare PMO_GOOGLE_CLIENT_ID e PMO_GOOGLE_CLIENT_SECRET: vedi il README.</p>
+          <p class="tr-notice__title">Accesso non disponibile</p>
+          <p class="tr-notice__body">L'accesso con Google non è ancora configurato: rivolgersi all'amministratore.</p>
         </div>
       </div>
     {% endif %}
@@ -63,5 +69,6 @@
       <img class="tr-footer__certs-badges" src="/static/ds/assets/certificazioni.png" alt="IMQ Certified ISO 9001:2015, ISO 13485:2016, ISO/IEC 27001:2022 — SI Cert UNI PdR 125">
     </div>
   </footer>
+</div>
 </div>
 {% endblock %}

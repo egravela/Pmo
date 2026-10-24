@@ -51,7 +51,7 @@
             <p class="tr-notice__body">{{ s.messaggio }}</p>
           {% endcall %}
         {% else %}
-          <p class="pmo-empty">Nessun sollecito aperto</p>
+          <p class="tr-card__empty">Nessun sollecito aperto</p>
         {% endfor %}
       </div>
       {% if totale_solleciti > (solleciti | length) %}
@@ -74,45 +74,46 @@
         {% endfor %}
         </tbody>
       </table>
-      {% else %}<p class="pmo-empty">Nessuna scadenza imminente</p>{% endif %}
+      {% else %}<p class="tr-card__empty">Nessuna scadenza imminente</p>{% endif %}
     </section>
 
     <section class="pmo-section" aria-labelledby="sez-caselle">
       {{ sezione("Caselle", "collegate", id="sez-caselle") }}
       {% if caselle %}
-      <table class="pmo-table">
-        <thead><tr><th>Casella</th><th>Ultima sincronizzazione</th><th>Esito</th></tr></thead>
-        <tbody>
+      <div class="tr-datatable">
         {% for a in caselle %}
-          <tr>
-            <td>{{ a.email }}{% if not a.collegato %} <span class="tr-status">Non collegata</span>{% endif %}</td>
-            <td>{{ a.gmail_last_sync_at | datadt }}</td>
-            <td>{{ esito(a.last_sync_status) }}</td>
-          </tr>
+        <div class="tr-datatable__row">
+          <span class="tr-datatable__label">{{ a.email }}</span>
+          <span class="tr-datatable__value">{% if not a.collegato %}<span class="tr-status tr-status--warning">Non collegata</span>{% else %}{{ esito(a.last_sync_status) }} · {{ a.gmail_last_sync_at | datadt }}{% endif %}</span>
+        </div>
         {% endfor %}
-        </tbody>
-      </table>
-      {% else %}<p class="pmo-empty">Nessuna casella collegata · <a href="/caselle">collega la tua</a></p>{% endif %}
+        <span class="tr-datatable__unit-note">esito e ora dell'ultima sincronizzazione</span>
+      </div>
+      {% else %}<p class="tr-card__empty">Nessuna casella collegata · <a href="/caselle">collega la tua</a></p>{% endif %}
     </section>
   </div>
 </div>
 
 <section class="pmo-section" aria-labelledby="sez-attivita">
   {{ sezione("Ultime", "attività", "registrate", id="sez-attivita") }}
-  <table class="pmo-table">
-    <thead><tr><th>Quando</th><th>Pratica</th><th>Evento</th><th>Fonte</th></tr></thead>
-    <tbody>
+  {% if eventi %}
+  <ol class="tr-timeline">
     {% for e in eventi %}
-      <tr>
-        <td class="pmo-num">{{ e.data_evento | datadt }}</td>
-        <td><a href="/pratiche/{{ e.pratica.id }}"><span class="pmo-code">{{ e.pratica.codice }}</span></a> <span class="pmo-muted">{{ e.pratica.titolo | truncate(50) }}</span></td>
-        <td>{% if e.stato_verifica == 'proposto' %}{{ da_confermare("Proposto") }} {% endif %}<span class="pmo-title-cell">{{ e.tipo | evento }}</span> · {{ e.titolo }}</td>
-        <td>{% if e.fonte_url %}<a href="{{ e.fonte_url }}" target="_blank" rel="noopener">{{ e.fonte_tipo }}</a>{% else %}{{ e.fonte_tipo }}{% endif %}</td>
-      </tr>
-    {% else %}
-      <tr><td colspan="4" class="pmo-empty">Nessun evento ancora: collega una casella e avvia la sincronizzazione</td></tr>
+    <li class="tr-timeline__event">
+      <time class="tr-timeline__when" datetime="{{ e.data_evento.isoformat() }}">{{ e.data_evento | data }}</time>
+      <div class="tr-timeline__body">
+        <p class="tr-timeline__title">{{ e.titolo }}</p>
+        <p class="tr-timeline__text"><a href="/pratiche/{{ e.pratica.id }}"><span class="pmo-code">{{ e.pratica.codice }}</span> {{ e.pratica.titolo | truncate(70) }}</a></p>
+        <div class="tr-timeline__meta">
+          {% if e.stato_verifica == 'proposto' %}{{ da_confermare("Proposto") }}{% endif %}
+          <span class="tr-chip">{{ e.tipo | evento }}</span>
+          <span class="pmo-meta">{{ e.data_evento | ora }} · {{ e.fonte_tipo }}</span>
+          {% if e.fonte_url %}<a class="tr-btn tr-btn--quiet tr-btn--sm" href="{{ e.fonte_url }}" target="_blank" rel="noopener"><span>Apri la fonte</span><span class="tr-icon tr-icon--external-link" aria-hidden="true"></span></a>{% endif %}
+        </div>
+      </div>
+    </li>
     {% endfor %}
-    </tbody>
-  </table>
+  </ol>
+  {% else %}<p class="tr-card__empty">Nessun evento ancora: collega una casella e avvia la sincronizzazione</p>{% endif %}
 </section>
 {% endblock %}

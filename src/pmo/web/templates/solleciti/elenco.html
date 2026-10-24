@@ -1,75 +1,80 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, campo, selezione, gravita, stato_sollecito, csrf with context %}
+{% from "_ds.html" import eyebrow, campo, selezione, sollecito, stato_sollecito, csrf, paginazione with context %}
 {% block titolo %}Solleciti · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="pmo-head">
-  <div class="pmo-head__title">
-    {{ eyebrow("Solleciti", solleciti | length ~ " risultati") }}
-    <h1 class="tr-h2">I <em>solleciti</em></h1>
+<div class="tr-intro">
+  <aside class="tr-intro__aside">
+    {{ eyebrow("Solleciti") }}
+    <p class="tr-figure">
+      <span class="tr-figure__number">{{ pagina.totale }}</span>
+      <span class="tr-figure__label tr-mono tr-mono--muted">solleciti<br>{{ 'aperti' if filtri.stato == 'aperti' else 'trovati' }}</span>
+    </p>
+    <dl class="tr-facts">
+      <div><dt>Critici</dt><dd>{{ per_gravita.critico }}</dd></div>
+      <div><dt>Avvisi</dt><dd>{{ per_gravita.avviso }}</dd></div>
+      <div><dt>Info</dt><dd>{{ per_gravita.info }}</dd></div>
+    </dl>
+  </aside>
+
+  <div class="tr-intro__main">
+    <h1 class="tr-h3 tr-intro__title">I <em>solleciti</em></h1>
+    <p class="tr-intro__lead">Le regole segnalano le pratiche ferme, le scadenze vicine e ciò che è stato consegnato ma non fatturato. Prendi in carico, risolvi o silenzia per qualche giorno.</p>
+    <form method="post" action="/solleciti/ricalcola" class="tr-btn-group" data-attesa="Ricalcolo in corso">
+      {{ csrf() }}
+      <button class="tr-btn tr-btn--secondary" type="submit"><span>Ricalcola adesso</span></button>
+    </form>
+
+    <form method="get" aria-label="Filtri">
+      <div class="pmo-grid">
+        {% call selezione("stato", "Stato") %}
+          <option value="aperti" {{ 'selected' if filtri.stato == 'aperti' }}>Aperti e in carico</option>
+          {% for v, t in [('aperto', 'Aperto'), ('in_carico', 'In carico'), ('silenziato', 'Silenziato'), ('risolto', 'Risolto')] %}<option value="{{ v }}" {{ 'selected' if filtri.stato == v }}>{{ t }}</option>{% endfor %}
+          <option value="" {{ 'selected' if filtri.stato == '' }}>Tutti</option>
+        {% endcall %}
+        {% call selezione("gravita", "Gravità") %}
+          <option value="">Tutte</option>
+          {% for v, t in [('critico', 'Critico'), ('avviso', 'Avviso'), ('info', 'Info')] %}<option value="{{ v }}" {{ 'selected' if filtri.gravita == v }}>{{ t }}</option>{% endfor %}
+        {% endcall %}
+        {% call selezione("regola", "Regola") %}
+          <option value="">Tutte</option>
+          {% for r in regole %}<option value="{{ r.codice }}" {{ 'selected' if filtri.regola == r.codice }}>{{ r.nome }}</option>{% endfor %}
+        {% endcall %}
+        {% call selezione("assegnato", "Assegnazione") %}
+          <option value="">Tutti</option>
+          <option value="me" {{ 'selected' if filtri.assegnato == 'me' }}>In carico a me</option>
+        {% endcall %}
+      </div>
+      <div class="tr-btn-group"><button class="tr-btn tr-btn--secondary" type="submit">Filtra</button></div>
+    </form>
   </div>
-  <form method="post" action="/solleciti/ricalcola" class="tr-btn-group">
-    {{ csrf() }}
-    <button class="tr-btn tr-btn--secondary" type="submit"><span>Ricalcola adesso</span></button>
-  </form>
 </div>
 
-<form method="get" class="pmo-section" aria-label="Filtri">
-  <div class="pmo-grid">
-    {% call selezione("stato", "Stato") %}
-      <option value="aperti" {{ 'selected' if filtri.stato == 'aperti' }}>aperti e in carico</option>
-      {% for s in ['aperto', 'in_carico', 'silenziato', 'risolto'] %}<option value="{{ s }}" {{ 'selected' if filtri.stato == s }}>{{ s }}</option>{% endfor %}
-      <option value="" {{ 'selected' if filtri.stato == '' }}>tutti</option>
-    {% endcall %}
-    {% call selezione("gravita", "Gravità") %}
-      <option value="">tutte</option>
-      {% for g in ['critico', 'avviso', 'info'] %}<option value="{{ g }}" {{ 'selected' if filtri.gravita == g }}>{{ g }}</option>{% endfor %}
-    {% endcall %}
-    {% call selezione("regola", "Regola") %}
-      <option value="">tutte</option>
-      {% for r in regole %}<option value="{{ r.codice }}" {{ 'selected' if filtri.regola == r.codice }}>{{ r.nome }}</option>{% endfor %}
-    {% endcall %}
-    {% call selezione("assegnato", "Assegnazione") %}
-      <option value="">tutti</option>
-      <option value="me" {{ 'selected' if filtri.assegnato == 'me' }}>in carico a me</option>
-    {% endcall %}
-  </div>
-  <div class="tr-btn-group pmo-form-foot"><button class="tr-btn tr-btn--secondary" type="submit">Filtra</button></div>
-</form>
-
 <section class="pmo-section" aria-label="Elenco dei solleciti">
-  <table class="pmo-table">
-    <thead><tr><th>Gravità</th><th>Pratica</th><th>Sollecito</th><th>Aperto</th><th>Stato</th><th>Azioni</th></tr></thead>
-    <tbody>
+  {% if solleciti %}
+  <div class="pmo-stack">
     {% for s in solleciti %}
-      <tr>
-        <td>{{ gravita(s.gravita) }}</td>
-        <td>
-          <a href="/pratiche/{{ s.pratica.id }}"><span class="pmo-code">{{ s.pratica.codice }}</span> {{ s.pratica.titolo | truncate(60) }}</a>
-          {% if s.pratica.cliente %}<p class="pmo-meta">{{ s.pratica.cliente.nome }}</p>{% endif %}
-        </td>
-        <td><span class="pmo-title-cell">{{ s.titolo }}</span><p class="pmo-text">{{ s.messaggio }}</p></td>
-        <td>{{ s.aperto_il | data }}{% if s.occorrenze > 1 %}<p class="pmo-meta">{{ s.occorrenze }}ª volta</p>{% endif %}</td>
-        <td>
-          {{ stato_sollecito(s.stato) }}
-          {% if s.assegnato %}<p class="pmo-meta">{{ s.assegnato.nome or s.assegnato.email }}</p>{% endif %}
-          {% if s.snooze_fino %}<p class="pmo-meta">fino al {{ s.snooze_fino | data }}</p>{% endif %}
-        </td>
-        <td>
-          <div class="tr-btn-group">
-            {% if s.stato in ['aperto', 'in_carico'] %}
-            <form method="post" action="/solleciti/{{ s.id }}/prendi">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">In carico</button></form>
-            <form method="post" action="/solleciti/{{ s.id }}/risolvi">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit"><span class="tr-icon tr-icon--check" aria-hidden="true"></span><span>Risolto</span></button></form>
-            <form method="post" action="/solleciti/{{ s.id }}/silenzia" class="pmo-inline">{{ csrf() }}{{ campo("giorni", "Giorni di silenzio", 7, tipo="number", compatto=true, stretto=true, attr='min="1"') }}<button class="tr-btn tr-btn--quiet tr-btn--sm" type="submit">Silenzia</button></form>
-            {% else %}
-            <form method="post" action="/solleciti/{{ s.id }}/riapri">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Riapri</button></form>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
-    {% else %}
-      <tr><td colspan="6" class="pmo-empty">Nessun sollecito</td></tr>
+      {% call sollecito(s) %}
+        <p class="tr-notice__body"><a href="/pratiche/{{ s.pratica.id }}"><span class="pmo-code">{{ s.pratica.codice }}</span> {{ s.pratica.titolo | truncate(90) }}</a>{% if s.pratica.cliente %} <span class="pmo-muted">· {{ s.pratica.cliente.nome }}</span>{% endif %}</p>
+        <p class="tr-notice__body">{{ s.messaggio }}</p>
+        <p class="pmo-mt-2">{{ stato_sollecito(s.stato) }}</p>
+        <p class="pmo-meta">
+          Aperto il {{ s.aperto_il | data }}{% if s.occorrenze > 1 %} · {{ s.occorrenze }}ª volta{% endif %}{% if s.assegnato %} · {{ s.assegnato.nome or s.assegnato.email }}{% endif %}{% if s.snooze_fino %} · fino al {{ s.snooze_fino | data }}{% endif %}
+        </p>
+        <div class="tr-btn-group pmo-notice-actions">
+          {% if s.stato in ['aperto', 'in_carico'] %}
+          <form method="post" action="/solleciti/{{ s.id }}/prendi">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Prendo in carico</button></form>
+          <form method="post" action="/solleciti/{{ s.id }}/risolvi">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit"><span class="tr-icon tr-icon--check" aria-hidden="true"></span><span>Risolto</span></button></form>
+          <form method="post" action="/solleciti/{{ s.id }}/silenzia" class="pmo-inline">{{ csrf() }}{{ campo("giorni", "Giorni", 7, tipo="number", compatto=true, stretto=true, attr='min="1"') }}<button class="tr-btn tr-btn--quiet tr-btn--sm" type="submit">Silenzia</button></form>
+          {% else %}
+          <form method="post" action="/solleciti/{{ s.id }}/riapri">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Riapri</button></form>
+          {% endif %}
+        </div>
+      {% endcall %}
     {% endfor %}
-    </tbody>
-  </table>
+  </div>
+  {{ paginazione(pagina) }}
+  {% else %}
+  <p class="tr-card__empty">Nessun sollecito</p>
+  {% endif %}
 </section>
 {% endblock %}

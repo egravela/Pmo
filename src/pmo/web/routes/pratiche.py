@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime, time
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from pmo.config import get_settings
@@ -19,8 +19,10 @@ from pmo.db.models import (
     Messaggio,
     Pratica,
     Prodotto,
+    Sollecito,
     StatoMessaggio,
     StatoPratica,
+    StatoSollecito,
     StatoVerifica,
     TipoEvento,
     TipoFonte,
@@ -28,9 +30,11 @@ from pmo.db.models import (
 )
 from pmo.rules.engine import ordina_gravita
 from pmo.services import pratiche as svc
-from pmo.web.deps import flash, get_db, redirect, render, utente_corrente, verifica_csrf
+from pmo.web.deps import flash, get_db, pagina_per, redirect, render, utente_corrente, verifica_csrf
 
 router = APIRouter()
+
+PER_PAGINA_PRATICHE = 24
 
 TIPI_EVENTO_MANUALI = [t.value for t in TipoEvento if t not in (TipoEvento.CAMBIO_STATO,)]
 
@@ -88,7 +92,7 @@ def elenco(
     session: Session = Depends(get_db),
     utente: User = Depends(utente_corrente),
 ):
-    query = select(Pratica).options(selectinload(Pratica.cliente), selectinload(Pratica.prodotto), selectinload(Pratica.responsabile), selectinload(Pratica.solleciti))
+    query = select(Pratica)
     if q:
         like = f"%{q.strip()}%"
         query = query.where(or_(Pratica.codice.ilike(like), Pratica.titolo.ilike(like), Pratica.descrizione.ilike(like)))
@@ -106,7 +110,28 @@ def elenco(
         query = query.where(Pratica.stato_verifica == StatoVerifica.PROPOSTO.value)
     else:
         query = query.where(Pratica.stato_verifica != StatoVerifica.RIFIUTATO.value)
-    pratiche = session.scalars(query.order_by(Pratica.ultimo_evento_at.desc().nullslast(), Pratica.id.desc()).limit(300)).all()
+    # Il riepilogo vale per tutto l'elenco filtrato, non per la sola pagina mostrata.
+    filtrate = query.subquery()
+    totale = session.scalar(select(func.count()).select_from(filtrate)) or 0
+    riepilogo = {
+        "totale": totale,
+        "proposte": session.scalar(select(func.count()).select_from(filtrate).where(filtrate.c.stato_verifica == StatoVerifica.PROPOSTO.value)) or 0,
+        "ordinato": session.scalar(select(func.sum(filtrate.c.importo_ordine))) or 0,
+        "con_solleciti": session.scalar(
+            select(func.count(func.distinct(Sollecito.pratica_id))).where(
+                Sollecito.pratica_id.in_(select(filtrate.c.id)),
+                Sollecito.stato.in_([StatoSollecito.APERTO.value, StatoSollecito.IN_CARICO.value]),
+            )
+        )
+        or 0,
+    }
+    pagina = pagina_per(request, totale, PER_PAGINA_PRATICHE)
+    pratiche = session.scalars(
+        query.options(selectinload(Pratica.cliente), selectinload(Pratica.prodotto), selectinload(Pratica.responsabile), selectinload(Pratica.solleciti))
+        .order_by(Pratica.ultimo_evento_at.desc().nullslast(), Pratica.id.desc())
+        .offset(pagina.offset)
+        .limit(pagina.per_pagina)
+    ).all()
     clienti = session.scalars(select(Cliente).where(Cliente.attivo.is_(True)).order_by(Cliente.nome)).all()
     prodotti = session.scalars(select(Prodotto).where(Prodotto.attivo.is_(True)).order_by(Prodotto.nome)).all()
     utenti = session.scalars(select(User).where(User.attivo.is_(True)).order_by(User.nome)).all()
@@ -115,6 +140,8 @@ def elenco(
         "pratiche/elenco.html",
         utente,
         pratiche=pratiche,
+        pagina=pagina,
+        riepilogo=riepilogo,
         clienti=clienti,
         prodotti=prodotti,
         utenti=utenti,

@@ -12,9 +12,11 @@ from pmo.db.base import utcnow
 from pmo.db.models import Pratica, Regola, Sollecito, StatoSollecito, User
 from pmo.rules.engine import ordina_gravita
 from pmo.services.sync import esegui_regole_tutto
-from pmo.web.deps import flash, get_db, redirect, render, utente_corrente, verifica_csrf
+from pmo.web.deps import flash, get_db, pagina_per, redirect, render, utente_corrente, verifica_csrf
 
 router = APIRouter()
+
+PER_PAGINA = 30
 
 
 @router.get("/solleciti")
@@ -43,12 +45,17 @@ def elenco(
     if stato == "aperti":
         solleciti = [s for s in solleciti if not (s.snooze_fino and s.snooze_fino > oggi)]
     solleciti.sort(key=lambda s: (ordina_gravita(s.gravita), s.pratica.codice))
+    per_gravita = {g: sum(1 for s in solleciti if s.gravita == g) for g in ("critico", "avviso", "info")}
+    pagina = pagina_per(request, len(solleciti), PER_PAGINA)
+    solleciti = solleciti[pagina.offset : pagina.offset + pagina.per_pagina]
     regole = session.scalars(select(Regola).order_by(Regola.nome)).all()
     return render(
         request,
         "solleciti/elenco.html",
         utente,
         solleciti=solleciti,
+        pagina=pagina,
+        per_gravita=per_gravita,
         regole=regole,
         filtri={"stato": stato, "gravita": gravita, "regola": regola, "assegnato": assegnato},
     )

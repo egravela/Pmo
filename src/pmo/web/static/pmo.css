@@ -3,123 +3,260 @@
 
    Il design system sta in static/ds/ e non si tocca. Questo file contiene
    soltanto cio' che il sistema non prevede e che un'applicazione a elenchi e
-   moduli deve pur avere: impaginazione, tabella a piu' colonne, link, casella
-   di spunta, riquadro apri/chiudi.
+   moduli deve pur avere: menu laterale, impaginazione, paginazione, tabella a
+   piu' colonne, link, casella di spunta, riquadro apri/chiudi, barra delle viste.
 
    Regole che questo file si impone, le stesse del sistema:
    - nessun valore letterale dove esiste un token (colori, spazi, font, filetti);
    - nessun hue nuovo, nessuna ombra, nessun gradiente, nessun raggio;
    - la struttura la danno filetti, spaziatura e allineamenti, non scatole;
-   - lo stato passa dall'attributo ARIA, non da una classe di comodo.
+   - lo stato passa dall'attributo ARIA, non da una classe di comodo;
+   - il mono e' la voce delle etichette brevi; i contenuti stanno in frase.
    ========================================================================== */
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; }
 body.tr-page { min-height: 100vh; }
 
-/* ---- Impaginazione ---------------------------------------------------------
-   .tr-shell tiene il footer in fondo; il contenitore da' la misura massima. */
-.pmo-shell { min-height: 100vh; }
+/* ==========================================================================
+   Impianto: menu laterale + colonna del contenuto
+   ========================================================================== */
+.pmo-app {
+  --pmo-side-w: 248px;
+  display: grid;
+  grid-template-columns: var(--pmo-side-w) minmax(0, 1fr);
+  min-height: 100vh;
+}
+.pmo-shell { min-height: 100vh; min-width: 0; }
 .pmo-container {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 var(--tr-space-6);
+  padding: 0 var(--tr-space-7);
 }
-.pmo-top { padding-top: var(--tr-space-5); }
-.pmo-main { padding-top: var(--tr-space-6); padding-bottom: var(--tr-space-8); }
+.pmo-main { padding-top: var(--tr-space-7); padding-bottom: var(--tr-space-8); }
 .pmo-bottom { padding-bottom: var(--tr-space-6); }
 
-.pmo-user {
+/* ---- Menu laterale -----------------------------------------------------------
+   Il sistema non ha un menu. Si compone con cio' che ha: il piano dei componenti
+   (surface) staccato dalla pagina da un filetto, come la barra delle tabs; le voci
+   in mono, la voce dei comandi; e per la voce corrente il segno che il sistema da'
+   alla scelta — il filetto pieno sul fianco sinistro, brand/500 ("e' questa"),
+   lo stesso della card scelta. Sotto il puntatore il filetto compare in tinta
+   chiara, come sotto una tab. Lo stato lo dice aria-current. */
+.pmo-side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--tr-space-5) 0;
+  background: var(--tr-surface);
+  border-right: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.pmo-side__marchio { padding: 0 var(--tr-space-5); }
+.pmo-side__marchio .tr-clientmark__product { display: block; margin-top: var(--tr-space-3); }
+.pmo-side__nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--tr-space-7);
+}
+.pmo-side__voce {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--tr-space-5);
-}
-.pmo-user form { margin: 0; }
-
-.pmo-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
   justify-content: space-between;
-  gap: var(--tr-space-4) var(--tr-space-6);
+  gap: var(--tr-space-3);
+  padding: var(--tr-space-3) var(--tr-space-5);
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--tr-ink-400);
+  transition: color var(--tr-motion-fast) var(--tr-motion-ease);
 }
-.pmo-head__title { min-width: 0; }
-.pmo-head__title .tr-eyebrow { margin-bottom: 0; }
+.pmo-side__voce::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--tr-rule-accent);
+  background: var(--tr-border-soft-2);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 180ms var(--tr-motion-ease);
+}
+.pmo-side__voce:hover { color: var(--tr-ink-900); }
+.pmo-side__voce:hover::before { transform: scaleY(1); }
+.pmo-side__voce[aria-current="page"] { color: var(--tr-ink-900); }
+.pmo-side__voce[aria-current="page"]::before { transform: scaleY(1); background: var(--tr-brand-500); }
+.pmo-side__voce:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: -2px; }
+/* Il conteggio e' un dato: cifre tabellari, nessuna pastiglia (come .tr-tab__count). */
+.pmo-side__conteggio { font-variant-numeric: tabular-nums; font-size: 11px; color: var(--tr-ink-400); }
+.pmo-side__voce[aria-current="page"] .pmo-side__conteggio { color: var(--tr-brand-600); }
+.pmo-side__utente {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--tr-space-1);
+  margin-top: auto;
+  padding: var(--tr-space-4) var(--tr-space-5) 0;
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.pmo-side__utente form { margin: 0; }
 
+@media (prefers-reduced-motion: reduce) {
+  .pmo-side__voce, .pmo-side__voce::before { transition: none; }
+}
+
+/* Sotto i 900px il menu sale in testa: marchio e utente su una riga, le voci in fila
+   sotto, che scorrono come una fila di tabs; il filetto passa sotto la voce. */
+@media (max-width: 900px) {
+  .pmo-app { grid-template-columns: minmax(0, 1fr); }
+  .pmo-side {
+    position: static;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--tr-space-4) 0 0;
+    border-right: 0;
+    border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
+  }
+  .pmo-side__marchio { display: flex; align-items: center; gap: var(--tr-space-4); padding: 0 var(--tr-space-4); }
+  .pmo-side__marchio .tr-clientmark__product { margin-top: 0; }
+  .pmo-side__nav { order: 3; flex-basis: 100%; min-width: 0; flex-direction: row; margin-top: var(--tr-space-3); overflow-x: auto; scrollbar-width: none; }
+  .pmo-side__nav::-webkit-scrollbar { display: none; }
+  .pmo-side__voce { padding: var(--tr-space-3) var(--tr-space-4); white-space: nowrap; }
+  .pmo-side__voce::before { inset: auto 0 0 0; width: auto; height: var(--tr-rule-medium); transform: scaleX(0); transform-origin: left center; }
+  .pmo-side__voce:hover::before,
+  .pmo-side__voce[aria-current="page"]::before { transform: scaleX(1); }
+  .pmo-side__utente { flex-direction: row; align-items: center; gap: var(--tr-space-4); margin: 0 var(--tr-space-4) 0 auto; padding: 0; border-top: 0; }
+  .pmo-container { padding-left: var(--tr-space-5); padding-right: var(--tr-space-5); }
+  .pmo-main { padding-top: var(--tr-space-6); }
+}
+@media (max-width: 720px) {
+  .pmo-container { padding-left: var(--tr-space-4); padding-right: var(--tr-space-4); }
+  /* su un telefono resta solo "Esci": il nome non sta sulla riga del marchio */
+  .pmo-side__utente .tr-mono { display: none; }
+}
+/* Pagina di accesso su un telefono: "Accesso riservato" non sta accanto al marchio del prodotto. */
+@media (max-width: 480px) {
+  .tr-login__header .tr-eyebrow__label { display: none; }
+}
+
+/* ==========================================================================
+   Ritmo della pagina
+   ========================================================================== */
 .pmo-section { margin-top: var(--tr-space-8); }
 .pmo-stack { display: grid; gap: var(--tr-space-5); }
 .pmo-stack--tight { gap: var(--tr-space-3); }
-.pmo-lead { margin: var(--tr-space-4) 0 0; }
 .pmo-mt-2 { margin-top: var(--tr-space-2); }
 .pmo-mt-3 { margin-top: var(--tr-space-3); }
 .pmo-mt-4 { margin-top: var(--tr-space-4); }
 .pmo-mt-5 { margin-top: var(--tr-space-5); }
 .pmo-mt-6 { margin-top: var(--tr-space-6); }
+.pmo-mb-5 { margin-bottom: var(--tr-space-5); }
+
+/* Testata di una pagina senza cifra: eyebrow, titolo, lead — nell'ordine del README.
+   Il lead e' un .tr-intro__lead (60ch): non e' prosa lunga, non chiede la seconda colonna. */
+.pmo-testata { max-width: var(--tr-measure-prose); }
 
 /* Due colonne di pari dignita'; sotto i 900px una sola, come il blocco introduttivo. */
 .pmo-cols {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: var(--tr-space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tr-space-6);
   align-items: start;
 }
-.pmo-cols--even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pmo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: var(--tr-space-2) var(--tr-space-5);
 }
 .pmo-grid--wide { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.pmo-grid > .pmo-field--wide { grid-column: 1 / -1; }
-.pmo-form-foot { margin-top: var(--tr-space-4); }
-.pmo-form-foot--rule { padding-top: var(--tr-space-4); border-top: var(--tr-rule-thin) solid var(--tr-border-soft); }
+@media (max-width: 900px) { .pmo-cols { grid-template-columns: 1fr; } }
 
-@media (max-width: 900px) {
-  .pmo-cols, .pmo-cols--even { grid-template-columns: 1fr; }
+/* Azioni, moduli e avvisi in coda al testo del blocco introduttivo. */
+.tr-intro__main > .tr-btn-group,
+.tr-intro__main > form,
+.tr-intro__main > .tr-notice,
+.pmo-testata > .tr-btn-group { margin-top: var(--tr-space-5); }
+
+/* ---- Testata di sezione ------------------------------------------------------
+   Come nella vetrina del sistema: il tratto d'accento (64 x 3 px) sopra, poi il
+   titolo display con la parola chiave in blu. La nota in mono a destra. */
+.pmo-sechead { margin-bottom: var(--tr-space-5); }
+.pmo-sechead .tr-accent-dash { margin-bottom: var(--tr-space-4); }
+.pmo-sechead__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tr-space-2) var(--tr-space-5);
 }
-@media (max-width: 720px) {
-  .pmo-container { padding: 0 var(--tr-space-4); }
-  .pmo-main { padding-top: var(--tr-space-5); }
+.pmo-sechead__note {
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
 }
 
-/* ---- Navigazione principale -------------------------------------------------
-   Il sistema non ha un menu: ha le tabs, e ne usa la grammatica — etichette mono
-   in fila, un filetto a dire dove si e'. Qui sono collegamenti fra pagine e lo
-   stato lo dice aria-current, non aria-selected. */
-.pmo-nav { margin-top: var(--tr-space-4); }
-.tr-tabs a.tr-tab { text-decoration: none; }
-.tr-tab[aria-current="page"] { color: var(--tr-ink-900); }
-.tr-tab[aria-current="page"]::after,
-.tr-tab[aria-current="page"]:hover::after {
-  transform: scaleX(1);
-  background: var(--tr-brand-500);
+/* Titolo di un contenuto (il nome di una pratica) dove il sistema ha solo titoli display
+   maiuscoli: e' il titolo della card, fuori dalla card — in frase, con la misura della prosa. */
+.pmo-titolo {
+  margin: 0;
+  max-width: var(--tr-measure-prose);
+  font-family: var(--tr-font-display);
+  font-weight: var(--tr-weight-display);
+  font-size: var(--tr-text-h3);
+  line-height: var(--tr-leading-display);
+  letter-spacing: var(--tr-tracking-display);
+  color: var(--tr-ink-900);
+  overflow-wrap: anywhere;
 }
-.tr-tab[aria-current="page"] .tr-tab__count { color: var(--tr-brand-600); }
-.pmo-tabs { margin-top: var(--tr-space-5); }
-.pmo-tabpanel { margin-top: var(--tr-space-5); }
 
-/* ---- Link --------------------------------------------------------------------
-   Il testo che porta un collegamento sta in brand/700 (6,5:1 sul bianco, 5,7:1
-   sul paper), come i link della firma email. Solo i link senza classe: quelli
-   dei componenti (.tr-btn, .tr-tab, .tr-footer__contact) hanno gia' la loro voce. */
-.tr-page a:where(:not([class])) {
-  color: var(--tr-brand-700);
-  text-decoration: none;
-}
+/* ==========================================================================
+   Voci di testo
+   ========================================================================== */
+
+/* Link: brand/700 (6,5:1 sul bianco, 5,7:1 sul paper), come nella firma email. Solo i
+   link senza classe: quelli dei componenti (.tr-btn, .tr-footer__contact…) hanno la loro voce. */
+.tr-page a:where(:not([class])) { color: var(--tr-brand-700); text-decoration: none; }
 .tr-page a:where(:not([class])):hover {
   text-decoration: underline;
   text-decoration-thickness: var(--tr-rule-thin);
   text-underline-offset: 0.18em;
 }
-.tr-page a:where(:not([class])):focus-visible {
-  outline: 2px solid var(--tr-brand-500);
-  outline-offset: 2px;
-}
+.tr-page a:where(:not([class])):focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
 
-/* ---- Voci di testo ---------------------------------------------------------- */
+/* Collegamenti che portano una classe del sistema: niente sottolineatura del browser. */
+a.tr-brandmark,
+a.tr-datatable__value,
+a.tr-datatable__label { text-decoration: none; }
+a.tr-datatable__value:hover { color: var(--tr-brand-600); }
+a.tr-brandmark:focus-visible,
+a.tr-datatable__value:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
+
+/* Il titolo di una scheda puo' essere un collegamento: resta nell'inchiostro del titolo
+   e sotto il puntatore si scurisce, come il titolo della card cliccabile. */
+a.pmo-title-link { color: inherit; text-decoration: none; }
+a.pmo-title-link:hover { color: var(--tr-brand-700); }
+a.pmo-title-link:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
+
 .pmo-muted { color: var(--tr-ink-400); }
 .pmo-small { font-size: 14px; }
+.pmo-text { margin: 0; white-space: pre-wrap; }
+.pmo-title-cell { font-weight: var(--tr-weight-semibold); color: var(--tr-ink-900); }
+.pmo-voce__titolo { margin: 0; font-weight: var(--tr-weight-semibold); color: var(--tr-ink-900); overflow-wrap: anywhere; }
+.pmo-blocco { display: block; }
+.pmo-scheda__stati .pmo-meta { margin: 0; }
+
+/* Codice pratica: un identificativo, nella voce mono dei comandi. */
 .pmo-code {
   font-family: var(--tr-font-mono);
   font-weight: var(--tr-weight-semibold);
@@ -128,20 +265,44 @@ body.tr-page { min-height: 100vh; }
   color: var(--tr-ink-900);
   white-space: nowrap;
 }
+/* Etichetta tecnica breve (data, ora, fonte): la voce mono, sempre maiuscola, come le
+   etichette della tabella dati. Solo per voci che stanno su una riga. */
 .pmo-meta {
   margin: var(--tr-space-1) 0 0;
   font-family: var(--tr-font-mono);
   font-size: var(--tr-text-caption);
   letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
   color: var(--tr-ink-400);
 }
-.pmo-title-cell { font-weight: var(--tr-weight-semibold); color: var(--tr-ink-900); }
-.pmo-text { margin: 0; white-space: pre-wrap; }
+/* Dato che distingue maiuscole e minuscole (indirizzo email, percorso, nome di file,
+   identificativo): mono, ma senza maiuscolo — come il valore della tabella dati. */
+.pmo-dato {
+  margin: var(--tr-space-1) 0 0;
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: 0.02em;
+  color: var(--tr-ink-400);
+  overflow-wrap: anywhere;
+}
 
-/* ---- Tabella dati ------------------------------------------------------------
-   Il sistema ha la tabella a due colonne (.tr-datatable) ma non quella a molte:
-   qui e' composta con le sue parti. Intestazione in mono grigio, filetto piu'
-   scuro sotto, filetto leggero fra le righe, niente fondi, niente zebra. */
+/* Il testo di un avviso e' corpo di lettura: la misura del body, come ogni paragrafo. */
+.tr-notice__body { max-width: var(--tr-measure-body); }
+.pmo-notice-actions { margin-top: var(--tr-space-3); }
+
+/* ==========================================================================
+   Tabella a piu' colonne
+   Il sistema ha la tabella a due colonne (.tr-datatable) ma non quella a molte: qui e'
+   composta con le sue parti. Intestazione in mono grigio, filetto piu' scuro sotto,
+   filetto leggero fra le righe, niente fondi, niente zebra. Si usa solo dove i dati
+   sono davvero tabellari (impostazioni, scadenze, esecuzioni); il resto sono schede.
+   ========================================================================== */
+/* position: relative tiene dentro lo scorrimento anche i figli assoluti (le etichette sr-only,
+   le tendine di tr-select): altrimenti allargano la pagina su un telefono. */
+.pmo-scroll { position: relative; overflow-x: auto; }
+/* Le tendine chiuse restano nascoste ma occupano spazio: in fondo a una tabella che scorre
+   aggiungerebbero una barra verticale. Chiuse, qui si tolgono dal disegno. */
+.pmo-scroll .tr-select:not([data-open="true"]) .tr-select__panel { display: none; }
 .pmo-table { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--tr-ink-600); }
 .pmo-table th {
   padding: var(--tr-space-3) var(--tr-space-4) var(--tr-space-3) 0;
@@ -162,38 +323,47 @@ body.tr-page { min-height: 100vh; }
   vertical-align: top;
 }
 .pmo-table th:last-child, .pmo-table td:last-child { padding-right: 0; }
-.pmo-table .pmo-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pmo-table .tr-field { min-width: 120px; }
+.pmo-table .tr-status { white-space: nowrap; }
 .pmo-table .pmo-field--wide { min-width: 220px; }
-.pmo-table .tr-btn-group { gap: var(--tr-space-2) var(--tr-space-4); }
-.pmo-empty {
-  padding: var(--tr-space-7) var(--tr-space-5);
-  text-align: center;
+@media (max-width: 720px) { .pmo-scroll .pmo-table { min-width: 640px; } }
+
+/* ==========================================================================
+   Moduli
+   ========================================================================== */
+.pmo-inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3); margin: 0; }
+.pmo-inline .tr-field { width: 180px; }
+.pmo-inline .pmo-field--narrow { width: 88px; }
+.pmo-inline .pmo-field--wide { width: 240px; }
+.pmo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3) var(--tr-space-5); margin: var(--tr-space-2) 0 0; }
+.pmo-bar .tr-field { width: 200px; }
+.pmo-bar .pmo-field--wide { width: 280px; }
+
+/* Riga di campi che occupa la larghezza disponibile: il campo di testo cede spazio, il
+   pulsante resta sulla stessa riga. */
+.pmo-bar--fill { flex-wrap: nowrap; gap: var(--tr-space-3) var(--tr-space-4); }
+.pmo-bar--fill .tr-field { width: auto; flex: 0 0 170px; }
+.pmo-bar--fill .pmo-affianca:has(.pmo-field--wide) { flex: 1 1 200px; min-width: 0; }
+.pmo-bar--fill .pmo-field--wide { width: auto; flex: 1 1 140px; min-width: 0; }
+.pmo-bar--fill .tr-btn-group { flex: none; }
+@media (max-width: 720px) { .pmo-bar--fill { flex-wrap: wrap; } .pmo-bar--fill .tr-field { flex: 1 1 100%; } }
+
+/* Etichetta scritta di fianco al campo compatto, come chiede il README per la variante
+   compatta: la stessa voce mono dell'etichetta del campo, a riposo. */
+.pmo-affianca { display: inline-flex; align-items: center; gap: var(--tr-space-3); }
+.pmo-affianca__label {
   font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
   font-size: var(--tr-text-caption);
   letter-spacing: var(--tr-tracking-mono);
   text-transform: uppercase;
   color: var(--tr-ink-400);
-}
-td.pmo-empty { border-bottom: 0; }
-
-@media (max-width: 720px) {
-  .pmo-scroll { overflow-x: auto; }
-  .pmo-scroll .pmo-table { min-width: 640px; }
+  white-space: nowrap;
 }
 
-/* ---- Moduli ------------------------------------------------------------------ */
-.pmo-inline { display: inline-flex; align-items: center; gap: var(--tr-space-3); margin: 0; }
-.pmo-inline .tr-field { width: 180px; }
-.pmo-inline .pmo-field--narrow { width: 88px; }
-.pmo-inline .pmo-field--wide { width: 240px; }
-.pmo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3) var(--tr-space-5); margin: 0; }
-.pmo-bar .tr-field { width: 200px; }
-.pmo-bar .pmo-field--wide { width: 280px; }
-
-/* Casella di spunta: il sistema non ne ha una sua; si usa quella nativa con
-   l'accento del sistema e l'etichetta nel corpo del testo. Se la scelta ha
-   effetto subito, il componente giusto e' .tr-switch. Qui c'e' sempre un Salva. */
+/* Casella di spunta: il sistema non ne ha una sua; si usa quella nativa con l'accento
+   del sistema e l'etichetta in frase. Se la scelta avesse effetto subito, il componente
+   giusto sarebbe .tr-switch: qui c'e' sempre un Salva. */
 .pmo-check {
   display: inline-flex;
   align-items: center;
@@ -212,10 +382,12 @@ td.pmo-empty { border-bottom: 0; }
 }
 .pmo-check input:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
 .pmo-checks { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3) var(--tr-space-5); }
+/* Gruppo di opzioni: l'etichetta del gruppo e' quella del .tr-fieldset (README, "Gruppo di opzioni"). */
+.pmo-gruppo .tr-fieldset__legend { margin-bottom: var(--tr-space-2); }
 
 /* ---- Riquadro apri/chiudi ----------------------------------------------------
-   Il sommario e' un'etichetta mono con il chevron del registro icone, come un
-   comando: niente freccetta del browser. */
+   Il sommario e' un'etichetta mono con il chevron del registro icone, come un comando:
+   niente freccetta del browser. */
 .pmo-details > summary {
   display: flex;
   align-items: center;
@@ -245,18 +417,13 @@ td.pmo-empty { border-bottom: 0; }
   letter-spacing: var(--tr-tracking-mono-ui);
   text-transform: uppercase;
   color: var(--tr-brand-600);
+  white-space: nowrap;
 }
 .pmo-details__sum { min-width: 0; flex: 1 1 auto; }
 .pmo-list { display: grid; margin: 0; padding: 0; list-style: none; }
-.pmo-list > li, .pmo-list > .pmo-details {
-  padding: var(--tr-space-4) 0;
-  border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft);
-}
-.pmo-list > li:first-child, .pmo-list > .pmo-details:first-child { border-top: var(--tr-rule-thin) solid var(--tr-border-soft); }
-
-@media (prefers-reduced-motion: reduce) {
-  .pmo-details > summary::before { transition: none; }
-}
+.pmo-list > li { padding: var(--tr-space-4) 0; border-bottom: var(--tr-rule-thin) solid var(--tr-border-soft); }
+.pmo-list > li:first-child { border-top: var(--tr-rule-thin) solid var(--tr-border-soft); }
+@media (prefers-reduced-motion: reduce) { .pmo-details > summary::before { transition: none; } }
 
 /* Testo di una mail: un filetto verticale lo separa dal resto, non una scatola. */
 .pmo-mail {
@@ -266,75 +433,101 @@ td.pmo-empty { border-bottom: 0; }
   border-left: var(--tr-rule-medium) solid var(--tr-border-soft);
   overflow: auto;
   white-space: pre-wrap;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: var(--tr-leading-body);
   color: var(--tr-ink-600);
+  max-width: var(--tr-measure-prose);
 }
-.pmo-mail--short { max-height: 200px; }
+.pmo-mail--short { max-height: 220px; }
 
-/* Messaggio che porta un'azione: il filetto e il testo, i comandi sotto. */
-.pmo-notice-actions { margin-top: var(--tr-space-3); }
-
-/* Dati in coda a una riga di cronologia o di elenco. */
-.pmo-ledger { display: grid; gap: var(--tr-space-5); }
-.tr-timeline__meta .pmo-code { font-size: var(--tr-text-caption); }
-
-/* Collegamenti che portano una classe del sistema: il marchio e i valori della
-   tabella dati. Non hanno la sottolineatura del browser; il valore, sotto il
-   puntatore, prende il blu come ogni voce interattiva. */
-a.tr-brandmark,
-a.tr-datatable__value,
-a.tr-datatable__label { text-decoration: none; }
-a.tr-datatable__value:hover { color: var(--tr-brand-600); }
-a.tr-brandmark:focus-visible,
-a.tr-datatable__value:focus-visible { outline: 2px solid var(--tr-brand-500); outline-offset: 2px; }
-
-.pmo-mb-5 { margin-bottom: var(--tr-space-5); }
-
-/* Campo compatto: il sistema ne toglie l'etichetta interna e, con essa, l'unico
-   modo di capire a cosa serve un campo di testo vuoto, perche' il placeholder e'
-   invisibile finche' non c'e' il focus. Dove manca l'etichetta il placeholder
-   resta visibile, nel tono delle didascalie. */
-.tr-field--compact .tr-field__control::placeholder { color: var(--tr-ink-400); opacity: 0.8; }
-
-/* ---- Testata di sezione ------------------------------------------------------
-   Come nella vetrina del sistema: il tratto d'accento (64 x 3 px) sopra, poi il
-   titolo display con la parola chiave in blu. La nota in mono sta a destra, sulla
-   riga del titolo. */
-.pmo-sechead { margin-bottom: var(--tr-space-5); }
-.pmo-sechead .tr-accent-dash { margin-bottom: var(--tr-space-4); }
-.pmo-sechead__row {
+/* ==========================================================================
+   Schede (la .tr-card del sistema: qui solo la disposizione delle sue parti)
+   ========================================================================== */
+.pmo-schede { margin-top: var(--tr-space-5); }
+.tr-card-grid.pmo-schede { grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); }
+.pmo-scheda { display: flex; flex-direction: column; }
+.pmo-scheda .tr-card__head { margin-bottom: var(--tr-space-4); }
+.pmo-scheda .tr-card__head > div { min-width: 0; }
+.pmo-scheda .tr-card__title { overflow-wrap: anywhere; }
+/* Su un telefono il codice sale sopra il titolo, che cosi' ha tutta la larghezza della card. */
+@media (max-width: 520px) {
+  .pmo-scheda .tr-card__head { flex-direction: column-reverse; gap: var(--tr-space-2); }
+}
+.pmo-scheda__body { flex: 1 1 auto; }
+.pmo-scheda__stati {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--tr-space-2) var(--tr-space-5);
+  align-items: center;
+  gap: var(--tr-space-2) var(--tr-space-4);
 }
-.pmo-sechead__note {
+.pmo-scheda .tr-datatable { margin-top: var(--tr-space-5); }
+.pmo-scheda .tr-card__foot { margin-top: auto; padding-top: var(--tr-space-4); }
+.pmo-scheda .tr-card__foot:not(:first-child) { margin-top: var(--tr-space-5); }
+/* Dentro una scheda la tabella dati e' chiusa dal filetto dei comandi: il suo ultimo
+   filetto si toglie, altrimenti due linee corrono parallele a 24px l'una dall'altra. */
+.pmo-scheda .pmo-scheda__body:has(+ .tr-card__foot) > .tr-datatable:last-child .tr-datatable__row:last-child { border-bottom: 0; }
+
+/* Le tappe della pratica, sotto il blocco introduttivo, a tutta larghezza. */
+.pmo-tappe { margin-top: var(--tr-space-7); }
+
+/* ==========================================================================
+   Paginazione
+   Il conteggio in mono a sinistra, i comandi a destra, il filetto che chiude l'elenco
+   sopra. La pagina corrente e' un'azione col filetto acceso (aria-current), lo stesso
+   segno che l'azione mostra sotto il puntatore e la tab attiva tiene acceso.
+   ========================================================================== */
+.pmo-pagine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tr-space-3) var(--tr-space-5);
+  margin-top: var(--tr-space-6);
+  padding-top: var(--tr-space-4);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+.pmo-pagine__conteggio {
   font-family: var(--tr-font-mono);
   font-size: var(--tr-text-caption);
   letter-spacing: var(--tr-tracking-mono);
   text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
   color: var(--tr-ink-400);
 }
+.pmo-pagine__comandi { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-2) var(--tr-space-5); }
+.pmo-pagine__numero { min-width: var(--tr-btn-h-sm); color: var(--tr-ink-400); font-variant-numeric: tabular-nums; }
+.pmo-pagine__numero:hover:not([aria-current="page"]) { color: var(--tr-ink-900); }
+.pmo-pagine__numero[aria-current="page"] { color: var(--tr-ink-900); cursor: default; }
+.pmo-pagine__numero[aria-current="page"]::before { transform: scaleX(1); }
+.pmo-pagine__salto { font-family: var(--tr-font-mono); color: var(--tr-ink-400); }
 
-/* Frase di commento: il motivo scritto dall'IA, la descrizione di una pratica.
-   E' contenuto, non un'etichetta: in sans e in frase, mai in mono. */
-.pmo-note {
-  margin: var(--tr-space-1) 0 0;
-  font-size: 14px;
-  color: var(--tr-ink-400);
-  max-width: var(--tr-measure-short);
+/* ==========================================================================
+   Viste di una pagina di dettaglio
+   La barra delle tabs ancorata in fondo (.tr-tabs--bottom, il filetto sopra la tab punta
+   al contenuto) resta attaccata al bordo inferiore dello schermo mentre si legge.
+   Si vede una vista alla volta; senza JavaScript le viste sono tutte in pagina e la barra
+   non serve, quindi non compare.
+   ========================================================================== */
+.pmo-viste-barra { display: none; }
+.pmo-js .pmo-viste-barra {
+  display: flex;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: var(--tr-space-6);
 }
+.pmo-js .pmo-vista:not(.is-attiva) { display: none; }
+.pmo-vista + .pmo-vista { margin-top: var(--tr-space-5); }
+.pmo-js .pmo-vista + .pmo-vista { margin-top: 0; }
+.pmo-viste { margin-top: var(--tr-space-7); }
 
-/* Riga di campi che occupa la larghezza disponibile (dentro una card stretta): il
-   campo di testo cede spazio, il pulsante resta sulla stessa riga. */
-.pmo-bar--fill { flex-wrap: nowrap; gap: var(--tr-space-3) var(--tr-space-4); }
-.pmo-bar--fill .tr-field { width: auto; flex: 0 0 170px; }
-.pmo-bar--fill .pmo-field--wide { flex: 1 1 140px; min-width: 0; }
-.pmo-bar--fill .tr-btn-group { flex: none; }
-@media (max-width: 720px) { .pmo-bar--fill { flex-wrap: wrap; } .pmo-bar--fill .tr-field { flex: 1 1 100%; } }
-
-/* Le voci apri/chiudi dentro una cella non vanno a capo: sono comandi, si leggono d'un fiato. */
-.pmo-table .pmo-details__label { white-space: nowrap; }
-.pmo-table td:last-child { min-width: 150px; }
+/* Sottonavigazione fra le code di una pagina (Revisione, Impostazioni): la fila di tabs
+   del sistema, ma sono collegamenti che cambiano pagina, quindi lo stato lo dice
+   aria-current e non aria-selected. */
+.tr-tabs a.tr-tab { text-decoration: none; }
+.tr-tab[aria-current="page"] { color: var(--tr-ink-900); }
+.tr-tab[aria-current="page"]::after,
+.tr-tab[aria-current="page"]:hover::after { transform: scaleX(1); background: var(--tr-brand-500); }
+.tr-tab[aria-current="page"] .tr-tab__count { color: var(--tr-brand-600); }
+.pmo-sottonav { margin-top: var(--tr-space-8); }
+.pmo-tabpanel { margin-top: var(--tr-space-5); }

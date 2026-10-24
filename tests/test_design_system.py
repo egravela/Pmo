@@ -106,15 +106,17 @@ def test_i_messaggi_flash_diventano_messaggi_transitori(client):
     assert 'class="tr-toast-region"' in pagina and "tr-toast tr-toast--" in pagina
 
 
-def test_titoli_di_card_con_parola_chiave_in_blu(client, db):
-    """Il titolo di una card porta la parola chiave in <em>, come nel sistema."""
+def test_parola_chiave_solo_nei_titoli_scritti_non_in_quelli_presi_dai_dati(client, db):
+    """I titoli scritti dall'app hanno la parola chiave in <em>; il titolo di una pratica (un dato) no."""
     _login(client)
     pratica = svc.crea_pratica(db, "Banca degli Occhi")
     db.commit()
     html = client.get(f"/pratiche/{pratica.id}").text
     for titolo in re.findall(r'<h2 class="tr-card__title"[^>]*>(.*?)</h2>', html):
         assert "<em>" in titolo, titolo
-    assert re.search(r'<h1 class="tr-card__title">.*<em>', html)
+    assert re.search(r'<h1 class="pmo-titolo">Banca degli Occhi</h1>', html)
+    elenco = client.get("/pratiche").text
+    assert '<h2 class="tr-card__title">Banca degli Occhi</h2>' in elenco
 
 
 def test_testata_di_sezione_con_tratto_d_accento(client):
@@ -123,10 +125,10 @@ def test_testata_di_sezione_con_tratto_d_accento(client):
     assert 'class="pmo-sechead"' in html and "tr-accent-dash" in html
 
 
-def test_la_sagoma_del_logo_sta_nello_sfondo_dell_applicazione(client):
+def test_la_sagoma_del_logo_solo_sulla_pagina_di_accesso(client):
+    assert "logo-traccia-outline.svg" in client.get("/login").text
     _login(client)
-    html = client.get("/pratiche").text
-    assert "tr-watermark-host" in html and "logo-traccia-outline.svg" in html
+    assert "logo-traccia-outline.svg" not in client.get("/pratiche").text
 
 
 def test_nessun_pannello_colorato_dietro_ai_contenuti(client, db):
@@ -134,3 +136,81 @@ def test_nessun_pannello_colorato_dietro_ai_contenuti(client, db):
     pratica = svc.crea_pratica(db, "Prova", stato_verifica="proposto")
     db.commit()
     assert "tr-notice--tint" not in client.get(f"/pratiche/{pratica.id}").text
+
+
+def test_menu_laterale_con_la_voce_corrente(client):
+    _login(client)
+    html = client.get("/solleciti").text
+    assert 'class="pmo-side"' in html
+    assert re.search(r'class="pmo-side__voce" href="/solleciti"\s+aria-current="page"', html)
+    assert not re.search(r'href="/pratiche"\s+aria-current', html)
+    # il menu non e' piu' una fila di tabs
+    assert 'class="tr-tabs pmo-nav"' not in html
+
+
+def test_login_la_zona_dei_messaggi_resta_fuori_dal_contenitore(client):
+    html = client.get("/login").text
+    assert '<body class="tr-page">' in html
+    assert html.index('class="tr-login tr-watermark-host"') < html.index('class="tr-toast-region"')
+    assert "PMO_GOOGLE_CLIENT_ID" not in html
+
+
+def test_paginazione_dell_elenco_pratiche(client, db):
+    _login(client)
+    for i in range(30):
+        svc.crea_pratica(db, f"Pratica di prova {i:02d}")
+    db.commit()
+    prima = client.get("/pratiche").text
+    assert prima.count('class="tr-card tr-card--action pmo-scheda"') == 24
+    assert 'class="pmo-pagine"' in prima and "1–24 di 30" in prima
+    assert re.search(r'href="/pratiche\?pagina=2"[^>]*rel="next"|rel="next"[^>]*href="/pratiche\?pagina=2"', prima)
+    seconda = client.get("/pratiche?pagina=2").text
+    assert seconda.count('class="tr-card tr-card--action pmo-scheda"') == 6
+    assert re.search(r'aria-current="page" aria-label="Pagina 2"', seconda)
+    # una pagina oltre l'ultima mostra l'ultima, non un elenco vuoto
+    assert client.get("/pratiche?pagina=99").text.count("pmo-scheda") >= 6
+
+
+def test_paginazione_conserva_i_filtri(client, db):
+    _login(client)
+    for i in range(30):
+        svc.crea_pratica(db, f"Ordine {i:02d}")
+    db.commit()
+    html = client.get("/pratiche?q=Ordine").text
+    assert "q=Ordine&amp;pagina=2" in html
+
+
+def test_dettaglio_con_viste_e_barra_in_fondo(client, db):
+    _login(client)
+    pratica = svc.crea_pratica(db, "Prova viste")
+    db.commit()
+    html = client.get(f"/pratiche/{pratica.id}").text
+    assert 'class="tr-tabs tr-tabs--bottom pmo-viste-barra" role="tablist"' in html
+    for vista in ("cronologia", "messaggi", "documenti", "solleciti", "scheda"):
+        assert f'id="vista-{vista}" role="tabpanel" aria-labelledby="tab-{vista}"' in html
+        assert f'id="tab-{vista}" aria-controls="vista-{vista}"' in html
+    assert html.count('aria-selected="true"') == 1
+
+
+def test_tappe_della_pratica_in_riga(client, db):
+    _login(client)
+    pratica = svc.crea_pratica(db, "Prova tappe", stato="ordine")
+    db.commit()
+    html = client.get(f"/pratiche/{pratica.id}").text
+    assert "tr-timeline tr-timeline--row" in html
+    assert html.count('aria-current="step"') == 1
+
+
+def test_contatori_delle_esecuzioni_in_frase():
+    from pmo.web.deps import f_contatori, f_esecuzione
+
+    testo = f_contatori({"messaggi": 1000, "da_rivedere": 542, "token": {"chiamate": 515}, "anteprima": True})
+    assert testo == "messaggi 1.000 · da rivedere 542 · token chiamate 515 · anteprima sì"
+    assert f_contatori(None) == ""
+    assert f_esecuzione("classify_drive") == "Classificazione documenti"
+
+
+def test_opzioni_scritte_in_frase(client):
+    _login(client)
+    html = client.get("/solleciti").text
+    assert ">In carico</option>" in html and ">in_carico</option>" not in html

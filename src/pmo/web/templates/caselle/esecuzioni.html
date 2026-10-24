@@ -1,18 +1,28 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, esito with context %}
+{% from "_ds.html" import eyebrow, esito, paginazione with context %}
 {% block titolo %}Esecuzioni {{ account.email }} · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="pmo-head">
-  <div class="pmo-head__title">
-    {{ eyebrow("Caselle", account.email) }}
-    <h1 class="tr-h2">Storico <em>esecuzioni</em></h1>
-  </div>
-  <div class="tr-btn-group">
-    <a class="tr-btn tr-btn--neutral" href="/caselle"><span>Torna alle caselle</span></a>
+<div class="tr-intro">
+  <aside class="tr-intro__aside">
+    {{ eyebrow("Caselle") }}
+    <p class="tr-figure">
+      <span class="tr-figure__number">{{ conteggi.totale }}</span>
+      <span class="tr-figure__label tr-mono tr-mono--muted">esecuzioni<br>registrate</span>
+    </p>
+    <dl class="tr-facts">
+      <div><dt>Ok</dt><dd>{{ conteggi.ok }}</dd></div>
+      <div><dt>Errori</dt><dd>{{ conteggi.errore }}</dd></div>
+    </dl>
+  </aside>
+  <div class="tr-intro__main">
+    <h1 class="tr-h3 tr-intro__title">Storico <em>esecuzioni</em></h1>
+    <p class="tr-intro__lead">Ogni giro di sincronizzazione della casella <span class="pmo-code">{{ account.email }}</span>: cosa ha letto, cosa ha classificato, quali errori ha incontrato.</p>
+    <div class="tr-btn-group"><a class="tr-btn tr-btn--neutral" href="/caselle"><span>Torna alle caselle</span></a></div>
   </div>
 </div>
 
 <section class="pmo-section" aria-label="Esecuzioni della casella">
+  <div class="pmo-scroll">
   <table class="pmo-table">
     <thead><tr><th>Inizio</th><th>Fine</th><th>Tipo</th><th>Esito</th><th>Contatori</th><th>Errori</th></tr></thead>
     <tbody>
@@ -20,15 +30,17 @@
       <tr>
         <td>{{ r.started_at | datadt }}</td>
         <td>{{ r.finished_at | datadt }}</td>
-        <td>{{ r.tipo }}</td>
+        <td>{{ r.tipo | esecuzione }}</td>
         <td>{{ esito(r.stato) }}</td>
-        <td><span class="pmo-meta">{{ r.contatori }}</span></td>
+        <td>{{ r.contatori | contatori }}</td>
         <td>{% for e in r.errori %}<p class="pmo-text">{{ e }}</p>{% endfor %}</td>
       </tr>
     {% else %}
-      <tr><td colspan="6" class="pmo-empty">Nessuna esecuzione</td></tr>
+      <tr><td colspan="6" class="tr-card__empty">Nessuna esecuzione</td></tr>
     {% endfor %}
     </tbody>
   </table>
+  </div>
+  {{ paginazione(pagina) }}
 </section>
 {% endblock %}

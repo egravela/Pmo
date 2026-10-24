@@ -2,21 +2,25 @@
 
 from __future__ import annotations
 
+import math
 import secrets
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from pmo.config import get_settings
-from pmo.db.models import ETICHETTE_EVENTO, ETICHETTE_STATO, User
+from pmo.db.models import ETICHETTE_EVENTO, ETICHETTE_STATO, FASI_ORDINATE, User
 from pmo.db.session import get_session
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
@@ -78,6 +82,67 @@ def flash(request: Request, messaggio: str, livello: str = "ok") -> None:
     request.session["flash"] = lista[-5:]
 
 
+@dataclass
+class Pagina:
+    """Una pagina di un elenco: numero corrente, misura, totale e collegamenti alle altre pagine."""
+
+    numero: int
+    per_pagina: int
+    totale: int
+    percorso: str = "/"
+    parametri: list[tuple[str, str]] = field(default_factory=list)
+
+    @property
+    def pagine(self) -> int:
+        return max(1, math.ceil(self.totale / self.per_pagina))
+
+    @property
+    def offset(self) -> int:
+        return (self.numero - 1) * self.per_pagina
+
+    @property
+    def inizio(self) -> int:
+        return 0 if self.totale == 0 else self.offset + 1
+
+    @property
+    def fine(self) -> int:
+        return min(self.totale, self.offset + self.per_pagina)
+
+    def url(self, numero: int) -> str:
+        coppie = [(k, v) for k, v in self.parametri if k != "pagina"]
+        if numero > 1:
+            coppie.append(("pagina", str(numero)))
+        return self.percorso + ("?" + urlencode(coppie) if coppie else "")
+
+    @property
+    def finestra(self) -> list[int | None]:
+        """Numeri da mostrare: la prima, l'ultima e due attorno alla corrente; None dove si salta."""
+        vicine = {1, self.pagine, *range(self.numero - 2, self.numero + 3)}
+        numeri = sorted(n for n in vicine if 1 <= n <= self.pagine)
+        out: list[int | None] = []
+        for n in numeri:
+            if out and n - (out[-1] or 0) > 1:
+                out.append(None)
+            out.append(n)
+        return out
+
+
+def pagina_per(request: Request, totale: int, per_pagina: int) -> Pagina:
+    """Legge ?pagina= e lo riporta dentro i limiti: una pagina oltre l'ultima mostra l'ultima."""
+    try:
+        numero = int(request.query_params.get("pagina", "1"))
+    except ValueError:
+        numero = 1
+    pagine = max(1, math.ceil(totale / per_pagina))
+    return Pagina(
+        numero=min(max(numero, 1), pagine),
+        per_pagina=per_pagina,
+        totale=totale,
+        percorso=request.url.path,
+        parametri=list(request.query_params.multi_items()),
+    )
+
+
 def redirect(url: str) -> RedirectResponse:
     return RedirectResponse(url, status_code=303)
 
@@ -122,6 +187,46 @@ def f_euro(valore: Decimal | float | None) -> str:
     return testo.replace(",", "X").replace(".", ",").replace("X", ".") + " €"
 
 
+def f_migliaia(valore: Decimal | float | None) -> str:
+    """Importo in migliaia di euro per la cifra in evidenza: 46500 -> "46,5", 1250000 -> "1.250"."""
+    if valore is None:
+        return "-"
+    k = Decimal(valore) / 1000
+    if k >= 100:
+        return f"{k:,.0f}".replace(",", ".")
+    return f"{k:.1f}".replace(".", ",")
+
+
+def f_contatori(valore: dict | None, prefisso: str = "") -> str:
+    """I contatori di un'esecuzione in frase: {"da_rivedere": 542, "token": {"chiamate": 515}} -> "da rivedere 542 · token chiamate 515"."""
+    voci = []
+    for chiave, v in (valore or {}).items():
+        etichetta = f"{prefisso}{chiave}".replace("_", " ")
+        if isinstance(v, dict):
+            voci.append(f_contatori(v, f"{etichetta} "))
+        elif isinstance(v, bool):
+            voci.append(f"{etichetta} {'sì' if v else 'no'}")
+        elif isinstance(v, int):
+            voci.append(f"{etichetta} {v:,}".replace(",", "."))
+        else:
+            voci.append(f"{etichetta} {v}")
+    return " · ".join(x for x in voci if x)
+
+
+ETICHETTE_ESECUZIONE = {
+    "gmail": "Lettura di Gmail",
+    "drive": "Lettura di Drive",
+    "classify": "Classificazione mail",
+    "classify_drive": "Classificazione documenti",
+    "regole": "Calcolo dei solleciti",
+    "digest": "Digest",
+}
+
+
+def f_esecuzione(valore: str) -> str:
+    return ETICHETTE_ESECUZIONE.get(valore, valore)
+
+
 def f_stato(valore: str) -> str:
     return ETICHETTE_STATO.get(valore, valore)
 
@@ -154,16 +259,43 @@ def _versione_statici() -> str:
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.filters.update(
-    {"data": f_data, "datadt": f_datadt, "ora": f_ora, "euro": f_euro, "stato": f_stato, "evento": f_evento, "giorni_fa": f_giorni_fa}
+    {"data": f_data, "datadt": f_datadt, "ora": f_ora, "euro": f_euro, "migliaia": f_migliaia, "contatori": f_contatori, "esecuzione": f_esecuzione, "stato": f_stato, "evento": f_evento, "giorni_fa": f_giorni_fa}
 )
 templates.env.globals["asset_v"] = _versione_statici()
 templates.env.globals["ETICHETTE_STATO"] = ETICHETTE_STATO
+templates.env.globals["FASI"] = [str(f.value) for f in FASI_ORDINATE]
 templates.env.globals["ETICHETTE_EVENTO"] = ETICHETTE_EVENTO
+
+
+def _conteggi_menu() -> dict[str, int]:
+    """I numeri accanto alle voci del menu: cio' che aspetta qualcuno. Se il database non risponde, niente numeri."""
+    from pmo.db.models import (
+        Documento,
+        Messaggio,
+        Pratica,
+        Sollecito,
+        StatoMessaggio,
+        StatoSollecito,
+        StatoVerifica,
+    )
+
+    try:
+        with get_session() as s:
+            return {
+                "solleciti": s.scalar(select(func.count(Sollecito.id)).where(Sollecito.stato.in_([StatoSollecito.APERTO.value, StatoSollecito.IN_CARICO.value]))) or 0,
+                "revisione": (s.scalar(select(func.count(Pratica.id)).where(Pratica.stato_verifica == StatoVerifica.PROPOSTO.value)) or 0)
+                + (s.scalar(select(func.count(Messaggio.id)).where(Messaggio.stato == StatoMessaggio.DA_RIVEDERE.value)) or 0)
+                + (s.scalar(select(func.count(Documento.id)).where(Documento.stato == StatoMessaggio.DA_RIVEDERE.value)) or 0),
+            }
+    except Exception:  # noqa: BLE001
+        return {}
 
 
 def render(request: Request, nome: str, utente: User | None = None, **contesto: Any) -> HTMLResponse:
     settings = get_settings()
     messaggi = request.session.pop("flash", []) if "session" in request.scope else []
+    if utente is not None and "conteggi_menu" not in contesto:
+        contesto["conteggi_menu"] = _conteggi_menu()
     contesto.update(
         {
             "request": request,

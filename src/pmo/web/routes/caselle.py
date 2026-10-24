@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from pmo.config import get_settings
@@ -20,7 +20,16 @@ from pmo.connectors.google_oauth import (
 )
 from pmo.db.models import Account, SyncRun, User, WatchedFolder
 from pmo.services.sync import account_in_sincronizzazione, esegui_regole_tutto, sincronizza_account
-from pmo.web.deps import admin_richiesto, flash, get_db, redirect, render, utente_corrente, verifica_csrf
+from pmo.web.deps import (
+    admin_richiesto,
+    flash,
+    get_db,
+    pagina_per,
+    redirect,
+    render,
+    utente_corrente,
+    verifica_csrf,
+)
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -199,8 +208,15 @@ def scollega(request: Request, account_id: int, session: Session = Depends(get_d
 @router.get("/caselle/{account_id}/esecuzioni")
 def esecuzioni(request: Request, account_id: int, session: Session = Depends(get_db), utente: User = Depends(utente_corrente)):
     account = _carica(session, account_id, utente)
-    runs = session.scalars(select(SyncRun).where(SyncRun.account_id == account.id).order_by(SyncRun.started_at.desc()).limit(100)).all()
-    return render(request, "caselle/esecuzioni.html", utente, account=account, runs=runs)
+    filtro = SyncRun.account_id == account.id
+    conteggi = {
+        "totale": session.scalar(select(func.count(SyncRun.id)).where(filtro)) or 0,
+        "ok": session.scalar(select(func.count(SyncRun.id)).where(filtro, SyncRun.stato == "ok")) or 0,
+        "errore": session.scalar(select(func.count(SyncRun.id)).where(filtro, SyncRun.stato == "errore")) or 0,
+    }
+    pagina = pagina_per(request, conteggi["totale"], 30)
+    runs = session.scalars(select(SyncRun).where(filtro).order_by(SyncRun.started_at.desc()).offset(pagina.offset).limit(pagina.per_pagina)).all()
+    return render(request, "caselle/esecuzioni.html", utente, account=account, runs=runs, pagina=pagina, conteggi=conteggi)
 
 
 @router.post("/caselle/{account_id}/elimina", dependencies=[Depends(verifica_csrf)])

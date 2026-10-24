@@ -13,56 +13,70 @@
   <link rel="stylesheet" href="/static/ds/css/traccia-states.css?v={{ asset_v }}">
   <link rel="stylesheet" href="/static/ds/css/traccia-time.css?v={{ asset_v }}">
   <link rel="stylesheet" href="/static/pmo.css?v={{ asset_v }}">
+  <!-- Con JavaScript le viste di dettaglio si mostrano una alla volta: lo si dichiara prima del disegno. -->
+  <script>document.documentElement.classList.add("pmo-js");</script>
 </head>
 <body class="{% block classe_body %}tr-page{% endblock %}">
+<!-- Il marchio come simbolo, una volta per pagina: lo richiamano gli spinner del sistema. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <symbol id="tr-mark" viewBox="0 0 594 717">
+    <path d="M197.4 0.6 593 351.7 396.1 526.2 0.5 175.2Z"/>
+    <path d="M183.2 714.5C183.7 649.2 183.8 531.5 183.1 362.4L386 538.4C386 538.4 185.3 716.3 183.2 714.5Z"/>
+  </symbol>
+</svg>
 {% block corpo %}
 {% set percorso = request.url.path %}
-<div class="tr-shell tr-watermark-host pmo-shell">
-  <img class="tr-watermark tr-watermark--top-right" src="/static/ds/assets/logo-traccia-outline.svg" alt="" aria-hidden="true">
-  <div class="tr-shell__body">
-    <div class="pmo-container pmo-top">
-      <header class="tr-header">
-        <a class="tr-brandmark" href="/" aria-label="{{ app_name }}">
-          <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="">
-          <span class="tr-brandmark__wordmark">traccia</span>
-        </a>
-        {% if utente %}
-        <div class="pmo-user">
-          <span class="tr-mono tr-mono--brand tr-mono--wide">{{ utente.nome or utente.email }}</span>
-          <form method="post" action="/logout">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <button class="tr-btn tr-btn--quiet tr-btn--sm" type="submit">Esci</button>
-          </form>
-        </div>
-        {% endif %}
-      </header>
-      {% if utente %}
-      <nav class="tr-tabs pmo-nav" aria-label="Sezioni">
-        <a class="tr-tab" href="/"{% if percorso == '/' %} aria-current="page"{% endif %}>Cruscotto</a>
-        <a class="tr-tab" href="/pratiche"{% if percorso.startswith('/pratiche') %} aria-current="page"{% endif %}>Pratiche</a>
-        <a class="tr-tab" href="/solleciti"{% if percorso.startswith('/solleciti') %} aria-current="page"{% endif %}>Solleciti</a>
-        <a class="tr-tab" href="/revisione"{% if percorso.startswith('/revisione') %} aria-current="page"{% endif %}>Revisione</a>
-        <a class="tr-tab" href="/caselle"{% if percorso.startswith('/caselle') %} aria-current="page"{% endif %}>Caselle</a>
-        {% if utente.is_admin %}<a class="tr-tab" href="/impostazioni"{% if percorso.startswith('/impostazioni') %} aria-current="page"{% endif %}>Impostazioni</a>{% endif %}
-      </nav>
-      {% endif %}
-    </div>
-    <main class="pmo-container pmo-main">
-      {% block contenuto %}{% endblock %}
-    </main>
-  </div>
-  <div class="pmo-container pmo-bottom">
-    <!-- Dentro l'applicazione il footer e' nudo: la riga certificazioni sta solo sulle superfici pubbliche. -->
-    <footer class="tr-footer">
-      <span class="tr-brandmark">
-        <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
+{% set voci = [("/", "Cruscotto", none), ("/pratiche", "Pratiche", none), ("/solleciti", "Solleciti", "solleciti"), ("/revisione", "Revisione", "revisione"), ("/caselle", "Caselle", none)] %}
+{% if utente and utente.is_admin %}{% set voci = voci + [("/impostazioni", "Impostazioni", none)] %}{% endif %}
+<div class="pmo-app">
+  {#- Il menu laterale: marchio e prodotto in testa, le voci, l'utente in fondo. -#}
+  <aside class="pmo-side">
+    <div class="pmo-side__marchio">
+      <a class="tr-brandmark" href="/" aria-label="{{ app_name }}: cruscotto">
+        <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="">
         <span class="tr-brandmark__wordmark">traccia</span>
-      </span>
-      <span class="tr-footer__contacts">
-        <a class="tr-footer__contact" href="mailto:info@latraccia.it"><span class="tr-dot"></span>info@latraccia.it</a>
-        <span class="tr-footer__ref">PMO</span>
-      </span>
-    </footer>
+      </a>
+      <span class="tr-clientmark__product">PMO · Pratiche</span>
+    </div>
+    {% if utente %}
+    <nav class="pmo-side__nav" aria-label="Sezioni">
+      {% for href, etichetta, conteggio in voci %}
+      {%- set corrente = (percorso == "/") if href == "/" else percorso.startswith(href) %}
+      <a class="pmo-side__voce" href="{{ href }}"{% if corrente %} aria-current="page"{% endif %}>
+        <span>{{ etichetta }}</span>
+        {% if conteggio and conteggi_menu and conteggi_menu.get(conteggio) %}<span class="pmo-side__conteggio">{{ conteggi_menu[conteggio] }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </nav>
+    <div class="pmo-side__utente">
+      <span class="tr-mono tr-mono--muted">{{ utente.nome or utente.email }}</span>
+      <form method="post" action="/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="tr-btn tr-btn--neutral tr-btn--sm" type="submit">Esci</button>
+      </form>
+    </div>
+    {% endif %}
+  </aside>
+
+  <div class="tr-shell pmo-shell">
+    <div class="tr-shell__body">
+      <main class="pmo-container pmo-main">
+        {% block contenuto %}{% endblock %}
+      </main>
+    </div>
+    <div class="pmo-container pmo-bottom">
+      <!-- Dentro l'applicazione il footer e' nudo: la riga certificazioni sta solo sulle superfici pubbliche. -->
+      <footer class="tr-footer">
+        <span class="tr-brandmark">
+          <img class="tr-brandmark__logo" src="/static/ds/assets/logo-traccia-mark.svg" alt="La Traccia">
+          <span class="tr-brandmark__wordmark">traccia</span>
+        </span>
+        <span class="tr-footer__contacts">
+          <a class="tr-footer__contact" href="mailto:info@latraccia.it"><span class="tr-dot"></span>info@latraccia.it</a>
+          <span class="tr-footer__ref">PMO</span>
+        </span>
+      </footer>
+    </div>
   </div>
 </div>
 {% endblock %}

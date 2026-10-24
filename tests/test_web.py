@@ -91,7 +91,7 @@ def test_revisione_messaggio_e_collegamento_manuale(client, db):
     db.add(m)
     db.commit()
     pagina = client.get("/revisione?scheda=messaggi")
-    assert "Ordine LURTO" in pagina.text
+    assert re.search(r"Ordine\s*(<em>)?LURTO", pagina.text)  # la parola chiave del titolo sta in <em>
     r = client.post(f"/messaggi/{m.id}/collega", data={"csrf_token": csrf, "codice": pratica.codice, "ritorno": "/revisione?scheda=messaggi"})
     assert r.status_code == 303
     db.expire_all()

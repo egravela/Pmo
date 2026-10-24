@@ -2,11 +2,10 @@
 {% from "_ds.html" import eyebrow, campo, area, selezione, csrf with context %}
 {% block titolo %}Nuova pratica · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="pmo-head">
-  <div class="pmo-head__title">
-    {{ eyebrow("Pratiche") }}
-    <h1 class="tr-h2">Nuova <em>pratica</em></h1>
-  </div>
+<div class="pmo-testata">
+  {{ eyebrow("Pratiche") }}
+  <h1 class="tr-h3 tr-intro__title">Nuova <em>pratica</em></h1>
+  <p class="tr-intro__lead">Una pratica nasce di solito dalla posta, proposta dall'IA. Qui la si apre a mano: riceve subito il suo codice, da usare nell'oggetto delle mail.</p>
 </div>
 
 <form method="post" action="/pratiche" class="tr-card pmo-section">
@@ -16,22 +15,22 @@
     {{ area("descrizione", "Descrizione") }}
     <div class="pmo-grid">
       {% call selezione("cliente_id", "Cliente") %}
-        <option value="">-</option>
+        <option value="">Da indicare</option>
         {% for c in clienti %}<option value="{{ c.id }}">{{ c.nome }}</option>{% endfor %}
       {% endcall %}
       {% call selezione("prodotto_id", "Prodotto") %}
-        <option value="">-</option>
+        <option value="">Da indicare</option>
         {% for p in prodotti %}<option value="{{ p.id }}">{{ p.nome }}</option>{% endfor %}
       {% endcall %}
       {% call selezione("stato", "Fase iniziale") %}
         {% for k, v in stati.items() if k not in ['chiusa', 'annullata'] %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
       {% endcall %}
       {% call selezione("responsabile_id", "Responsabile") %}
-        <option value="">io</option>
+        <option value="">Io</option>
         {% for u in utenti %}<option value="{{ u.id }}">{{ u.nome or u.email }}</option>{% endfor %}
       {% endcall %}
       {% call selezione("priorita", "Priorità") %}
-        <option value="media">media</option><option value="alta">alta</option><option value="bassa">bassa</option>
+        <option value="alta">Alta</option><option value="media" selected>Media</option><option value="bassa">Bassa</option>
       {% endcall %}
       {{ campo("data_scadenza", "Scadenza", tipo="date") }}
       {{ campo("importo_offerta", "Importo offerta (€)", segnaposto="12.000,00") }}

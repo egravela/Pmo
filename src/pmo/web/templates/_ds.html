@@ -29,16 +29,22 @@
 {%- endmacro -%}
 
 {#- Campo con etichetta flottante. L'etichetta viene DOPO il controllo, che ha sempre
-    un placeholder (anche solo uno spazio). In versione compatta l'etichetta resta
-    per le tecnologie assistive e il controllo porta anche aria-label. -#}
-{%- macro campo(nome, etichetta, valore="", tipo="text", obbligatorio=false, aiuto=none, compatto=false, largo=false, stretto=false, segnaposto=" ", attr="", id=none) -%}
+    un placeholder (anche solo uno spazio): il placeholder mostra un esempio di formato,
+    non ripete l'etichetta. Nella variante compatta l'etichetta interna sparisce e il README
+    la vuole "scritta di fianco al campo, o resa con .tr-sr-only": affiancata=true la scrive
+    accanto, affiancata=false (dentro una tabella, dove la dice la colonna) la lascia alle sole
+    tecnologie assistive. -#}
+{%- macro campo(nome, etichetta, valore="", tipo="text", obbligatorio=false, aiuto=none, compatto=false, affiancata=true, largo=false, stretto=false, segnaposto=" ", attr="", id=none, icona=none) -%}
 {%- set ns.n = ns.n + 1 -%}
 {%- set fid = id or ("f-" ~ nome ~ "-" ~ ns.n) -%}
-<div class="tr-field{{ ' tr-field--compact' if compatto }}{{ ' pmo-field--wide' if largo }}{{ ' pmo-field--narrow' if stretto }}">
-  <input class="tr-field__control" id="{{ fid }}" name="{{ nome }}" type="{{ tipo }}" value="{{ valore if valore is not none else '' }}" placeholder="{{ segnaposto }}"{% if obbligatorio %} required{% endif %}{% if compatto %} aria-label="{{ etichetta }}"{% endif %} {{ attr | safe }}>
-  <label class="{{ 'tr-sr-only' if compatto else 'tr-field__label' }}" for="{{ fid }}">{{ etichetta }}{% if obbligatorio and not compatto %} <span class="tr-field__required">*</span>{% endif %}</label>
+{%- if compatto and affiancata %}<span class="pmo-affianca"><label class="pmo-affianca__label" for="{{ fid }}">{{ etichetta }}</label>{% endif -%}
+<div class="tr-field{{ ' tr-field--with-prefix' if icona }}{{ ' tr-field--compact' if compatto }}{{ ' pmo-field--wide' if largo }}{{ ' pmo-field--narrow' if stretto }}">
+  <input class="tr-field__control" id="{{ fid }}" name="{{ nome }}" type="{{ tipo }}" value="{{ valore if valore is not none else '' }}" placeholder="{{ segnaposto }}"{% if obbligatorio %} required{% endif %}{% if compatto and not affiancata %} aria-label="{{ etichetta }}"{% endif %} {{ attr | safe }}>
+  {% if not compatto %}<label class="tr-field__label" for="{{ fid }}">{{ etichetta }}{% if obbligatorio %} <span class="tr-field__required">*</span>{% endif %}</label>{% endif %}
+  {% if icona %}<span class="tr-field__prefix"><span class="tr-icon tr-icon--{{ icona }}" aria-hidden="true"></span></span>{% endif %}
   {% if not compatto %}<div class="tr-field__assist">{% if aiuto %}<p class="tr-field__hint">{{ aiuto }}</p>{% endif %}</div>{% endif %}
 </div>
+{%- if compatto and affiancata %}</span>{% endif -%}
 {%- endmacro -%}
 
 {#- Area di testo: stesso campo, il controllo e' una textarea. -#}
@@ -54,14 +60,16 @@
 
 {#- Select: il <select> nativo resta nel DOM e tiene il valore; js/tr-select.js ne
     costruisce la listbox. Le <option> arrivano dal blocco {% call %}. -#}
-{%- macro selezione(nome, etichetta, compatto=false, stretto=false, aiuto=none, attr="", id=none) -%}
+{%- macro selezione(nome, etichetta, compatto=false, affiancata=true, stretto=false, aiuto=none, attr="", id=none) -%}
 {%- set ns.n = ns.n + 1 -%}
 {%- set fid = id or ("f-" ~ nome ~ "-" ~ ns.n) -%}
+{%- if compatto and affiancata %}<span class="pmo-affianca"><span class="pmo-affianca__label" aria-hidden="true">{{ etichetta }}</span>{% endif -%}
 <div class="tr-field tr-select tr-field--with-suffix{{ ' tr-field--compact tr-select--compact' if compatto }}{{ ' pmo-field--narrow' if stretto }}">
   <select class="tr-field__control" id="{{ fid }}" name="{{ nome }}" {{ attr | safe }}>{{ caller() }}</select>
-  <label class="{{ 'tr-sr-only' if compatto else 'tr-field__label' }}" for="{{ fid }}">{{ etichetta }}</label>
+  <label class="tr-field__label" for="{{ fid }}">{{ etichetta }}</label>
   {% if not compatto %}<div class="tr-field__assist">{% if aiuto %}<p class="tr-field__hint">{{ aiuto }}</p>{% endif %}</div>{% endif %}
 </div>
+{%- if compatto and affiancata %}</span>{% endif -%}
 {%- endmacro -%}
 
 {#- Casella di spunta. Con visibile=false l'etichetta resta come aria-label (la
@@ -70,15 +78,13 @@
 <label class="pmo-check"><input type="checkbox" name="{{ nome }}" value="{{ valore }}"{% if attivo %} checked{% endif %}{% if not visibile %} aria-label="{{ etichetta }}"{% endif %}>{% if visibile %}<span>{{ etichetta }}</span>{% endif %}</label>
 {%- endmacro -%}
 
-{#- Fase di una pratica: e' un'etichetta, non uno stato di sistema. In corso: chip.
-    Chiusa o annullata: indicatore neutro. -#}
-{%- macro fase(stato) -%}
-{%- if stato in ["chiusa", "annullata"] -%}<span class="tr-status">{{ stato | stato }}</span>{%- else -%}<span class="tr-chip">{{ stato | stato }}</span>{%- endif -%}
-{%- endmacro -%}
+{#- Fase di una pratica: e' un'etichetta, non uno stato di sistema. Un solo componente
+    per tutte le fasi, comprese chiusa e annullata. -#}
+{%- macro fase(stato) -%}<span class="tr-chip">{{ stato | stato }}</span>{%- endmacro -%}
 
 {#- Gravita' di un sollecito: stato semantico, sempre col testo. -#}
 {%- macro gravita(g) -%}
-{%- set famiglia = {"critico": "critical", "avviso": "warning", "info": "info"}.get(g) -%}
+{%- set famiglia = {"critico": "danger", "avviso": "warning", "info": "info"}.get(g) -%}
 {%- set testo = {"critico": "Critico", "avviso": "Avviso", "info": "Info"}.get(g, g) -%}
 <span class="tr-status{{ ' tr-status--' ~ famiglia if famiglia }}">{{ testo }}</span>
 {%- endmacro -%}
@@ -100,16 +106,53 @@
 {#- Cio' che l'IA ha proposto e una persona deve ancora confermare: azione da confermare = warning. -#}
 {%- macro da_confermare(testo="Da confermare") -%}<span class="tr-status tr-status--warning">{{ testo }}</span>{%- endmacro -%}
 
-{#- Sollecito come avviso strutturato: il filetto verticale porta la gravita', il
-    titolo mono la dice a parole. Il corpo e i comandi arrivano dal blocco {% call %}. -#}
+{#- Sollecito come avviso strutturato: il filetto verticale porta la gravita', il titolo mono
+    la dice a parole (e' un'etichetta); il titolo del sollecito e' contenuto e sta nel corpo, in
+    frase. Il resto del corpo e i comandi arrivano dal blocco {% call %}. -#}
 {%- macro sollecito(s) -%}
-{%- set famiglia = {"critico": "critical", "avviso": "warning", "info": "info"}.get(s.gravita, "info") -%}
+{%- set famiglia = {"critico": "danger", "avviso": "warning", "info": "info"}.get(s.gravita, "info") -%}
 {%- set testo = {"critico": "Critico", "avviso": "Avviso", "info": "Info"}.get(s.gravita, s.gravita) -%}
 <div class="tr-notice tr-notice--{{ famiglia }}">
   <span class="tr-notice__icon" aria-hidden="true"></span>
   <div class="tr-notice__content">
-    <p class="tr-notice__title">{{ testo }} · {{ s.titolo }}</p>
+    <p class="tr-notice__title">{{ testo }}</p>
+    <p class="tr-notice__body"><strong>{{ s.titolo }}</strong></p>
     {% if caller is defined %}{{ caller() }}{% endif %}
   </div>
 </div>
+{%- endmacro -%}
+
+
+{#- Le tappe di una pratica: cronologia in riga del sistema (.tr-timeline--row), che il
+    README indica proprio per "le tappe di un'offerta o di un progetto". Le fasi prima di
+    quella corrente sono piene (le ricava il CSS), quella corrente e' l'anello vuoto, le
+    successive sono in tinta chiara. Una pratica chiusa non ha tappa corrente, quindi la
+    cronologia e' "una storia": tutto pieno. Annullate e sospese non la mostrano affatto. -#}
+{%- macro tappe(pratica) -%}
+{%- set corrente = pratica.stato if pratica.stato in FASI and pratica.stato != "chiusa" else none -%}
+<ol class="tr-timeline tr-timeline--row" aria-label="Fasi della pratica">
+  {%- for f in FASI if f != "chiusa" %}
+  <li class="tr-timeline__event"{% if f == corrente %} aria-current="step"{% endif %}>
+    {% if f == corrente %}<time class="tr-timeline__when" datetime="{{ pratica.stato_dal.isoformat() if pratica.stato_dal else '' }}">{{ pratica.stato_dal | data }}</time>{% else %}<span class="tr-timeline__when" aria-hidden="true">&nbsp;</span>{% endif %}
+    <div class="tr-timeline__body"><p class="tr-timeline__title">{{ f | stato }}</p></div>
+  </li>
+  {%- endfor %}
+</ol>
+{%- endmacro -%}
+
+
+{#- Paginazione. Il sistema non ne ha una: e' composta con la sua grammatica. Il conteggio in
+    mono a sinistra, i comandi a destra; la pagina corrente e' un'azione con il filetto acceso,
+    dichiarata con aria-current. Sopra, il filetto che chiude l'elenco. -#}
+{%- macro paginazione(p) -%}
+{%- if p and p.pagine > 1 -%}
+<nav class="pmo-pagine" aria-label="Pagine">
+  <span class="pmo-pagine__conteggio">{{ p.inizio }}–{{ p.fine }} di {{ p.totale }}</span>
+  <div class="pmo-pagine__comandi">
+    {% if p.numero > 1 %}<a class="tr-btn tr-btn--neutral tr-btn--sm" href="{{ p.url(p.numero - 1) }}" rel="prev">Precedente</a>{% endif %}
+    {% for n in p.finestra %}{% if n %}<a class="tr-btn tr-btn--sm pmo-pagine__numero" href="{{ p.url(n) }}"{% if n == p.numero %} aria-current="page"{% endif %} aria-label="Pagina {{ n }}">{{ n }}</a>{% else %}<span class="pmo-pagine__salto" aria-hidden="true">…</span>{% endif %}{% endfor %}
+    {% if p.numero < p.pagine %}<a class="tr-btn tr-btn--secondary tr-btn--sm" href="{{ p.url(p.numero + 1) }}" rel="next"><span>Successiva</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a>{% endif %}
+  </div>
+</nav>
+{%- endif -%}
 {%- endmacro -%}

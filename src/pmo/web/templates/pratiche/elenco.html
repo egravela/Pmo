@@ -1,75 +1,99 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, icona with context %}
+{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione with context %}
 {% block titolo %}Pratiche · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="pmo-head">
-  <div class="pmo-head__title">
-    {{ eyebrow("Pratiche", pratiche | length ~ " risultati") }}
-    <h1 class="tr-h2">Tutte le <em>pratiche</em></h1>
-  </div>
-  <div class="tr-btn-group">
-    <a class="tr-btn tr-btn--primary" href="/pratiche/nuova"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Nuova pratica</span></a>
+{%- set filtrato = filtri.q or filtri.stato or filtri.cliente_id or filtri.prodotto_id or filtri.responsabile_id or filtri.verifica or filtri.tutte -%}
+{#- Il numero che riassume la pagina la apre; il testo e i filtri gli stanno accanto. -#}
+<div class="tr-intro">
+  <aside class="tr-intro__aside">
+    {{ eyebrow("Pratiche") }}
+    <p class="tr-figure">
+      <span class="tr-figure__number">{{ riepilogo.totale }}</span>
+      <span class="tr-figure__label tr-mono tr-mono--muted">pratiche<br>{{ 'trovate' if filtrato else 'attive' }}</span>
+    </p>
+    <dl class="tr-facts">
+      <div><dt>Proposte IA</dt><dd>{{ riepilogo.proposte }}</dd></div>
+      <div><dt>Con solleciti</dt><dd>{{ riepilogo.con_solleciti }}</dd></div>
+      <div><dt>Ordinato</dt><dd>{{ riepilogo.ordinato | euro if riepilogo.ordinato else '-' }}</dd></div>
+    </dl>
+  </aside>
+
+  <div class="tr-intro__main">
+    <h1 class="tr-h3 tr-intro__title">Tutte le <em>pratiche</em></h1>
+    <p class="tr-intro__lead">Ogni pratica segue un lavoro dalla stima alla fattura. Cerca per codice o titolo, oppure restringi per fase, cliente, prodotto e responsabile.</p>
+    <div class="tr-btn-group">
+      <a class="tr-btn tr-btn--primary" href="/pratiche/nuova"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Nuova pratica</span></a>
+    </div>
+
+    <form method="get" aria-label="Filtri">
+      {{ campo("q", "Cerca", filtri.q, segnaposto="codice, titolo, descrizione", icona="search") }}
+      <div class="pmo-grid pmo-mt-2">
+        {% call selezione("stato", "Fase") %}
+          <option value="">Attive</option>
+          {% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if filtri.stato == k }}>{{ v }}</option>{% endfor %}
+        {% endcall %}
+        {% call selezione("cliente_id", "Cliente") %}
+          <option value="">Tutti</option>
+          {% for c in clienti %}<option value="{{ c.id }}" {{ 'selected' if filtri.cliente_id == c.id }}>{{ c.nome }}</option>{% endfor %}
+        {% endcall %}
+        {% call selezione("prodotto_id", "Prodotto") %}
+          <option value="">Tutti</option>
+          {% for p in prodotti %}<option value="{{ p.id }}" {{ 'selected' if filtri.prodotto_id == p.id }}>{{ p.nome }}</option>{% endfor %}
+        {% endcall %}
+        {% call selezione("responsabile_id", "Responsabile") %}
+          <option value="">Tutti</option>
+          {% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if filtri.responsabile_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}
+        {% endcall %}
+        {% call selezione("verifica", "Verifica") %}
+          <option value="">Tutte</option>
+          <option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>Solo proposte dall'IA</option>
+        {% endcall %}
+      </div>
+      <div class="pmo-bar">
+        {{ spunta("tutte", "Includi chiuse e annullate", filtri.tutte) }}
+        <div class="tr-btn-group">
+          <button class="tr-btn tr-btn--secondary" type="submit">Filtra</button>
+          {% if filtrato %}<a class="tr-btn tr-btn--neutral" href="/pratiche">Azzera</a>{% endif %}
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 
-<form method="get" class="pmo-section" aria-label="Filtri">
-  <div class="pmo-grid">
-    {{ campo("q", "Cerca", filtri.q, segnaposto="codice, titolo, descrizione") }}
-    {% call selezione("stato", "Fase") %}
-      <option value="">attive</option>
-      {% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if filtri.stato == k }}>{{ v }}</option>{% endfor %}
-    {% endcall %}
-    {% call selezione("cliente_id", "Cliente") %}
-      <option value="">tutti</option>
-      {% for c in clienti %}<option value="{{ c.id }}" {{ 'selected' if filtri.cliente_id == c.id }}>{{ c.nome }}</option>{% endfor %}
-    {% endcall %}
-    {% call selezione("prodotto_id", "Prodotto") %}
-      <option value="">tutti</option>
-      {% for p in prodotti %}<option value="{{ p.id }}" {{ 'selected' if filtri.prodotto_id == p.id }}>{{ p.nome }}</option>{% endfor %}
-    {% endcall %}
-    {% call selezione("responsabile_id", "Responsabile") %}
-      <option value="">tutti</option>
-      {% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if filtri.responsabile_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}
-    {% endcall %}
-    {% call selezione("verifica", "Verifica") %}
-      <option value="">tutte</option>
-      <option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>solo proposte dall'IA</option>
-    {% endcall %}
-  </div>
-  <div class="pmo-bar pmo-form-foot">
-    {{ spunta("tutte", "incluse chiuse", filtri.tutte) }}
-    <div class="tr-btn-group">
-      <button class="tr-btn tr-btn--secondary" type="submit">Filtra</button>
-    </div>
-  </div>
-</form>
-
 <section class="pmo-section" aria-label="Elenco delle pratiche">
-  <table class="pmo-table">
-    <thead>
-      <tr><th>Codice</th><th>Titolo</th><th>Cliente</th><th>Prodotto</th><th>Fase</th><th>Ultimo evento</th><th>Scadenza</th><th class="pmo-num">Ordinato</th><th>Solleciti</th></tr>
-    </thead>
-    <tbody>
+  {% if pratiche %}
+  <div class="tr-card-grid pmo-schede">
     {% for p in pratiche %}
-      <tr>
-        <td><a href="/pratiche/{{ p.id }}"><span class="pmo-code">{{ p.codice }}</span></a></td>
-        <td>
-          <a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a>
-          {% if p.stato_verifica == 'proposto' %} {{ da_confermare("Proposta IA") }}{% endif %}
-          {% if p.priorita == 'alta' %} <span class="tr-chip">Priorità alta</span>{% endif %}
-        </td>
-        <td>{{ p.cliente.nome if p.cliente else '-' }}</td>
-        <td>{{ p.prodotto.nome if p.prodotto else '-' }}</td>
-        <td>{{ fase(p.stato) }}<p class="pmo-meta">{{ p.stato_dal | giorni_fa }}</p></td>
-        <td>{{ p.ultimo_evento_at | giorni_fa }}</td>
-        <td>{{ p.data_scadenza | data }}</td>
-        <td class="pmo-num">{{ p.importo_ordine | euro }}</td>
-        <td>{% set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}{% if aperti %}<span class="pmo-code">{{ aperti | length }}</span> {{ gravita(aperti[0].gravita) }}{% endif %}</td>
-      </tr>
-    {% else %}
-      <tr><td colspan="9" class="pmo-empty">Nessuna pratica trovata</td></tr>
+    {%- set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}
+    <a class="tr-card tr-card--action pmo-scheda" href="/pratiche/{{ p.id }}">
+      <div class="tr-card__head tr-card__head--bare">
+        <div>
+          <h2 class="tr-card__title">{{ p.titolo }}</h2>
+          <p class="tr-card__sub">{{ p.cliente.nome if p.cliente else 'Cliente da indicare' }}{% if p.prodotto %} · {{ p.prodotto.nome }}{% endif %}</p>
+        </div>
+        <span class="tr-card__aside">{{ p.codice }}</span>
+      </div>
+      <div class="pmo-scheda__body">
+        <div class="pmo-scheda__stati">
+          {{ fase(p.stato) }}
+          {% if p.stato_verifica == 'proposto' %}{{ da_confermare("Proposta IA") }}{% endif %}
+          {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
+          {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
+        </div>
+        <div class="tr-datatable">
+          <div class="tr-datatable__row"><span class="tr-datatable__label">In fase da</span><span class="tr-datatable__value">{{ p.stato_dal | giorni_fa }}</span></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Ultimo evento</span><span class="tr-datatable__value">{{ p.ultimo_evento_at | giorni_fa }}</span></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Scadenza</span><span class="tr-datatable__value">{{ p.data_scadenza | data }}</span></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Ordinato</span><span class="tr-datatable__value">{{ p.importo_ordine | euro }}</span></div>
+          {% if aperti %}<div class="tr-datatable__row"><span class="tr-datatable__label">Solleciti aperti</span><span class="tr-datatable__value">{{ aperti | length }}</span></div>{% endif %}
+        </div>
+      </div>
+    </a>
     {% endfor %}
-    </tbody>
-  </table>
+  </div>
+  {{ paginazione(pagina) }}
+  {% else %}
+  <p class="tr-card__empty">Nessuna pratica trovata</p>
+  {% endif %}
 </section>
 {% endblock %}

@@ -29,7 +29,7 @@
     if (chiusura) { chiusura.addEventListener('click', function () { chiudi(toast); }); }
 
     // Errori e allerte: solo a mano. Idem se il messaggio porta un comando.
-    var manuale = toast.getAttribute('role') === 'alert' || toast.querySelector('.tr-toast__action');
+    var manuale = toast.getAttribute('role') === 'alert' || toast.querySelector('.tr-btn:not([data-toast-close])');
     if (manuale) { return; }
 
     var restante = durata(toast);
@@ -71,12 +71,69 @@
     monta(t);
   }
 
+  /* ---- Viste di una pagina di dettaglio ------------------------------------
+     Pattern ARIA delle tabs: frecce, Home e Fine spostano la scelta; la vista scelta
+     resta nell'indirizzo (#messaggi) e, dopo un'azione, si torna su quella. */
+
+  function viste() {
+    var cont = document.querySelector('[data-viste]');
+    if (!cont) { return; }
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.pmo-viste-barra [role="tab"]'));
+    var chiave = 'pmo-vista:' + location.pathname;
+
+    function attiva(tab, conFocus, scorri) {
+      tabs.forEach(function (t) {
+        var scelta = t === tab;
+        t.setAttribute('aria-selected', scelta ? 'true' : 'false');
+        t.tabIndex = scelta ? 0 : -1;
+        var pannello = document.getElementById(t.getAttribute('aria-controls'));
+        if (pannello) { pannello.classList.toggle('is-attiva', scelta); }
+      });
+      if (conFocus) { tab.focus(); }
+      var nome = tab.id.replace('tab-', '');
+      try {
+        history.replaceState(null, '', '#' + nome);
+        sessionStorage.setItem(chiave, nome);
+      } catch (e) { /* senza storage resta la vista corrente */ }
+      // la barra si vede da tutta la pagina: se le viste sono fuori dallo schermo, ci si porta li'
+      var alto = cont.getBoundingClientRect().top;
+      if (scorri && (alto < 0 || alto > window.innerHeight * 0.6)) { cont.scrollIntoView({ block: 'start' }); }
+    }
+
+    tabs.forEach(function (t, i) {
+      t.addEventListener('click', function () { attiva(t, false, true); });
+      t.addEventListener('keydown', function (e) {
+        var prossima = null;
+        if (e.key === 'ArrowRight') { prossima = tabs[(i + 1) % tabs.length]; }
+        else if (e.key === 'ArrowLeft') { prossima = tabs[(i - 1 + tabs.length) % tabs.length]; }
+        else if (e.key === 'Home') { prossima = tabs[0]; }
+        else if (e.key === 'End') { prossima = tabs[tabs.length - 1]; }
+        if (prossima) { e.preventDefault(); attiva(prossima, true, true); }
+      });
+    });
+
+    var iniziale = location.hash.slice(1);
+    if (!iniziale) { try { iniziale = sessionStorage.getItem(chiave) || ''; } catch (e) { iniziale = ''; } }
+    for (var k = 0; k < tabs.length; k++) {
+      if (tabs[k].id === 'tab-' + iniziale) { attiva(tabs[k], false); break; }
+    }
+
+    cont.addEventListener('submit', function (e) {
+      var ritorno = e.target.querySelector('input[name="ritorno"]');
+      var attiva_ = cont.querySelector('.pmo-vista.is-attiva');
+      if (ritorno && attiva_ && ritorno.value.indexOf('#') < 0) {
+        ritorno.value += '#' + attiva_.id.replace('vista-', '');
+      }
+    });
+  }
+
   /* ---- Avvio -------------------------------------------------------------- */
 
   function avvio() {
     Array.prototype.forEach.call(document.querySelectorAll('.tr-toast'), monta);
 
     if (window.TrSelect) { window.TrSelect.enhanceAll(); }
+    viste();
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-copia]'), function (el) {
       el.addEventListener('click', function () {
@@ -86,6 +143,20 @@
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(testo).then(fatto, errore);
         } else { errore(); }
+      });
+    });
+
+    // Azioni lunghe: il pulsante dichiara l'attesa (aria-busy) e mostra la Sequenza del
+    // sistema, tre chevron che si accendono in fila. Cambia il testo, non la scatola.
+    Array.prototype.forEach.call(document.querySelectorAll('form[data-attesa]'), function (f) {
+      f.addEventListener('submit', function (e) {
+        if (e.defaultPrevented) { return; }
+        var b = f.querySelector('button[type="submit"]');
+        if (!b) { return; }
+        var chevron = '<svg class="tr-spinner__mark" width="12" height="15" viewBox="0 0 594 717" aria-hidden="true"><use href="#tr-mark"/></svg>';
+        b.setAttribute('aria-busy', 'true');
+        b.innerHTML = '<span class="tr-spinner tr-spinner--inherit"><span class="tr-spinner__seq">' + chevron + chevron + chevron + '</span></span><span></span>';
+        b.lastChild.textContent = f.getAttribute('data-attesa');
       });
     });
 
