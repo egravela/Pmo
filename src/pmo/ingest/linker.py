@@ -82,6 +82,7 @@ def crea_pratica_proposta(
     account_id: int | None,
     cliente_hint_email: str | None = None,
     riferimenti: dict | None = None,
+    data_riferimento: datetime | None = None,
 ) -> Pratica:
     esistente = _pratica_proposta_simile(session, proposta)
     if esistente is not None:
@@ -109,6 +110,9 @@ def crea_pratica_proposta(
         stato_verifica=StatoVerifica.PROPOSTO,
         account_id=account_id,
         riferimenti=riferimenti or {},
+        # la pratica nasce quando è nata la mail o il documento che la propone, non quando li importiamo
+        data_apertura=data_riferimento.date() if data_riferimento else None,
+        stato_dal=data_riferimento,
     )
     catalogo.pratiche.insert(0, pratica)
     return pratica
@@ -181,6 +185,7 @@ def _risolvi_pratica(
     cliente_hint_email: str | None,
     riferimenti: dict,
     settings: Settings,
+    data_riferimento: datetime | None = None,
 ) -> tuple[Pratica | None, str | None, bool]:
     """Restituisce (pratica, origine del collegamento, collegamento sicuro)."""
     if pratica_prelinkata is not None:
@@ -200,6 +205,7 @@ def _risolvi_pratica(
             account_id=account_id,
             cliente_hint_email=cliente_hint_email,
             riferimenti=riferimenti,
+            data_riferimento=data_riferimento,
         )
         return pratica, "ai", False
     return None, None, False
@@ -239,6 +245,7 @@ def collega_messaggio(
         cliente_hint_email=cliente_hint,
         riferimenti=riferimenti,
         settings=settings,
+        data_riferimento=messaggio.data,
     )
     if pratica is None:
         messaggio.stato = StatoMessaggio.DA_RIVEDERE
@@ -303,6 +310,7 @@ def collega_documento(
         cliente_hint_email=None,
         riferimenti=riferimenti,
         settings=settings,
+        data_riferimento=documento.modified_time,
     )
     if pratica is None:
         documento.stato = StatoMessaggio.DA_RIVEDERE

@@ -42,6 +42,28 @@
       </div>
     </section>
 
+    <section class="pmo-section" aria-labelledby="sez-richieste">
+      {{ sezione("Richieste dei clienti", "da evadere", totale_richieste_cliente ~ (" pratica" if totale_richieste_cliente == 1 else " pratiche"), id="sez-richieste") }}
+      {% if richieste_cliente %}
+      <table class="pmo-table">
+        <thead><tr><th>Ricevuta</th><th>Pratica</th><th>Cosa chiede</th></tr></thead>
+        <tbody>
+        {% for r, p in richieste_cliente %}
+          <tr>
+            <td>{{ r.data | data }}<br><span class="pmo-muted">{{ r.data | giorni_fa }}</span></td>
+            <td><a href="/pratiche/{{ p.id }}"><span class="pmo-code">{{ p.codice }}</span> {{ p.titolo | truncate(60) }}</a>{% if p.cliente %}<br><span class="pmo-muted">{{ p.cliente.nome }}</span>{% endif %}</td>
+            <td>{{ r.titolo | truncate(90) }}<br><span class="pmo-muted">{{ r.mittente }}</span>{% if r.url %} · <a href="{{ r.url }}" target="_blank" rel="noopener">Apri la mail</a>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p class="pmo-muted pmo-mt-3">Stima automatica: mail del cliente con una richiesta, senza una nostra mail successiva sulla pratica. Vede solo le caselle collegate.</p>
+      {% if totale_richieste_cliente > (richieste_cliente | length) %}
+      <div class="tr-btn-group pmo-mt-4"><a class="tr-btn tr-btn--quiet tr-btn--sm" href="/pratiche?richieste=1"><span>Tutte le pratiche con richieste in attesa</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a></div>
+      {% endif %}
+      {% else %}<p class="tr-card__empty">Nessuna richiesta dei clienti in attesa di risposta</p>{% endif %}
+    </section>
+
     <section class="pmo-section" aria-labelledby="sez-solleciti">
       {{ sezione("Solleciti", "aperti", totale_solleciti ~ " in tutto", id="sez-solleciti") }}
       <div class="pmo-stack pmo-stack--tight">

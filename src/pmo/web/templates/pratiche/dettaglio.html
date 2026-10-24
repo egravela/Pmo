@@ -23,6 +23,7 @@
     </p>
     <dl class="tr-facts">
       <div><dt>Fase</dt><dd>{{ pratica.stato | stato }}</dd></div>
+      <div><dt>Ultima attività</dt><dd>{{ pratica.ultimo_evento_at | data }}</dd></div>
       <div><dt>Scadenza</dt><dd>{{ pratica.data_scadenza | data }}</dd></div>
       <div><dt>Solleciti</dt><dd>{{ aperti | length }}</dd></div>
     </dl>
@@ -44,6 +45,19 @@
       <button class="tr-btn tr-btn--secondary" type="button" data-copia="{{ pratica.tag }} {{ pratica.titolo }}"><span class="tr-icon tr-icon--copy" aria-hidden="true"></span><span>Copia oggetto mail</span></button>
       {% if pratica.drive_folder_url %}<a class="tr-btn tr-btn--quiet" href="{{ pratica.drive_folder_url }}" target="_blank" rel="noopener"><span class="tr-icon tr-icon--folder" aria-hidden="true"></span><span>Cartella Drive</span></a>{% endif %}
     </div>
+
+    {% if richieste_cliente %}
+    <div class="tr-notice tr-notice--warning pmo-mt-5">
+      <span class="tr-notice__icon" aria-hidden="true"></span>
+      <div class="tr-notice__content">
+        <p class="tr-notice__title">{{ 'Richiesta del cliente senza risposta' if richieste_cliente | length == 1 else 'Richieste del cliente senza risposta' }}</p>
+        {% for r in richieste_cliente %}
+        <p class="tr-notice__body"><strong>{{ r.data | data }}</strong> · {{ r.data | giorni_fa }} — {{ r.mittente }}: {{ r.titolo }}{% if r.url %} <a href="{{ r.url }}" target="_blank" rel="noopener">Apri la mail</a>{% endif %}</p>
+        {% endfor %}
+        <p class="tr-notice__body pmo-muted">Stima automatica: dopo questa mail non ne risulta una nostra sulla pratica. Vede solo le caselle collegate: una risposta data a voce o da un'altra casella non viene riconosciuta.</p>
+      </div>
+    </div>
+    {% endif %}
 
     {% if proposta %}
     <div class="tr-notice tr-notice--warning">

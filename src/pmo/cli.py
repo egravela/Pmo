@@ -66,6 +66,17 @@ def seed(file: Path | None = typer.Option(None, help="File YAML alternativo a co
         _stampa(carica_seed(session, file))
 
 
+@app.command("ricalcola-date")
+def ricalcola_date() -> None:
+    """Riporta apertura, fase corrente e ultima attività delle pratiche alle date delle mail e dei documenti."""
+    _logging()
+    from pmo.db.session import session_scope
+    from pmo.services.pratiche import ricalcola_date as _ricalcola
+
+    with session_scope() as session:
+        _stampa(_ricalcola(session))
+
+
 @app.command("gen-keys")
 def gen_keys() -> None:
     """Genera PMO_SECRET_KEY e PMO_ENCRYPTION_KEY da incollare nel file .env."""

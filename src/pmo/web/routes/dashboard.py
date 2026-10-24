@@ -25,6 +25,7 @@ from pmo.db.models import (
     User,
 )
 from pmo.rules.engine import ordina_gravita
+from pmo.services.richieste import richieste_in_attesa
 from pmo.web.deps import get_db, render, utente_corrente
 
 router = APIRouter()
@@ -83,6 +84,17 @@ def dashboard(request: Request, session: Session = Depends(get_db), utente: User
     caselle = session.scalars(select(Account).options(selectinload(Account.watched_folders)).order_by(Account.email)).all()
     ultime_run = session.scalars(select(SyncRun).order_by(SyncRun.started_at.desc()).limit(5)).all()
 
+    # Richieste dei clienti verso di noi ancora senza risposta: le più vecchie per prime, perché sono le più in ritardo.
+    aperte = richieste_in_attesa(session)
+    pratiche_con_richieste = {
+        p.id: p
+        for p in session.scalars(select(Pratica).options(selectinload(Pratica.cliente)).where(Pratica.id.in_(list(aperte) or [0])))
+    }
+    richieste_cliente = sorted(
+        ((r[0], pratiche_con_richieste[pid]) for pid, r in aperte.items() if pid in pratiche_con_richieste),
+        key=lambda coppia: coppia[0].data,
+    )
+
     return render(
         request,
         "dashboard.html",
@@ -98,4 +110,6 @@ def dashboard(request: Request, session: Session = Depends(get_db), utente: User
         eventi=eventi,
         caselle=caselle,
         ultime_run=ultime_run,
+        richieste_cliente=richieste_cliente[:10],
+        totale_richieste_cliente=len(richieste_cliente),
     )

@@ -2,7 +2,7 @@
 {% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione with context %}
 {% block titolo %}Pratiche · {{ app_name }}{% endblock %}
 {% block contenuto %}
-{%- set filtrato = filtri.q or filtri.stato or filtri.cliente_id or filtri.prodotto_id or filtri.responsabile_id or filtri.verifica or filtri.tutte -%}
+{%- set filtrato = filtri.q or filtri.stato or filtri.cliente_id or filtri.prodotto_id or filtri.responsabile_id or filtri.verifica or filtri.tutte or filtri.richieste -%}
 {#- Il numero che riassume la pagina la apre; il testo e i filtri gli stanno accanto. -#}
 <div class="tr-intro">
   <aside class="tr-intro__aside">
@@ -14,6 +14,7 @@
     <dl class="tr-facts">
       <div><dt>Proposte IA</dt><dd>{{ riepilogo.proposte }}</dd></div>
       <div><dt>Con solleciti</dt><dd>{{ riepilogo.con_solleciti }}</dd></div>
+      <div><dt>Cliente in attesa</dt><dd>{% if riepilogo.con_richieste %}<a href="/pratiche?richieste=1">{{ riepilogo.con_richieste }}</a>{% else %}0{% endif %}</dd></div>
       <div><dt>Ordinato</dt><dd>{{ riepilogo.ordinato | euro if riepilogo.ordinato else '-' }}</dd></div>
     </dl>
   </aside>
@@ -51,6 +52,7 @@
       </div>
       <div class="pmo-bar">
         {{ spunta("tutte", "Includi chiuse e annullate", filtri.tutte) }}
+        {{ spunta("richieste", "Solo con richieste del cliente senza risposta", filtri.richieste) }}
         <div class="tr-btn-group">
           <button class="tr-btn tr-btn--secondary" type="submit">Filtra</button>
           {% if filtrato %}<a class="tr-btn tr-btn--neutral" href="/pratiche">Azzera</a>{% endif %}
@@ -65,6 +67,7 @@
   <div class="tr-card-grid pmo-schede">
     {% for p in pratiche %}
     {%- set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}
+    {%- set richieste_cliente = richieste_aperte.get(p.id, []) %}
     <a class="tr-card tr-card--action pmo-scheda" href="/pratiche/{{ p.id }}">
       <div class="tr-card__head tr-card__head--bare">
         <div>
@@ -79,10 +82,13 @@
           {% if p.stato_verifica == 'proposto' %}{{ da_confermare("Proposta IA") }}{% endif %}
           {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
           {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
+          {% if richieste_cliente %}<span class="tr-status tr-status--warning">Cliente in attesa · {{ richieste_cliente[0].giorni }} gg</span>{% endif %}
         </div>
         <div class="tr-datatable">
+          {#- Le date sono quelle delle mail e dei documenti, non quella in cui sono stati importati. -#}
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Aperta il</span><span class="tr-datatable__value">{{ p.data_apertura | data }}</span></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Ultima attività</span><span class="tr-datatable__value">{{ p.ultimo_evento_at | data }}{% if p.ultimo_evento_at %} · {{ p.ultimo_evento_at | giorni_fa }}{% endif %}</span></div>
           <div class="tr-datatable__row"><span class="tr-datatable__label">In fase da</span><span class="tr-datatable__value">{{ p.stato_dal | giorni_fa }}</span></div>
-          <div class="tr-datatable__row"><span class="tr-datatable__label">Ultimo evento</span><span class="tr-datatable__value">{{ p.ultimo_evento_at | giorni_fa }}</span></div>
           <div class="tr-datatable__row"><span class="tr-datatable__label">Scadenza</span><span class="tr-datatable__value">{{ p.data_scadenza | data }}</span></div>
           <div class="tr-datatable__row"><span class="tr-datatable__label">Ordinato</span><span class="tr-datatable__value">{{ p.importo_ordine | euro }}</span></div>
           {% if aperti %}<div class="tr-datatable__row"><span class="tr-datatable__label">Solleciti aperti</span><span class="tr-datatable__value">{{ aperti | length }}</span></div>{% endif %}

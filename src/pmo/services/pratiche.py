@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -98,6 +98,7 @@ def crea_pratica(
     importo_ordine: Decimal | None = None,
     priorita: str = "media",
     data_apertura: date | None = None,
+    stato_dal: datetime | None = None,
 ) -> Pratica:
     pratica = Pratica(
         codice=prossimo_codice(session),
@@ -106,7 +107,7 @@ def crea_pratica(
         cliente=cliente,
         prodotto=prodotto,
         stato=stato,
-        stato_dal=utcnow(),
+        stato_dal=stato_dal or utcnow(),
         origine=origine,
         stato_verifica=stato_verifica,
         account_id=account_id,
@@ -225,15 +226,29 @@ def _aggiorna_importi_e_riferimenti(session: Session, pratica: Pratica, evento: 
         pratica.riferimenti = nuovi
 
 
+def _in_utc(valore: datetime) -> datetime:
+    return valore if valore.tzinfo is not None else valore.replace(tzinfo=UTC)
+
+
+def _aggiorna_ultimo_evento(pratica: Pratica, evento: Evento) -> None:
+    """Data dell'ultima attività reale: conta anche un evento ancora da verificare, ma non quelli di sistema né
+    le date future (le scadenze), perché il dato serve a dire da quando la pratica è ferma."""
+    if evento.fonte_tipo == TipoFonte.SISTEMA or evento.data_evento is None:
+        return
+    data = _in_utc(evento.data_evento)
+    if data > utcnow():
+        return
+    if pratica.ultimo_evento_at is None or data > _in_utc(pratica.ultimo_evento_at):
+        pratica.ultimo_evento_at = data
+
+
 def applica_evento(session: Session, pratica: Pratica, evento: Evento) -> None:
-    """Effetti di un evento confermato sulla pratica (stato, importi, scadenze, ultimo evento)."""
+    """Effetti di un evento sulla pratica: l'ultima attività sempre, stato, importi e scadenze solo se confermato."""
+    if evento.stato_verifica == StatoVerifica.RIFIUTATO:
+        return
+    _aggiorna_ultimo_evento(pratica, evento)
     if evento.stato_verifica != StatoVerifica.CONFERMATO:
         return
-    if pratica.ultimo_evento_at is None or (
-        evento.data_evento and evento.fonte_tipo != TipoFonte.SISTEMA and evento.data_evento > pratica.ultimo_evento_at
-    ):
-        if evento.fonte_tipo != TipoFonte.SISTEMA:
-            pratica.ultimo_evento_at = evento.data_evento
     _aggiorna_importi_e_riferimenti(session, pratica, evento)
     _avanza_stato_per_evento(session, pratica, evento)
     if evento.tipo == TipoEvento.ANNULLAMENTO and evento.fonte_tipo == TipoFonte.MANUALE:
@@ -293,6 +308,51 @@ def aggiungi_evento(
     if aggiorna_stato:
         applica_evento(session, pratica, evento)
     return evento
+
+
+def ricalcola_date(session: Session) -> dict[str, int]:
+    """Riporta le date delle pratiche a quelle delle fonti (mail, documenti, eventi), non a quella dell'importazione.
+
+    - `ultimo_evento_at` per tutte le pratiche: l'attività più recente non di sistema e non nel futuro.
+    - `data_apertura` e `stato_dal` solo per le pratiche proposte dall'IA che hanno ancora la data di importazione.
+    È idempotente: si può rilanciare in ogni momento.
+    """
+    adesso = utcnow()
+    contatori = {"pratiche": 0, "ultimo_evento": 0, "apertura": 0}
+    # senza scritture intermedie: il blocco del database dura solo il tempo del salvataggio finale
+    with session.no_autoflush:
+        _ricalcola_date_pratiche(session, adesso, contatori)
+    session.flush()
+    return contatori
+
+
+def _ricalcola_date_pratiche(session: Session, adesso: datetime, contatori: dict[str, int]) -> None:
+    for pratica in session.scalars(select(Pratica)).all():
+        contatori["pratiche"] += 1
+        date_fonti: list[datetime] = []
+        for evento in pratica.eventi:
+            if evento.fonte_tipo != TipoFonte.SISTEMA and evento.stato_verifica != StatoVerifica.RIFIUTATO and evento.data_evento:
+                date_fonti.append(_in_utc(evento.data_evento))
+        for messaggio in pratica.messaggi:
+            if messaggio.data:
+                date_fonti.append(_in_utc(messaggio.data))
+        for documento in pratica.documenti:
+            if documento.modified_time:
+                date_fonti.append(_in_utc(documento.modified_time))
+        passate = [d for d in date_fonti if d <= adesso]
+        if not passate:
+            continue
+        ultima = max(passate)
+        if pratica.ultimo_evento_at is None or _in_utc(pratica.ultimo_evento_at) != ultima:
+            pratica.ultimo_evento_at = ultima
+            contatori["ultimo_evento"] += 1
+        importata = pratica.created_at.date() if pratica.created_at else None
+        # la data locale e created_at (UTC) possono differire di un giorno a ridosso della mezzanotte
+        if pratica.origine == "ai" and importata is not None and abs((pratica.data_apertura - importata).days) <= 1:
+            prima = min(passate)
+            pratica.data_apertura = prima.date()
+            pratica.stato_dal = prima
+            contatori["apertura"] += 1
 
 
 def conferma_evento(session: Session, evento: Evento, user_id: int | None = None) -> None:

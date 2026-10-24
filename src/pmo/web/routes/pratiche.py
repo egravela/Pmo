@@ -30,6 +30,7 @@ from pmo.db.models import (
 )
 from pmo.rules.engine import ordina_gravita
 from pmo.services import pratiche as svc
+from pmo.services.richieste import richieste_in_attesa
 from pmo.web.deps import flash, get_db, pagina_per, redirect, render, utente_corrente, verifica_csrf
 
 router = APIRouter()
@@ -89,10 +90,14 @@ def elenco(
     responsabile_id: int | None = None,
     verifica: str = "",
     tutte: int = 0,
+    richieste: int = 0,
     session: Session = Depends(get_db),
     utente: User = Depends(utente_corrente),
 ):
     query = select(Pratica)
+    richieste_aperte = richieste_in_attesa(session)
+    if richieste:
+        query = query.where(Pratica.id.in_(list(richieste_aperte)))
     if q:
         like = f"%{q.strip()}%"
         query = query.where(or_(Pratica.codice.ilike(like), Pratica.titolo.ilike(like), Pratica.descrizione.ilike(like)))
@@ -124,6 +129,7 @@ def elenco(
             )
         )
         or 0,
+        "con_richieste": len(set(session.scalars(select(filtrate.c.id))) & set(richieste_aperte)),
     }
     pagina = pagina_per(request, totale, PER_PAGINA_PRATICHE)
     pratiche = session.scalars(
@@ -145,7 +151,8 @@ def elenco(
         clienti=clienti,
         prodotti=prodotti,
         utenti=utenti,
-        filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile_id, "verifica": verifica, "tutte": tutte},
+        richieste_aperte=richieste_aperte,
+        filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile_id, "verifica": verifica, "tutte": tutte, "richieste": richieste},
         stati=ETICHETTE_STATO,
     )
 
@@ -212,6 +219,7 @@ def dettaglio(request: Request, pratica_id: int, session: Session = Depends(get_
         "pratiche/dettaglio.html",
         utente,
         pratica=pratica,
+        richieste_cliente=richieste_in_attesa(session, [pratica.id]).get(pratica.id, []),
         eventi=eventi,
         proposti=proposti,
         messaggi=messaggi,
