@@ -78,7 +78,7 @@ Il tag può stare ovunque nell'oggetto e sopravvive ai "Re:" e agli inoltri. Lo 
 
 ## Collegare Claude (MCP)
 
-`pmo mcp` espone pratiche, solleciti e coda di revisione a Claude Desktop e Claude Code tramite il Model Context Protocol: si può chiedere "quali ordini sono senza specifiche?" o "riassumi la pratica PMO-2026-0042". Parte in sola lettura, gira sul proprio PC e non apre porte di rete. Configurazione, strumenti disponibili e note sulla sicurezza in [docs/mcp.md](docs/mcp.md).
+`pmo mcp` espone pratiche, solleciti e coda di revisione a Claude Desktop e Claude Code tramite il Model Context Protocol: si può chiedere "quali ordini sono senza specifiche?" o "riassumi la pratica PMO-2026-0042". Parte in sola lettura, gira sul proprio PC e non apre porte di rete. Per Claude Code c'è un plugin con il collegamento e le skill per consultare i dati: `claude plugin marketplace add <cartella del progetto>` e `claude plugin install pmo-la-traccia@la-traccia` (o, da GitHub, `/plugin install pmo-la-traccia --marketplace egravela/Pmo`). Configurazione, strumenti disponibili e note sulla sicurezza in [docs/mcp.md](docs/mcp.md).
 
 ## Regole di sollecito
 
@@ -129,6 +129,7 @@ src/pmo/
   web/                 FastAPI, template Jinja, CSS
   cli.py, scheduler.py, mcp_server.py
 alembic/               migrazioni
+plugins/               plugin di Claude Code (collegamento MCP e skill); .claude-plugin/ è il marketplace
 config/seed.yaml       anagrafiche iniziali
 docs/                  architettura, setup Google, regole
 tests/

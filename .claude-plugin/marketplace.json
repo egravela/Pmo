@@ -1,0 +1,14 @@
+{
+  "name": "la-traccia",
+  "description": "Strumenti di Claude Code per i sistemi della Cooperativa EDP La Traccia",
+  "owner": {
+    "name": "Cooperativa EDP La Traccia"
+  },
+  "plugins": [
+    {
+      "name": "pmo-la-traccia",
+      "source": "./plugins/pmo-la-traccia",
+      "description": "Collega Claude Code al sistema PMO La Traccia (pratiche, ordini e solleciti ricostruiti da Gmail e Drive) tramite MCP, con le skill per consultarlo e diagnosticare il collegamento."
+    }
+  ]
+}

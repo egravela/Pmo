@@ -24,6 +24,41 @@ pmo mcp --help
 
 ## Configurazione
 
+### Claude Code: plugin `pmo-la-traccia` (consigliato)
+
+Il repository contiene un plugin che porta con sé la configurazione del server e due skill:
+
+- `/pmo-la-traccia:consulta`: come interrogare PMO e rispondere (anche in automatico quando chiedi di pratiche, ordini o solleciti);
+- `/pmo-la-traccia:collega`: verifica il collegamento, lo ripara e abilita o disabilita la scrittura.
+
+Installazione, una volta sola (richiede Claude Code 2.1.275 o successivo):
+
+```bash
+claude plugin marketplace add C:\percorso\del\progetto
+claude plugin install pmo-la-traccia@la-traccia
+```
+
+Se il repository è su GitHub e hai accesso, al posto di `marketplace add` e `install` basta `/plugin install pmo-la-traccia --marketplace egravela/Pmo`.
+
+Quando il plugin viene abilitato, Claude Code chiede due cose:
+
+1. **Comando pmo**: il percorso di `pmo` nell'ambiente virtuale del progetto, ad esempio `C:\percorso\del\progetto\.venv\Scripts\pmo.exe` (macOS e Linux: `.venv/bin/pmo`);
+2. **Abilita le azioni di scrittura**: lasciala disattivata, salvo che ti serva.
+
+Si cambiano in seguito da `/config` (opzioni di `pmo-la-traccia`) e `/reload-plugins`. Per verificare, in una sessione di Claude Code scrivi `/pmo-la-traccia:collega` oppure chiedi "come siamo messi con le pratiche?".
+
+Il plugin non contiene dati né segreti: il server legge il database tramite il `.env` del progetto, come `pmo stato`.
+
+### Claude Code, collegamento manuale
+
+Senza plugin (non usare entrambi: gli strumenti risulterebbero doppi):
+
+```bash
+claude mcp add --scope user pmo -- "C:\percorso\del\progetto\.venv\Scripts\pmo.exe" mcp
+```
+
+Con `--scope project` il server viene salvato in `.mcp.json` (attenzione: contiene un percorso del tuo PC). Per la scrittura aggiungi `--scrittura` dopo `mcp`.
+
 ### Claude Desktop
 
 Apri **Impostazioni → Sviluppatore → Modifica configurazione**: si apre il file `claude_desktop_config.json` giusto per la tua installazione. Aggiungi:
@@ -41,15 +76,7 @@ Apri **Impostazioni → Sviluppatore → Modifica configurazione**: si apre il f
 
 Su macOS/Linux il comando è `/percorso/del/progetto/.venv/bin/pmo`. Riavvia Claude Desktop: compare lo strumento "pmo".
 
-### Claude Code
-
-```bash
-claude mcp add pmo -- "C:\percorso\del\progetto\.venv\Scripts\pmo.exe" mcp
-```
-
-Con `--scope user` è disponibile in tutti i progetti, con `--scope project` viene salvato in `.mcp.json` (attenzione: contiene un percorso del tuo PC).
-
-Non serve impostare la cartella di lavoro né variabili d'ambiente: all'avvio `pmo mcp` si sposta nella cartella del progetto, dove trova `.env` e il database SQLite.
+In tutti i casi non serve impostare la cartella di lavoro né variabili d'ambiente: all'avvio `pmo mcp` si sposta nella cartella del progetto, dove trova `.env` e il database SQLite.
 
 ## Strumenti disponibili
 

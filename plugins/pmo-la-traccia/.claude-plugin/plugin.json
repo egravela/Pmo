@@ -1,0 +1,32 @@
+{
+  "name": "pmo-la-traccia",
+  "displayName": "PMO La Traccia",
+  "version": "0.1.0",
+  "description": "Collega Claude Code al sistema PMO La Traccia (pratiche, ordini e solleciti da Gmail e Drive) tramite MCP, con le skill per consultarlo e diagnosticare il collegamento.",
+  "author": {
+    "name": "Cooperativa EDP La Traccia"
+  },
+  "mcpServers": {
+    "pmo": {
+      "command": "${user_config.pmo_eseguibile}",
+      "args": ["mcp"],
+      "env": {
+        "PMO_MCP_SCRITTURA": "${user_config.scrittura}"
+      }
+    }
+  },
+  "userConfig": {
+    "pmo_eseguibile": {
+      "type": "file",
+      "title": "Comando pmo",
+      "description": "Percorso del comando pmo nell'ambiente virtuale del progetto. Windows: <cartella del progetto>\\.venv\\Scripts\\pmo.exe. macOS e Linux: <cartella del progetto>/.venv/bin/pmo",
+      "required": true
+    },
+    "scrittura": {
+      "type": "boolean",
+      "title": "Abilita le azioni di scrittura",
+      "description": "Se attivo, Claude può anche confermare o scartare pratiche, cambiare stati, aggiungere note e gestire i solleciti. Lasciare disattivo per la sola consultazione.",
+      "default": false
+    }
+  }
+}

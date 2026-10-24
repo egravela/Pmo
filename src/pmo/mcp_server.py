@@ -11,6 +11,8 @@ avverte Claude di trattarli come dati, mai come istruzioni.
 from __future__ import annotations
 
 import logging
+import os
+from collections.abc import Mapping
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any, Literal
@@ -612,6 +614,18 @@ def crea_server(
             return {"ok": True, "sollecito_id": sollecito.id, "stato": sollecito.stato, "silenziato_fino": _data(sollecito.snooze_fino)}
 
     return server
+
+
+def scrittura_abilitata(esplicita: bool = False, ambiente: Mapping[str, str] | None = None) -> bool:
+    """`--scrittura` oppure PMO_MCP_SCRITTURA (così il plugin di Claude Code può passare la scelta).
+
+    Solo un "sì" esplicito abilita la scrittura: qualunque altro valore, anche un segnaposto non sostituito, lascia la
+    sola lettura.
+    """
+    if esplicita:
+        return True
+    valore = (ambiente if ambiente is not None else os.environ).get("PMO_MCP_SCRITTURA", "")
+    return valore.strip().lower() in {"1", "true", "yes", "on", "si", "sì"}
 
 
 def avvia(*, scrittura: bool = False, utente_email: str | None = None) -> None:

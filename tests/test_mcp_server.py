@@ -24,7 +24,7 @@ from pmo.db.models import (
     TipoFonte,
     User,
 )
-from pmo.mcp_server import crea_server
+from pmo.mcp_server import crea_server, scrittura_abilitata
 from pmo.services import pratiche as svc
 
 STRUMENTI_LETTURA = {
@@ -99,6 +99,27 @@ def test_con_scrittura_si_aggiungono_le_azioni():
     assert set(strumenti) == STRUMENTI_LETTURA | STRUMENTI_SCRITTURA
     assert all(not strumenti[n].annotations.read_only_hint for n in STRUMENTI_SCRITTURA)
     assert strumenti["scarta_pratica"].annotations.destructive_hint is True
+
+
+@pytest.mark.parametrize(
+    ("ambiente", "atteso"),
+    [
+        ({}, False),
+        ({"PMO_MCP_SCRITTURA": "true"}, True),
+        ({"PMO_MCP_SCRITTURA": " Sì "}, True),
+        ({"PMO_MCP_SCRITTURA": "1"}, True),
+        ({"PMO_MCP_SCRITTURA": "false"}, False),
+        ({"PMO_MCP_SCRITTURA": ""}, False),
+        ({"PMO_MCP_SCRITTURA": "${user_config.scrittura}"}, False),  # segnaposto non sostituito: resta sola lettura
+        ({"PMO_MCP_SCRITTURA": "forse"}, False),
+    ],
+)
+def test_scrittura_da_ambiente_solo_con_si_esplicito(ambiente, atteso):
+    assert scrittura_abilitata(False, ambiente) is atteso
+
+
+def test_scrittura_esplicita_vince_sull_ambiente():
+    assert scrittura_abilitata(True, {}) is True
 
 
 def test_azione_di_scrittura_non_disponibile_in_sola_lettura(dati):

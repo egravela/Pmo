@@ -101,9 +101,9 @@ def mcp_server(
     except typer.BadParameter:
         pass
     _logging()  # i log vanno su stderr: stdout è riservato al protocollo MCP
-    from pmo.mcp_server import avvia
+    from pmo.mcp_server import avvia, scrittura_abilitata
 
-    avvia(scrittura=scrittura, utente_email=utente)
+    avvia(scrittura=scrittura_abilitata(scrittura), utente_email=utente)
 
 
 @app.command()
