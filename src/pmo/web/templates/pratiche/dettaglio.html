@@ -12,8 +12,9 @@
       <span class="tr-eyebrow__note">Aperta il {{ pratica.data_apertura | data }}</span>
     </div>
     {#- Il titolo di una pratica e' contenuto, spesso un nome proprio: in frase, come il titolo di una card. -#}
-    <h1 class="tr-card__title">{{ pratica.titolo }}</h1>
-    <p class="pmo-lead">{{ fase(pratica.stato) }}{% if proposta %} {{ da_confermare("Proposta dall'IA: da confermare") }}{% endif %}</p>
+    {% set parole = pratica.titolo.split(" ") %}
+    <h1 class="tr-card__title">{% if parole | length > 1 %}{{ parole[:-1] | join(" ") }} <em>{{ parole[-1] }}</em>{% else %}<em>{{ pratica.titolo }}</em>{% endif %}</h1>
+    <p class="tr-body pmo-lead">{{ fase(pratica.stato) }}{% if proposta %} {{ da_confermare("Proposta dall'IA: da confermare") }}{% endif %}</p>
   </div>
   <div class="tr-btn-group">
     <button class="tr-btn tr-btn--secondary" type="button" data-copia="{{ pratica.tag }} {{ pratica.titolo }}"><span class="tr-icon tr-icon--copy" aria-hidden="true"></span><span>Copia oggetto mail</span></button>
@@ -21,7 +22,7 @@
 </div>
 
 {% if proposta %}
-<div class="tr-notice tr-notice--warning tr-notice--tint pmo-section" role="status">
+<div class="tr-notice tr-notice--warning pmo-section" role="status">
   <span class="tr-notice__icon" aria-hidden="true"></span>
   <div class="tr-notice__content">
     <p class="tr-notice__title">Pratica da confermare</p>
@@ -40,11 +41,11 @@
     {# ---- Cronologia ---- #}
     <section class="tr-card" aria-labelledby="t-cronologia">
       <div class="tr-card__head">
-        <h2 class="tr-card__title" id="t-cronologia">Cronologia</h2>
+        <h2 class="tr-card__title" id="t-cronologia">Cronologia <em>eventi</em></h2>
         <span class="tr-card__aside">{{ eventi | length }} eventi</span>
       </div>
 
-      <form method="post" action="/pratiche/{{ pratica.id }}/stato" class="pmo-bar">
+      <form method="post" action="/pratiche/{{ pratica.id }}/stato" class="pmo-bar pmo-bar--fill">
         {{ csrf() }}
         {% call selezione("stato", "Nuova fase", compatto=true) %}{% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if k == pratica.stato }}>{{ v }}</option>{% endfor %}{% endcall %}
         {{ campo("motivo", "Motivo", compatto=true, largo=true, segnaposto="motivo (facoltativo)") }}
@@ -110,7 +111,7 @@
     {# ---- Messaggi ---- #}
     <section class="tr-card" aria-labelledby="t-messaggi">
       <div class="tr-card__head">
-        <h2 class="tr-card__title" id="t-messaggi">Messaggi collegati</h2>
+        <h2 class="tr-card__title" id="t-messaggi">Messaggi <em>collegati</em></h2>
         <span class="tr-card__aside">{{ messaggi | length }}</span>
       </div>
       {% if messaggi %}
@@ -149,7 +150,7 @@
     {# ---- Documenti ---- #}
     <section class="tr-card" aria-labelledby="t-documenti">
       <div class="tr-card__head">
-        <h2 class="tr-card__title" id="t-documenti">Documenti collegati</h2>
+        <h2 class="tr-card__title" id="t-documenti">Documenti <em>collegati</em></h2>
         <span class="tr-card__aside">{{ documenti | length }}</span>
       </div>
       {% if documenti %}
@@ -175,7 +176,7 @@
     {# ---- Solleciti ---- #}
     <section class="tr-card" aria-labelledby="t-solleciti">
       <div class="tr-card__head">
-        <h2 class="tr-card__title" id="t-solleciti">Solleciti</h2>
+        <h2 class="tr-card__title" id="t-solleciti">I <em>solleciti</em></h2>
         <span class="tr-card__aside">{{ solleciti | length }}</span>
       </div>
       <div class="pmo-stack">
@@ -200,7 +201,7 @@
     {# ---- Scheda ---- #}
     <section class="tr-card" aria-labelledby="t-scheda">
       <div class="tr-card__head">
-        <h2 class="tr-card__title" id="t-scheda">Scheda</h2>
+        <h2 class="tr-card__title" id="t-scheda">La <em>scheda</em></h2>
       </div>
       <form method="post" action="/pratiche/{{ pratica.id }}/modifica">
         {{ csrf() }}

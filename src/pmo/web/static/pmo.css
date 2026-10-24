@@ -47,10 +47,10 @@ body.tr-page { min-height: 100vh; }
 .pmo-head__title { min-width: 0; }
 .pmo-head__title .tr-eyebrow { margin-bottom: 0; }
 
-.pmo-section { margin-top: var(--tr-space-7); }
+.pmo-section { margin-top: var(--tr-space-8); }
 .pmo-stack { display: grid; gap: var(--tr-space-5); }
 .pmo-stack--tight { gap: var(--tr-space-3); }
-.pmo-lead { margin: var(--tr-space-4) 0 0; font-size: 14px; color: var(--tr-ink-600); max-width: var(--tr-measure-body); }
+.pmo-lead { margin: var(--tr-space-4) 0 0; }
 .pmo-mt-2 { margin-top: var(--tr-space-2); }
 .pmo-mt-3 { margin-top: var(--tr-space-3); }
 .pmo-mt-4 { margin-top: var(--tr-space-4); }
@@ -296,3 +296,45 @@ a.tr-datatable__value:focus-visible { outline: 2px solid var(--tr-brand-500); ou
    invisibile finche' non c'e' il focus. Dove manca l'etichetta il placeholder
    resta visibile, nel tono delle didascalie. */
 .tr-field--compact .tr-field__control::placeholder { color: var(--tr-ink-400); opacity: 0.8; }
+
+/* ---- Testata di sezione ------------------------------------------------------
+   Come nella vetrina del sistema: il tratto d'accento (64 x 3 px) sopra, poi il
+   titolo display con la parola chiave in blu. La nota in mono sta a destra, sulla
+   riga del titolo. */
+.pmo-sechead { margin-bottom: var(--tr-space-5); }
+.pmo-sechead .tr-accent-dash { margin-bottom: var(--tr-space-4); }
+.pmo-sechead__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tr-space-2) var(--tr-space-5);
+}
+.pmo-sechead__note {
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-caption);
+  letter-spacing: var(--tr-tracking-mono);
+  text-transform: uppercase;
+  color: var(--tr-ink-400);
+}
+
+/* Frase di commento: il motivo scritto dall'IA, la descrizione di una pratica.
+   E' contenuto, non un'etichetta: in sans e in frase, mai in mono. */
+.pmo-note {
+  margin: var(--tr-space-1) 0 0;
+  font-size: 14px;
+  color: var(--tr-ink-400);
+  max-width: var(--tr-measure-short);
+}
+
+/* Riga di campi che occupa la larghezza disponibile (dentro una card stretta): il
+   campo di testo cede spazio, il pulsante resta sulla stessa riga. */
+.pmo-bar--fill { flex-wrap: nowrap; gap: var(--tr-space-3) var(--tr-space-4); }
+.pmo-bar--fill .tr-field { width: auto; flex: 0 0 170px; }
+.pmo-bar--fill .pmo-field--wide { flex: 1 1 140px; min-width: 0; }
+.pmo-bar--fill .tr-btn-group { flex: none; }
+@media (max-width: 720px) { .pmo-bar--fill { flex-wrap: wrap; } .pmo-bar--fill .tr-field { flex: 1 1 100%; } }
+
+/* Le voci apri/chiudi dentro una cella non vanno a capo: sono comandi, si leggono d'un fiato. */
+.pmo-table .pmo-details__label { white-space: nowrap; }
+.pmo-table td:last-child { min-width: 150px; }

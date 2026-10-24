@@ -17,7 +17,8 @@
 <body class="{% block classe_body %}tr-page{% endblock %}">
 {% block corpo %}
 {% set percorso = request.url.path %}
-<div class="tr-shell pmo-shell">
+<div class="tr-shell tr-watermark-host pmo-shell">
+  <img class="tr-watermark tr-watermark--top-right" src="/static/ds/assets/logo-traccia-outline.svg" alt="" aria-hidden="true">
   <div class="tr-shell__body">
     <div class="pmo-container pmo-top">
       <header class="tr-header">

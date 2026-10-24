@@ -12,7 +12,7 @@
 <section class="tr-card pmo-section" aria-labelledby="t-collega">
   <div class="tr-card__head">
     <div>
-      <h2 class="tr-card__title" id="t-collega">Collega una casella</h2>
+      <h2 class="tr-card__title" id="t-collega">Collega una <em>casella</em></h2>
       <p class="tr-card__sub">Il collegamento chiede a Google l'accesso in sola lettura a Gmail e Drive della casella scelta (e l'invio, se abilitato in configurazione). I token sono salvati cifrati. Ogni persona del team può collegare la propria casella; gli amministratori vedono tutte.</p>
     </div>
   </div>
@@ -38,7 +38,7 @@
   <section class="tr-card" aria-labelledby="t-account-{{ a.id }}">
     <div class="tr-card__head">
       <div>
-        <h2 class="tr-card__title" id="t-account-{{ a.id }}">{{ a.email }}</h2>
+        <h2 class="tr-card__title" id="t-account-{{ a.id }}">{{ a.email.split("@")[0] }}<em>@{{ a.email.split("@")[1] }}</em></h2>
         <p class="tr-card__sub">Proprietario: {{ a.owner.email if a.owner else '-' }} · ultima sincronizzazione Gmail {{ a.gmail_last_sync_at | datadt }} · Drive {{ a.drive_last_sync_at | datadt }}</p>
       </div>
       <span class="tr-card__aside">

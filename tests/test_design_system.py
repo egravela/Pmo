@@ -104,3 +104,33 @@ def test_i_messaggi_flash_diventano_messaggi_transitori(client):
     assert r.status_code == 303
     pagina = client.get("/solleciti").text
     assert 'class="tr-toast-region"' in pagina and "tr-toast tr-toast--" in pagina
+
+
+def test_titoli_di_card_con_parola_chiave_in_blu(client, db):
+    """Il titolo di una card porta la parola chiave in <em>, come nel sistema."""
+    _login(client)
+    pratica = svc.crea_pratica(db, "Banca degli Occhi")
+    db.commit()
+    html = client.get(f"/pratiche/{pratica.id}").text
+    for titolo in re.findall(r'<h2 class="tr-card__title"[^>]*>(.*?)</h2>', html):
+        assert "<em>" in titolo, titolo
+    assert re.search(r'<h1 class="tr-card__title">.*<em>', html)
+
+
+def test_testata_di_sezione_con_tratto_d_accento(client):
+    _login(client)
+    html = client.get("/").text
+    assert 'class="pmo-sechead"' in html and "tr-accent-dash" in html
+
+
+def test_la_sagoma_del_logo_sta_nello_sfondo_dell_applicazione(client):
+    _login(client)
+    html = client.get("/pratiche").text
+    assert "tr-watermark-host" in html and "logo-traccia-outline.svg" in html
+
+
+def test_nessun_pannello_colorato_dietro_ai_contenuti(client, db):
+    _login(client)
+    pratica = svc.crea_pratica(db, "Prova", stato_verifica="proposto")
+    db.commit()
+    assert "tr-notice--tint" not in client.get(f"/pratiche/{pratica.id}").text

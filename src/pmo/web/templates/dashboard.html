@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, sollecito, fase, esito, da_confermare with context %}
+{% from "_ds.html" import eyebrow, sezione, sollecito, fase, esito, da_confermare with context %}
 {% block titolo %}Cruscotto · {{ app_name }}{% endblock %}
 {% block contenuto %}
 {#- Il numero che riassume la pagina la apre, e il testo gli sta accanto: blocco introduttivo del sistema. -#}
@@ -33,8 +33,7 @@
     <p class="tr-intro__lead">Solleciti aperti, scadenze vicine e tutto ciò che l'IA ha proposto e una persona deve ancora confermare.</p>
 
     <section class="pmo-section" aria-labelledby="sez-verifica">
-      {{ eyebrow("Da verificare") }}
-      <h2 class="tr-sr-only" id="sez-verifica">Da verificare</h2>
+      {{ sezione("Da", "verificare", id="sez-verifica") }}
       <div class="tr-datatable">
         <div class="tr-datatable__row"><span class="tr-datatable__label">Pratiche proposte</span><a class="tr-datatable__value" href="/revisione?scheda=pratiche">{{ da_rivedere.pratiche }}</a></div>
         <div class="tr-datatable__row"><span class="tr-datatable__label">Mail da verificare</span><a class="tr-datatable__value" href="/revisione?scheda=messaggi">{{ da_rivedere.messaggi }}</a></div>
@@ -44,8 +43,7 @@
     </section>
 
     <section class="pmo-section" aria-labelledby="sez-solleciti">
-      {{ eyebrow("Solleciti aperti", totale_solleciti ~ " in tutto") }}
-      <h2 class="tr-sr-only" id="sez-solleciti">Solleciti aperti</h2>
+      {{ sezione("Solleciti", "aperti", totale_solleciti ~ " in tutto", id="sez-solleciti") }}
       <div class="pmo-stack pmo-stack--tight">
         {% for s in solleciti %}
           {% call sollecito(s) %}
@@ -62,8 +60,7 @@
     </section>
 
     <section class="pmo-section" aria-labelledby="sez-scadenze">
-      {{ eyebrow("Scadenze", "entro 14 giorni") }}
-      <h2 class="tr-sr-only" id="sez-scadenze">Scadenze entro 14 giorni</h2>
+      {{ sezione("Scadenze", "vicine", "entro 14 giorni", id="sez-scadenze") }}
       {% if scadenze %}
       <table class="pmo-table">
         <thead><tr><th>Scadenza</th><th>Pratica</th><th>Fase</th></tr></thead>
@@ -81,8 +78,7 @@
     </section>
 
     <section class="pmo-section" aria-labelledby="sez-caselle">
-      {{ eyebrow("Caselle") }}
-      <h2 class="tr-sr-only" id="sez-caselle">Caselle</h2>
+      {{ sezione("Caselle", "collegate", id="sez-caselle") }}
       {% if caselle %}
       <table class="pmo-table">
         <thead><tr><th>Casella</th><th>Ultima sincronizzazione</th><th>Esito</th></tr></thead>
@@ -102,8 +98,7 @@
 </div>
 
 <section class="pmo-section" aria-labelledby="sez-attivita">
-  {{ eyebrow("Ultime attività registrate") }}
-  <h2 class="tr-sr-only" id="sez-attivita">Ultime attività registrate</h2>
+  {{ sezione("Ultime", "attività", "registrate", id="sez-attivita") }}
   <table class="pmo-table">
     <thead><tr><th>Quando</th><th>Pratica</th><th>Evento</th><th>Fonte</th></tr></thead>
     <tbody>

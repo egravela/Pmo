@@ -20,23 +20,26 @@
 <div class="pmo-tabpanel" role="tabpanel" id="pannello" aria-labelledby="tab-{{ scheda }}">
 
 {% if scheda == 'pratiche' %}
-  <p class="pmo-lead">L'IA ha riconosciuto in queste mail pratiche non ancora registrate. Confermandole, gli eventi estratti diventano effettivi; scartandole, i messaggi tornano qui per essere collegati a mano.</p>
+  <p class="tr-body pmo-lead">L'IA ha riconosciuto in queste mail pratiche non ancora registrate. Confermandole, gli eventi estratti diventano effettivi; scartandole, i messaggi tornano qui per essere collegati a mano.</p>
   <table class="pmo-table pmo-mt-5">
     <thead><tr><th>Codice</th><th>Titolo proposto</th><th>Cliente</th><th>Fase</th><th>Fonti</th><th>Azioni</th></tr></thead>
     <tbody>
     {% for p in pratiche %}
       <tr>
         <td><a href="/pratiche/{{ p.id }}"><span class="pmo-code">{{ p.codice }}</span></a></td>
-        <td><a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a><p class="pmo-meta">{{ p.descrizione | truncate(160) }}</p></td>
+        <td><a href="/pratiche/{{ p.id }}">{{ p.titolo }}</a><p class="pmo-note">{{ p.descrizione | truncate(160) }}</p></td>
         <td>{{ p.cliente.nome if p.cliente else '-' }}</td>
         <td>{{ fase(p.stato) }}</td>
         <td>{{ p.messaggi | length }} mail · {{ p.eventi | selectattr('fonte_tipo', 'ne', 'sistema') | list | length }} eventi</td>
         <td>
           <div class="tr-btn-group">
             <form method="post" action="/pratiche/{{ p.id }}/conferma">{{ csrf() }}<button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Conferma</button></form>
-            <form method="post" action="/pratiche/{{ p.id }}/unisci" class="pmo-inline" data-conferma="Unire alla pratica indicata?">{{ csrf() }}{{ campo("codice", "Unisci alla pratica", compatto=true, segnaposto="unisci a PMO-…", attr='list="pratiche-aperte"') }}<button class="tr-btn tr-btn--quiet tr-btn--sm" type="submit">Unisci</button></form>
             <form method="post" action="/pratiche/{{ p.id }}/scarta" data-conferma="Scartare la pratica proposta?">{{ csrf() }}<button class="tr-btn tr-btn--danger tr-btn--sm" type="submit">Scarta</button></form>
           </div>
+          <details class="pmo-details pmo-mt-3">
+            <summary><span class="pmo-details__label">Unisci a…</span></summary>
+            <form method="post" action="/pratiche/{{ p.id }}/unisci" class="pmo-details__body pmo-inline" data-conferma="Unire alla pratica indicata?">{{ csrf() }}{{ campo("codice", "Unisci alla pratica", compatto=true, segnaposto="PMO-AAAA-NNNN", attr='list="pratiche-aperte"') }}<button class="tr-btn tr-btn--quiet tr-btn--sm" type="submit">Unisci</button></form>
+          </details>
         </td>
       </tr>
     {% else %}
@@ -47,7 +50,7 @@
 {% endif %}
 
 {% if scheda == 'messaggi' %}
-  <p class="pmo-lead">Mail rilevanti che l'IA non ha saputo collegare con certezza. Conferma il collegamento proposto, indica la pratica giusta oppure ignora.</p>
+  <p class="tr-body pmo-lead">Mail rilevanti che l'IA non ha saputo collegare con certezza. Conferma il collegamento proposto, indica la pratica giusta oppure ignora.</p>
   {% if messaggi %}
   <ul class="pmo-list pmo-mt-5">
     {% for m in messaggi %}
@@ -61,7 +64,7 @@
           </span>
         </summary>
         <div class="pmo-details__body">
-          <p class="pmo-meta">{{ m.motivo }}{% if m.confidenza is not none %} · confidenza {{ '%.0f' % (m.confidenza * 100) }}%{% endif %} · <a href="{{ m.gmail_url }}" target="_blank" rel="noopener">Apri in Gmail</a></p>
+          <p class="pmo-note">{{ m.motivo }}{% if m.confidenza is not none %} · confidenza {{ '%.0f' % (m.confidenza * 100) }}%{% endif %} · <a href="{{ m.gmail_url }}" target="_blank" rel="noopener">Apri in Gmail</a></p>
           {% if eventi_per_messaggio.get(m.id) %}
           <p class="pmo-small pmo-mt-3">Eventi estratti: {% for e in eventi_per_messaggio[m.id] %}<span class="tr-chip">{{ e.tipo | evento }}</span> {{ e.titolo }}{{ '; ' if not loop.last }}{% endfor %}</p>
           {% endif %}
@@ -89,7 +92,7 @@
     {% for d in documenti %}
       <tr>
         <td>{{ d.modified_time | data }}</td>
-        <td><a href="{{ d.web_view_link }}" target="_blank" rel="noopener">{{ d.nome }}</a><p class="pmo-meta">{{ d.percorso }} · {{ d.motivo }}</p></td>
+        <td><a href="{{ d.web_view_link }}" target="_blank" rel="noopener">{{ d.nome }}</a><p class="pmo-meta">{{ d.percorso }}</p>{% if d.motivo %}<p class="pmo-note">{{ d.motivo }}</p>{% endif %}</td>
         <td><span class="pmo-meta">{{ d.tipo_documento or '-' }}</span></td>
         <td>{% if d.pratica %}<a href="/pratiche/{{ d.pratica.id }}"><span class="pmo-code">{{ d.pratica.codice }}</span></a>{% else %}-{% endif %}</td>
         <td>

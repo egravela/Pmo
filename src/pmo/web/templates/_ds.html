@@ -17,6 +17,17 @@
 <div class="tr-eyebrow"><span class="tr-eyebrow__label">{{ etichetta }}</span><span class="tr-eyebrow__line"></span>{% if nota %}<span class="tr-eyebrow__note">{{ nota }}</span>{% endif %}</div>
 {%- endmacro -%}
 
+{#- Testata di sezione: tratto d'accento, titolo display con la parola chiave in blu, nota mono a destra. -#}
+{%- macro sezione(titolo, parola, nota=none, id=none) -%}
+<header class="pmo-sechead">
+  <span class="tr-accent-dash"></span>
+  <div class="pmo-sechead__row">
+    <h2 class="tr-h3"{% if id %} id="{{ id }}"{% endif %}>{{ titolo }} <em>{{ parola }}</em></h2>
+    {% if nota %}<span class="pmo-sechead__note">{{ nota }}</span>{% endif %}
+  </div>
+</header>
+{%- endmacro -%}
+
 {#- Campo con etichetta flottante. L'etichetta viene DOPO il controllo, che ha sempre
     un placeholder (anche solo uno spazio). In versione compatta l'etichetta resta
     per le tecnologie assistive e il controllo porta anche aria-label. -#}

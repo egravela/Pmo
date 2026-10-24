@@ -20,7 +20,7 @@
 <div class="pmo-tabpanel" role="tabpanel" id="pannello" aria-labelledby="tab-{{ scheda }}">
 
 {% if scheda == 'regole' %}
-  <p class="pmo-lead">Le regole vengono valutate dopo ogni sincronizzazione e con "Ricalcola adesso" nella pagina dei solleciti.</p>
+  <p class="tr-body pmo-lead">Le regole vengono valutate dopo ogni sincronizzazione e con "Ricalcola adesso" nella pagina dei solleciti.</p>
   <table class="pmo-table pmo-mt-5">
     <thead><tr><th>Regola</th><th>Descrizione</th><th>Soglia (giorni)</th><th>Gravità</th><th>Attiva</th><th><span class="tr-sr-only">Azioni</span></th></tr></thead>
     <tbody>
@@ -39,7 +39,7 @@
 {% endif %}
 
 {% if scheda == 'filtri' %}
-  <p class="pmo-lead">I messaggi che corrispondono a questi filtri vengono importati ma segnati come ignorati senza passare dall'IA. Un codice pratica nell'oggetto vince sempre sui filtri. Una voce per riga.</p>
+  <p class="tr-body pmo-lead">I messaggi che corrispondono a questi filtri vengono importati ma segnati come ignorati senza passare dall'IA. Un codice pratica nell'oggetto vince sempre sui filtri. Una voce per riga.</p>
   <form method="post" action="/impostazioni/filtri" class="tr-card pmo-mt-5">
     {{ csrf() }}
     <div class="pmo-grid pmo-grid--wide">
@@ -54,7 +54,7 @@
 {% endif %}
 
 {% if scheda == 'digest' %}
-  <p class="pmo-lead">Il digest viene inviato ogni giorno alle {{ '%02d:%02d' % (settings.digest_hour, settings.digest_minute) }} ({{ settings.timezone }}) se lo scheduler è attivo, oppure con <span class="pmo-code">pmo digest</span>. Se non indichi destinatari, lo ricevono tutti gli utenti attivi con il digest abilitato.</p>
+  <p class="tr-body pmo-lead">Il digest viene inviato ogni giorno alle {{ '%02d:%02d' % (settings.digest_hour, settings.digest_minute) }} ({{ settings.timezone }}) se lo scheduler è attivo, oppure con <span class="pmo-code">pmo digest</span>. Se non indichi destinatari, lo ricevono tutti gli utenti attivi con il digest abilitato.</p>
   <form method="post" action="/impostazioni/digest" class="tr-card pmo-mt-5">
     {{ csrf() }}
     <div class="pmo-stack">
@@ -67,7 +67,7 @@
 
 {% if scheda == 'clienti' %}
   <section class="tr-card" aria-labelledby="t-nuovo-cliente">
-    <div class="tr-card__head"><h2 class="tr-card__title" id="t-nuovo-cliente">Nuovo cliente</h2></div>
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-nuovo-cliente">Nuovo <em>cliente</em></h2></div>
     <form method="post" action="/impostazioni/clienti">
       {{ csrf() }}
       <div class="pmo-grid">
@@ -98,7 +98,7 @@
 
 {% if scheda == 'prodotti' %}
   <section class="tr-card" aria-labelledby="t-nuovo-prodotto">
-    <div class="tr-card__head"><h2 class="tr-card__title" id="t-nuovo-prodotto">Nuovo prodotto o area</h2></div>
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-nuovo-prodotto">Nuovo prodotto o <em>area</em></h2></div>
     <form method="post" action="/impostazioni/prodotti">
       {{ csrf() }}
       <div class="pmo-grid">
@@ -127,7 +127,7 @@
 
 {% if scheda == 'utenti' %}
   <section class="tr-card" aria-labelledby="t-nuovo-utente">
-    <div class="tr-card__head"><h2 class="tr-card__title" id="t-nuovo-utente">Nuovo utente</h2></div>
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-nuovo-utente">Nuovo <em>utente</em></h2></div>
     <form method="post" action="/impostazioni/utenti">
       {{ csrf() }}
       <div class="pmo-grid">
