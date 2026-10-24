@@ -24,6 +24,7 @@ from pmo.ingest.catalogo import Catalogo, carica_catalogo
 from pmo.ingest.classifier import Classificatore, ErroreClassificazione, crea_classificatore
 from pmo.ingest.filters import FiltriRumore, strip_quoted, tronca
 from pmo.ingest.linker import collega_messaggio
+from pmo.ingest.serie_errori import MOTIVO_INTERRUZIONE, SERIE_ERRORI_MAX, annulla_tentativi
 from pmo.ingest.text_extract import estrai_testo
 from pmo.services.codici import estrai_codice
 from pmo.services.impostazioni import filtri_rumore
@@ -337,6 +338,7 @@ def classifica_messaggi(
 
     contatori = {"messaggi": 0, "thread": 0, "classificati": 0, "da_rivedere": 0, "ignorati": 0, "errori": 0}
     catalogo_testo = catalogo.testo_prompt()
+    serie: list[tuple[list[Messaggio], list]] = []  # errori temporanei consecutivi
     for thread_id, messaggi in per_thread.items():
         contatori["thread"] += 1
         contatori["messaggi"] += len(messaggi)
@@ -347,6 +349,11 @@ def classifica_messaggi(
         except ErroreClassificazione as exc:
             contatori["errori"] += 1
             run.errori = [*run.errori, f"thread {thread_id}: {exc}"]
+            precedenti = [m.classificazione for m in messaggi]
+            if exc.temporaneo:
+                serie.append((messaggi, precedenti))
+            else:
+                serie.clear()
             for m in messaggi:
                 tentativi = int((m.classificazione or {}).get("tentativi", 0)) + 1
                 m.classificazione = {"tentativi": tentativi, "ultimo_errore": str(exc)}
@@ -356,7 +363,13 @@ def classifica_messaggi(
             session.commit()
             if not exc.temporaneo and "IA disabilitata" in str(exc):
                 break
+            if len(serie) >= SERIE_ERRORI_MAX:
+                annulla_tentativi(serie)
+                run.errori = [*run.errori, MOTIVO_INTERRUZIONE]
+                session.commit()
+                break
             continue
+        serie.clear()
         per_id = {r.id: r for r in risultato.messaggi}
         for m in messaggi:
             r = per_id.get(m.gmail_message_id)

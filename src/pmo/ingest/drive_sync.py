@@ -16,6 +16,7 @@ from pmo.db.models import Account, Documento, StatoMessaggio, SyncRun, WatchedFo
 from pmo.ingest.catalogo import Catalogo, carica_catalogo
 from pmo.ingest.classifier import Classificatore, ErroreClassificazione, crea_classificatore
 from pmo.ingest.linker import collega_documento
+from pmo.ingest.serie_errori import MOTIVO_INTERRUZIONE, SERIE_ERRORI_MAX, annulla_tentativi
 from pmo.services.codici import estrai_codice
 from pmo.services.pratiche import trova_per_codice
 
@@ -154,6 +155,7 @@ def classifica_documenti(
     ).all()
     contatori = {"documenti": 0, "classificati": 0, "da_rivedere": 0, "ignorati": 0, "errori": 0}
     catalogo_testo = catalogo.testo_prompt()
+    serie: list[tuple[list[Documento], list]] = []  # errori temporanei consecutivi
     for i in range(0, len(in_attesa), DOCUMENTI_PER_CHIAMATA):
         gruppo = in_attesa[i : i + DOCUMENTI_PER_CHIAMATA]
         contatori["documenti"] += len(gruppo)
@@ -162,6 +164,11 @@ def classifica_documenti(
         except ErroreClassificazione as exc:
             contatori["errori"] += 1
             run.errori = [*run.errori, str(exc)]
+            precedenti = [d.classificazione for d in gruppo]
+            if exc.temporaneo:
+                serie.append((gruppo, precedenti))
+            else:
+                serie.clear()
             for d in gruppo:
                 tentativi = int((d.classificazione or {}).get("tentativi", 0)) + 1
                 d.classificazione = {"tentativi": tentativi, "ultimo_errore": str(exc)}
@@ -171,7 +178,13 @@ def classifica_documenti(
             session.commit()
             if not exc.temporaneo and "IA disabilitata" in str(exc):
                 break
+            if len(serie) >= SERIE_ERRORI_MAX:
+                annulla_tentativi(serie)
+                run.errori = [*run.errori, MOTIVO_INTERRUZIONE]
+                session.commit()
+                break
             continue
+        serie.clear()
         per_id = {r.id: r for r in risultato.documenti}
         for d in gruppo:
             r = per_id.get(d.drive_file_id)
