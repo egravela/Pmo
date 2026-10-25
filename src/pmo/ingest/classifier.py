@@ -237,6 +237,11 @@ class ClassificatoreClaude:
         except anthropic.AuthenticationError as exc:
             raise ErroreClassificazione("Chiave API Anthropic non valida", temporaneo=False) from exc
         except anthropic.BadRequestError as exc:
+            if "credit balance" in str(exc.message).lower():
+                # Anthropic risponde 400, ma non dipende dal messaggio: finché non si ricarica, nulla viene classificato.
+                raise ErroreClassificazione(
+                    "Credito Anthropic esaurito: ricaricare da platform.claude.com/settings/billing", temporaneo=True
+                ) from exc
             raise ErroreClassificazione(f"Richiesta non valida: {exc.message}", temporaneo=False) from exc
         except anthropic.APIStatusError as exc:
             raise ErroreClassificazione(f"Errore API ({exc.status_code}): {exc.message}", temporaneo=exc.status_code >= 500) from exc
