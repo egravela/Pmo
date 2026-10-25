@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, time
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -30,7 +30,12 @@ from pmo.db.models import (
 )
 from pmo.rules.engine import ordina_gravita
 from pmo.services import pratiche as svc
-from pmo.services.richieste import richieste_in_attesa
+from pmo.services.richieste import (
+    AZIONI_DA_FARE,
+    GIORNI_SCADENZA_VICINA,
+    pratiche_con_azioni,
+    richieste_in_attesa,
+)
 from pmo.web.deps import flash, get_db, pagina_per, redirect, render, utente_corrente, verifica_csrf
 
 router = APIRouter()
@@ -90,14 +95,19 @@ def elenco(
     responsabile_id: int | None = None,
     verifica: str = "",
     tutte: int = 0,
-    richieste: int = 0,
+    azione: str = "",
+    richieste: int = 0,  # vecchio nome del filtro "in attesa di una nostra risposta", tenuto per i link già in uso
     session: Session = Depends(get_db),
     utente: User = Depends(utente_corrente),
 ):
     query = select(Pratica)
     richieste_aperte = richieste_in_attesa(session)
-    if richieste:
-        query = query.where(Pratica.id.in_(list(richieste_aperte)))
+    azioni = pratiche_con_azioni(session, richieste_aperte)
+    azione = azione or ("risposta" if richieste else "")
+    if azione in azioni:
+        query = query.where(Pratica.id.in_(list(azioni[azione]) or [0]))
+    else:
+        azione = ""
     if q:
         like = f"%{q.strip()}%"
         query = query.where(or_(Pratica.codice.ilike(like), Pratica.titolo.ilike(like), Pratica.descrizione.ilike(like)))
@@ -130,6 +140,7 @@ def elenco(
         )
         or 0,
         "con_richieste": len(set(session.scalars(select(filtrate.c.id))) & set(richieste_aperte)),
+        "con_azioni": len(set(session.scalars(select(filtrate.c.id))) & azioni["qualsiasi"]),
     }
     pagina = pagina_per(request, totale, PER_PAGINA_PRATICHE)
     pratiche = session.scalars(
@@ -152,7 +163,9 @@ def elenco(
         prodotti=prodotti,
         utenti=utenti,
         richieste_aperte=richieste_aperte,
-        filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile_id, "verifica": verifica, "tutte": tutte, "richieste": richieste},
+        azioni_da_fare=AZIONI_DA_FARE,
+        scadenza_vicina=date.today() + timedelta(days=GIORNI_SCADENZA_VICINA),
+        filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile_id, "verifica": verifica, "tutte": tutte, "azione": azione},
         stati=ETICHETTE_STATO,
     )
 

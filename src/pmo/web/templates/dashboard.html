@@ -59,7 +59,7 @@
       </table>
       <p class="pmo-muted pmo-mt-3">Stima automatica: mail del cliente con una richiesta, senza una nostra mail successiva sulla pratica. Vede solo le caselle collegate.</p>
       {% if totale_richieste_cliente > (richieste_cliente | length) %}
-      <div class="tr-btn-group pmo-mt-4"><a class="tr-btn tr-btn--quiet tr-btn--sm" href="/pratiche?richieste=1"><span>Tutte le pratiche con richieste in attesa</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a></div>
+      <div class="tr-btn-group pmo-mt-4"><a class="tr-btn tr-btn--quiet tr-btn--sm" href="/pratiche?azione=risposta"><span>Tutte le pratiche con richieste in attesa</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a></div>
       {% endif %}
       {% else %}<p class="tr-card__empty">Nessuna richiesta dei clienti in attesa di risposta</p>{% endif %}
     </section>

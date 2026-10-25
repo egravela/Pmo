@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from pmo.db.base import utcnow
@@ -21,11 +21,23 @@ from pmo.db.models import (
     Evento,
     Messaggio,
     Pratica,
+    Sollecito,
     StatoMessaggio,
+    StatoSollecito,
     StatoVerifica,
     TipoEvento,
     TipoFonte,
 )
+
+GIORNI_SCADENZA_VICINA = 14
+
+# Le scelte del filtro "Azioni da fare" dell'elenco pratiche: valore -> etichetta.
+AZIONI_DA_FARE: dict[str, str] = {
+    "risposta": "In attesa di una nostra risposta",
+    "solleciti": "Con solleciti aperti",
+    "scadenza": "Scadenza superata o vicina",
+    "qualsiasi": "Qualsiasi azione da fare",
+}
 
 TIPI_RICHIESTA: tuple[str, ...] = (
     TipoEvento.RICHIESTA_INFORMAZIONI.value,
@@ -106,3 +118,40 @@ def richieste_in_attesa(session: Session, pratica_ids: Iterable[int] | None = No
             ),
         )
     return {pid: list(richieste.values()) for pid, richieste in per_pratica.items()}
+
+
+def pratiche_con_azioni(
+    session: Session, richieste: dict[int, list[RichiestaInAttesa]] | None = None
+) -> dict[str, set[int]]:
+    """Gli identificativi delle pratiche per cui La Traccia deve ancora fare qualcosa, divisi per motivo.
+
+    - `risposta`: il cliente ha scritto una richiesta e non risulta una nostra mail successiva;
+    - `solleciti`: c'è almeno un sollecito aperto o in carico e non rimandato a una data futura;
+    - `scadenza`: la scadenza è già passata o cade entro `GIORNI_SCADENZA_VICINA` giorni.
+    `qualsiasi` è l'unione dei tre. Le pratiche chiuse o annullate non contano.
+    """
+    oggi = date.today()
+    terminali = [s.value for s in STATI_TERMINALI]
+    risposta = set(richieste if richieste is not None else richieste_in_attesa(session))
+    solleciti = set(
+        session.scalars(
+            select(Sollecito.pratica_id)
+            .join(Pratica, Sollecito.pratica_id == Pratica.id)
+            .where(
+                Sollecito.stato.in_([StatoSollecito.APERTO.value, StatoSollecito.IN_CARICO.value]),
+                or_(Sollecito.snooze_fino.is_(None), Sollecito.snooze_fino <= oggi),
+                Pratica.stato.not_in(terminali),
+            )
+            .distinct()
+        )
+    )
+    scadenza = set(
+        session.scalars(
+            select(Pratica.id).where(
+                Pratica.data_scadenza.is_not(None),
+                Pratica.data_scadenza <= oggi + timedelta(days=GIORNI_SCADENZA_VICINA),
+                Pratica.stato.not_in(terminali),
+            )
+        )
+    )
+    return {"risposta": risposta, "solleciti": solleciti, "scadenza": scadenza, "qualsiasi": risposta | solleciti | scadenza}

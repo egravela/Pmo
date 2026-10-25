@@ -2,7 +2,7 @@
 {% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione with context %}
 {% block titolo %}Pratiche · {{ app_name }}{% endblock %}
 {% block contenuto %}
-{%- set filtrato = filtri.q or filtri.stato or filtri.cliente_id or filtri.prodotto_id or filtri.responsabile_id or filtri.verifica or filtri.tutte or filtri.richieste -%}
+{%- set filtrato = filtri.q or filtri.stato or filtri.cliente_id or filtri.prodotto_id or filtri.responsabile_id or filtri.verifica or filtri.tutte or filtri.azione -%}
 {#- Il numero che riassume la pagina la apre; il testo e i filtri gli stanno accanto. -#}
 <div class="tr-intro">
   <aside class="tr-intro__aside">
@@ -14,7 +14,8 @@
     <dl class="tr-facts">
       <div><dt>Proposte IA</dt><dd>{{ riepilogo.proposte }}</dd></div>
       <div><dt>Con solleciti</dt><dd>{{ riepilogo.con_solleciti }}</dd></div>
-      <div><dt>Cliente in attesa</dt><dd>{% if riepilogo.con_richieste %}<a href="/pratiche?richieste=1">{{ riepilogo.con_richieste }}</a>{% else %}0{% endif %}</dd></div>
+      <div><dt>Cliente in attesa</dt><dd>{% if riepilogo.con_richieste %}<a href="/pratiche?azione=risposta">{{ riepilogo.con_richieste }}</a>{% else %}0{% endif %}</dd></div>
+      <div><dt>Azioni da fare</dt><dd>{% if riepilogo.con_azioni %}<a href="/pratiche?azione=qualsiasi">{{ riepilogo.con_azioni }}</a>{% else %}0{% endif %}</dd></div>
       <div><dt>Ordinato</dt><dd>{{ riepilogo.ordinato | euro if riepilogo.ordinato else '-' }}</dd></div>
     </dl>
   </aside>
@@ -49,10 +50,13 @@
           <option value="">Tutte</option>
           <option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>Solo proposte dall'IA</option>
         {% endcall %}
+        {% call selezione("azione", "Azioni da fare") %}
+          <option value="">Tutte le pratiche</option>
+          {% for k, v in azioni_da_fare.items() %}<option value="{{ k }}" {{ 'selected' if filtri.azione == k }}>{{ v }}</option>{% endfor %}
+        {% endcall %}
       </div>
       <div class="pmo-bar">
         {{ spunta("tutte", "Includi chiuse e annullate", filtri.tutte) }}
-        {{ spunta("richieste", "Solo con richieste del cliente senza risposta", filtri.richieste) }}
         <div class="tr-btn-group">
           <button class="tr-btn tr-btn--secondary" type="submit">Filtra</button>
           {% if filtrato %}<a class="tr-btn tr-btn--neutral" href="/pratiche">Azzera</a>{% endif %}
@@ -83,6 +87,10 @@
           {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
           {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
           {% if richieste_cliente %}<span class="tr-status tr-status--warning">Cliente in attesa · {{ richieste_cliente[0].giorni }} gg</span>{% endif %}
+          {% if p.data_scadenza and p.stato not in ('chiusa', 'annullata') %}
+            {% if p.data_scadenza < oggi %}<span class="tr-status tr-status--danger">Scadenza superata</span>
+            {% elif p.data_scadenza <= scadenza_vicina %}<span class="tr-status tr-status--warning">Scade il {{ p.data_scadenza | data }}</span>{% endif %}
+          {% endif %}
         </div>
         <div class="tr-datatable">
           {#- Le date sono quelle delle mail e dei documenti, non quella in cui sono stati importati. -#}
