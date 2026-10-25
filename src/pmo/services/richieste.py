@@ -127,12 +127,13 @@ def pratiche_con_azioni(
 
     - `risposta`: il cliente ha scritto una richiesta e non risulta una nostra mail successiva;
     - `solleciti`: c'è almeno un sollecito aperto o in carico e non rimandato a una data futura;
-    - `scadenza`: la scadenza è già passata o cade entro `GIORNI_SCADENZA_VICINA` giorni.
+    - `scadenza`: vedi `scadenze_vicine`.
     `qualsiasi` è l'unione dei tre. Le pratiche chiuse o annullate non contano.
     """
     oggi = date.today()
     terminali = [s.value for s in STATI_TERMINALI]
     risposta = set(richieste if richieste is not None else richieste_in_attesa(session))
+    scadenza = set(scadenze_vicine(session))
     solleciti = set(
         session.scalars(
             select(Sollecito.pratica_id)
@@ -145,13 +146,39 @@ def pratiche_con_azioni(
             .distinct()
         )
     )
-    scadenza = set(
-        session.scalars(
-            select(Pratica.id).where(
-                Pratica.data_scadenza.is_not(None),
-                Pratica.data_scadenza <= oggi + timedelta(days=GIORNI_SCADENZA_VICINA),
-                Pratica.stato.not_in(terminali),
+    return {"risposta": risposta, "solleciti": solleciti, "scadenza": scadenza, "qualsiasi": risposta | solleciti | scadenza}
+
+
+def scadenze_vicine(session: Session) -> dict[int, date]:
+    """Per ogni pratica attiva, la scadenza più urgente tra quelle già scadute o in arrivo.
+
+    Conta la scadenza della pratica, anche se superata, e la prossima indicata da un evento, purché cada tra oggi e
+    `GIORNI_SCADENZA_VICINA` giorni. Le scadenze passate degli eventi no: da una mail non si sa se siano state rispettate.
+    Gli eventi ancora da verificare contano, perché la scadenza della pratica si aggiorna solo con quelli confermati.
+    """
+    oggi = date.today()
+    limite = oggi + timedelta(days=GIORNI_SCADENZA_VICINA)
+    terminali = [s.value for s in STATI_TERMINALI]
+    scadenze: dict[int, date] = {
+        pratica_id: giorno
+        for pratica_id, giorno in session.execute(
+            select(Pratica.id, Pratica.data_scadenza).where(
+                Pratica.data_scadenza.is_not(None), Pratica.data_scadenza <= limite, Pratica.stato.not_in(terminali)
             )
         )
+    }
+    da_eventi = session.execute(
+        select(Evento.pratica_id, func.min(Evento.scadenza))
+        .join(Pratica, Evento.pratica_id == Pratica.id)
+        .where(
+            Evento.scadenza >= oggi,
+            Evento.scadenza <= limite,
+            Evento.stato_verifica != StatoVerifica.RIFIUTATO,
+            Pratica.stato.not_in(terminali),
+        )
+        .group_by(Evento.pratica_id)
     )
-    return {"risposta": risposta, "solleciti": solleciti, "scadenza": scadenza, "qualsiasi": risposta | solleciti | scadenza}
+    for pratica_id, giorno in da_eventi:
+        if pratica_id not in scadenze or giorno < scadenze[pratica_id]:
+            scadenze[pratica_id] = giorno
+    return scadenze

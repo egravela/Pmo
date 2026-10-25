@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -32,9 +32,9 @@ from pmo.rules.engine import ordina_gravita
 from pmo.services import pratiche as svc
 from pmo.services.richieste import (
     AZIONI_DA_FARE,
-    GIORNI_SCADENZA_VICINA,
     pratiche_con_azioni,
     richieste_in_attesa,
+    scadenze_vicine,
 )
 from pmo.web.deps import flash, get_db, pagina_per, redirect, render, utente_corrente, verifica_csrf
 
@@ -164,7 +164,7 @@ def elenco(
         utenti=utenti,
         richieste_aperte=richieste_aperte,
         azioni_da_fare=AZIONI_DA_FARE,
-        scadenza_vicina=date.today() + timedelta(days=GIORNI_SCADENZA_VICINA),
+        scadenze=scadenze_vicine(session),
         filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile_id, "verifica": verifica, "tutte": tutte, "azione": azione},
         stati=ETICHETTE_STATO,
     )

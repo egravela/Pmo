@@ -10,7 +10,7 @@ from tests.test_design_system import _login, client  # noqa: F401
 
 from pmo.db.models import Sollecito, StatoPratica, StatoSollecito, StatoVerifica
 from pmo.services import pratiche as svc
-from pmo.services.richieste import GIORNI_SCADENZA_VICINA, pratiche_con_azioni
+from pmo.services.richieste import GIORNI_SCADENZA_VICINA, pratiche_con_azioni, scadenze_vicine
 
 
 def _scenario(db):
@@ -21,22 +21,43 @@ def _scenario(db):
     scaduta = svc.crea_pratica(db, "Pratica scaduta", stato_verifica=StatoVerifica.CONFERMATO, data_scadenza=date.today() - timedelta(days=3))
     lontana = svc.crea_pratica(db, "Scadenza lontana", stato_verifica=StatoVerifica.CONFERMATO, data_scadenza=date.today() + timedelta(days=GIORNI_SCADENZA_VICINA + 30))
     tranquilla = svc.crea_pratica(db, "Nessuna azione", stato_verifica=StatoVerifica.CONFERMATO)
+    # pratica ancora proposta dall'IA: la scadenza sta solo nell'evento estratto dalla mail, non sulla pratica
+    da_evento = svc.crea_pratica(db, "Scadenza da una mail", origine="ai", stato_verifica=StatoVerifica.PROPOSTO)
+    svc.aggiungi_evento(
+        db, da_evento, tipo="scadenza", titolo="Rilascio entro il", scadenza=date.today() + timedelta(days=5),
+        fonte_tipo="email", stato_verifica=StatoVerifica.PROPOSTO,
+    )
+    # scadenza già passata indicata da un evento: non si sa se sia stata rispettata, quindi non conta
+    passata = svc.crea_pratica(db, "Scadenza passata da una mail", origine="ai", stato_verifica=StatoVerifica.PROPOSTO)
+    svc.aggiungi_evento(
+        db, passata, tipo="scadenza", titolo="Era entro il", scadenza=date.today() - timedelta(days=5),
+        fonte_tipo="email", stato_verifica=StatoVerifica.PROPOSTO,
+    )
     db.flush()
-    return con_richiesta, con_sollecito, scaduta, lontana, tranquilla
+    return con_richiesta, con_sollecito, scaduta, lontana, tranquilla, da_evento, passata
 
 
 def test_azioni_da_fare_per_motivo(db, settings):
-    richiesta, sollecito, scaduta, lontana, tranquilla = _scenario(db)
+    richiesta, sollecito, scaduta, lontana, tranquilla, da_evento, passata = _scenario(db)
     azioni = pratiche_con_azioni(db)
     assert azioni["risposta"] == {richiesta.id}
     assert azioni["solleciti"] == {sollecito.id}
-    assert azioni["scadenza"] == {scaduta.id}  # la scadenza lontana e la pratica tranquilla non contano
-    assert azioni["qualsiasi"] == {richiesta.id, sollecito.id, scaduta.id}
-    assert lontana.id not in azioni["qualsiasi"] and tranquilla.id not in azioni["qualsiasi"]
+    # contano la scadenza già superata e quella vicina indicata da una mail; non quella lontana né quella passata di una mail
+    assert azioni["scadenza"] == {scaduta.id, da_evento.id}
+    assert azioni["qualsiasi"] == {richiesta.id, sollecito.id, scaduta.id, da_evento.id}
+    assert not {lontana.id, tranquilla.id, passata.id} & azioni["qualsiasi"]
+
+
+def test_scadenza_piu_urgente_per_pratica(db, settings):
+    _, _, scaduta, _, _, da_evento, passata = _scenario(db)
+    scadenze = scadenze_vicine(db)
+    assert scadenze[scaduta.id] == date.today() - timedelta(days=3)
+    assert scadenze[da_evento.id] == date.today() + timedelta(days=5)
+    assert passata.id not in scadenze
 
 
 def test_sollecito_rimandato_o_risolto_e_pratica_chiusa_non_contano(db, settings):
-    _, sollecito, scaduta, _, _ = _scenario(db)
+    _, sollecito, scaduta, *_ = _scenario(db)
     s = db.query(Sollecito).filter_by(pratica_id=sollecito.id).one()
     s.snooze_fino = date.today() + timedelta(days=5)
     scaduta.stato = StatoPratica.CHIUSA.value
@@ -51,19 +72,19 @@ def test_sollecito_rimandato_o_risolto_e_pratica_chiusa_non_contano(db, settings
 
 
 def test_elenco_filtra_per_azione(client, db):  # noqa: F811
-    richiesta, sollecito, scaduta, lontana, tranquilla = _scenario(db)
+    richiesta, sollecito, scaduta, lontana, tranquilla, da_evento, passata = _scenario(db)
     db.commit()
     _login(client)
+    tutte = {p.codice for p in (richiesta, sollecito, scaduta, lontana, tranquilla, da_evento, passata)}
 
     def presenti(percorso: str) -> set[str]:
         html = client.get(percorso).text
-        return {p.codice for p in (richiesta, sollecito, scaduta, lontana, tranquilla) if p.codice in html}
+        return {codice for codice in tutte if codice in html}
 
     assert presenti("/pratiche?azione=risposta") == {richiesta.codice}
     assert presenti("/pratiche?azione=solleciti") == {sollecito.codice}
-    assert presenti("/pratiche?azione=scadenza") == {scaduta.codice}
-    assert presenti("/pratiche?azione=qualsiasi") == {richiesta.codice, sollecito.codice, scaduta.codice}
+    assert presenti("/pratiche?azione=scadenza") == {scaduta.codice, da_evento.codice}
+    assert presenti("/pratiche?azione=qualsiasi") == {richiesta.codice, sollecito.codice, scaduta.codice, da_evento.codice}
     assert presenti("/pratiche?richieste=1") == {richiesta.codice}  # vecchio nome, usato dai link già esistenti
-    tutte = {p.codice for p in (richiesta, sollecito, scaduta, lontana, tranquilla)}
     assert presenti("/pratiche") == tutte
     assert presenti("/pratiche?azione=inesistente") == tutte  # un valore sconosciuto non nasconde le pratiche

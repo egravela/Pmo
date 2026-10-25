@@ -87,9 +87,10 @@
           {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
           {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
           {% if richieste_cliente %}<span class="tr-status tr-status--warning">Cliente in attesa · {{ richieste_cliente[0].giorni }} gg</span>{% endif %}
-          {% if p.data_scadenza and p.stato not in ('chiusa', 'annullata') %}
-            {% if p.data_scadenza < oggi %}<span class="tr-status tr-status--danger">Scadenza superata</span>
-            {% elif p.data_scadenza <= scadenza_vicina %}<span class="tr-status tr-status--warning">Scade il {{ p.data_scadenza | data }}</span>{% endif %}
+          {% set urgente = scadenze.get(p.id) %}
+          {% if urgente %}
+            {% if urgente < oggi %}<span class="tr-status tr-status--danger">Scadenza superata</span>
+            {% else %}<span class="tr-status tr-status--warning">Scade il {{ urgente | data }}</span>{% endif %}
           {% endif %}
         </div>
         <div class="tr-datatable">
