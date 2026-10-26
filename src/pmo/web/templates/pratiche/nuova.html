@@ -2,13 +2,16 @@
 {% from "_ds.html" import eyebrow, campo, area, selezione, csrf with context %}
 {% block titolo %}Nuova pratica · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="pmo-testata">
-  {{ eyebrow("Pratiche") }}
-  <h1 class="tr-h3 tr-intro__title">Nuova <em>pratica</em></h1>
-  <p class="tr-intro__lead">Una pratica nasce di solito dalla posta, proposta dall'IA. Qui la si apre a mano: riceve subito il suo codice, da usare nell'oggetto delle mail.</p>
+{#- La testata della pagina sta sul suo piano bianco, come ogni blocco di contenuto. -#}
+<div class="tr-panel">
+  <div class="pmo-testata">
+    {{ eyebrow("Pratiche") }}
+    <h1 class="tr-h3 tr-intro__title">Nuova <em>pratica</em></h1>
+    <p class="tr-intro__lead">Una pratica nasce di solito dalla posta, proposta dall'IA. Qui la si apre a mano: riceve subito il suo codice, da usare nell'oggetto delle mail.</p>
+  </div>
 </div>
 
-<form method="post" action="/pratiche" class="tr-card pmo-section">
+<form method="post" action="/pratiche" class="tr-card">
   {{ csrf() }}
   <div class="pmo-stack">
     {{ campo("titolo", "Titolo", obbligatorio=true, segnaposto="es. Banca degli Occhi – canone e giornate 2027") }}

@@ -21,23 +21,26 @@
   'prodotti': "Prodotti e aree di attività, con gli alias con cui compaiono nelle mail e nei documenti.",
   'utenti': "Le persone che accedono al PMO, il loro ruolo e chi riceve il digest.",
   'claude': "Come collegare Claude Code al PMO con il protocollo MCP: pratiche, scadenze e solleciti diventano interrogabili in linguaggio naturale. Comandi e percorsi sono già quelli di questa installazione."} %}
-<div class="pmo-testata">
-  {{ eyebrow("Impostazioni") }}
-  <h1 class="tr-h3 tr-intro__title">Impostazioni del <em>PMO</em></h1>
-  <p class="tr-intro__lead">{{ guida[scheda] }}</p>
-</div>
+{#- La testata della pagina sul suo piano bianco, chiusa dalla fila delle sezioni. -#}
+<div class="tr-panel">
+  <div class="pmo-testata">
+    {{ eyebrow("Impostazioni") }}
+    <h1 class="tr-h3 tr-intro__title">Impostazioni del <em>PMO</em></h1>
+    <p class="tr-intro__lead">{{ guida[scheda] }}</p>
+  </div>
 
-{#- Le schede sono pagine diverse: una sottonavigazione nella fila delle tabs, con aria-current. -#}
-<nav class="tr-tabs pmo-sottonav" aria-label="Sezioni delle impostazioni">
-  {% for k, etichetta in schede %}
-  <a class="tr-tab" href="/impostazioni?scheda={{ k }}"{% if scheda == k %} aria-current="page"{% endif %}>{{ etichetta }}</a>
-  {% endfor %}
-</nav>
+  {#- Le schede sono pagine diverse: una sottonavigazione nella fila delle tabs, con aria-current. -#}
+  <nav class="tr-tabs pmo-sottonav" aria-label="Sezioni delle impostazioni">
+    {% for k, etichetta in schede %}
+    <a class="tr-tab" href="/impostazioni?scheda={{ k }}"{% if scheda == k %} aria-current="page"{% endif %}>{{ etichetta }}</a>
+    {% endfor %}
+  </nav>
+</div>
 
 <div class="pmo-tabpanel">
 
 {% if scheda == 'regole' %}
-  <div class="pmo-scroll"><table class="pmo-table">
+  <div class="tr-panel pmo-scroll"><table class="pmo-table">
     <thead><tr><th>Regola</th><th>Descrizione</th><th>Soglia (giorni)</th><th>Gravità</th><th>Attiva</th><th><span class="tr-sr-only">Azioni</span></th></tr></thead>
     <tbody>
     {% for r in regole %}
@@ -94,7 +97,7 @@
       <div class="tr-card__foot"><button class="tr-btn tr-btn--primary" type="submit"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Aggiungi</span></button></div>
     </form>
   </section>
-  <div class="pmo-scroll pmo-section"><table class="pmo-table">
+  <div class="tr-panel pmo-scroll"><table class="pmo-table">
     <thead><tr><th>Nome</th><th>Alias</th><th>Domini</th><th>Tipo</th><th>Attivo</th><th><span class="tr-sr-only">Azioni</span></th></tr></thead>
     <tbody>
     {% for c in clienti %}
@@ -124,7 +127,7 @@
       <div class="tr-card__foot"><button class="tr-btn tr-btn--primary" type="submit"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Aggiungi</span></button></div>
     </form>
   </section>
-  <div class="pmo-scroll pmo-section"><table class="pmo-table">
+  <div class="tr-panel pmo-scroll"><table class="pmo-table">
     <thead><tr><th>Nome</th><th>Alias</th><th>Descrizione</th><th>Attivo</th><th><span class="tr-sr-only">Azioni</span></th></tr></thead>
     <tbody>
     {% for p in prodotti %}
@@ -278,7 +281,7 @@
       <div class="tr-card__foot"><button class="tr-btn tr-btn--primary" type="submit"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Aggiungi</span></button></div>
     </form>
   </section>
-  <div class="pmo-scroll pmo-section"><table class="pmo-table">
+  <div class="tr-panel pmo-scroll"><table class="pmo-table">
     <thead><tr><th>Email</th><th>Nome</th><th>Ruolo</th><th>Attivo</th><th>Digest</th><th>Ultimo accesso</th><th><span class="tr-sr-only">Azioni</span></th></tr></thead>
     <tbody>
     {% for u in utenti %}

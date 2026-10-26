@@ -2,50 +2,47 @@
 {% from "_ds.html" import eyebrow, sezione, sollecito, fase, esito, da_confermare with context %}
 {% block titolo %}Cruscotto · {{ app_name }}{% endblock %}
 {% block contenuto %}
-{#- Il numero che riassume la pagina la apre, e il testo gli sta accanto: blocco introduttivo del sistema. -#}
-<div class="tr-intro">
-  <aside class="tr-intro__aside">
-    {{ eyebrow("Cruscotto", oggi | data) }}
-    <p class="tr-figure">
-      <span class="tr-figure__number">{{ totale_attive }}</span>
-      <span class="tr-figure__label tr-mono tr-mono--muted">pratiche<br>attive</span>
-    </p>
-    <dl class="tr-facts">
-      <div><dt>Critici</dt><dd><a href="/solleciti?gravita=critico">{{ per_gravita.critico }}</a></dd></div>
-      <div><dt>Avvisi</dt><dd><a href="/solleciti?gravita=avviso">{{ per_gravita.avviso }}</a></dd></div>
-      <div><dt>Info</dt><dd><a href="/solleciti?gravita=info">{{ per_gravita.info }}</a></dd></div>
-    </dl>
-    {% if per_stato %}
-    <div class="tr-datatable pmo-mt-6">
-      {% for stato, n in per_stato %}
-      <div class="tr-datatable__row">
-        <span class="tr-datatable__label">{{ stato | stato }}</span>
-        <a class="tr-datatable__value" href="/pratiche?stato={{ stato }}">{{ n }}</a>
-      </div>
-      {% endfor %}
-      <span class="tr-datatable__unit-note">pratiche per fase</span>
+{#- Il numero che riassume la pagina la apre, e il testo gli sta accanto: blocco introduttivo
+    del sistema, sul suo pannello. Sotto, ogni sezione ha il proprio piano bianco. -#}
+<div class="tr-panel">
+  <div class="tr-intro">
+    <aside class="tr-intro__aside">
+      {{ eyebrow("Cruscotto", oggi | data) }}
+      <p class="tr-figure">
+        <span class="tr-figure__number">{{ totale_attive }}</span>
+        <span class="tr-figure__label tr-mono tr-mono--muted">pratiche<br>attive</span>
+      </p>
+      <dl class="tr-facts">
+        <div><dt>Critici</dt><dd><a href="/solleciti?gravita=critico">{{ per_gravita.critico }}</a></dd></div>
+        <div><dt>Avvisi</dt><dd><a href="/solleciti?gravita=avviso">{{ per_gravita.avviso }}</a></dd></div>
+        <div><dt>Info</dt><dd><a href="/solleciti?gravita=info">{{ per_gravita.info }}</a></dd></div>
+      </dl>
+    </aside>
+
+    <div class="tr-intro__main">
+      <h1 class="tr-h3 tr-intro__title">Cosa richiede <em>attenzione</em></h1>
+      <p class="tr-intro__lead">Solleciti aperti, scadenze vicine e tutto ciò che l'IA ha proposto e una persona deve ancora confermare.</p>
+
+      <section class="pmo-mt-6" aria-labelledby="sez-verifica">
+        <h2 class="tr-sr-only" id="sez-verifica">Da verificare</h2>
+        <div class="tr-datatable">
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Pratiche proposte</span><a class="tr-datatable__value" href="/revisione?scheda=pratiche">{{ da_rivedere.pratiche }}</a></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Mail da verificare</span><a class="tr-datatable__value" href="/revisione?scheda=messaggi">{{ da_rivedere.messaggi }}</a></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">Documenti da verificare</span><a class="tr-datatable__value" href="/revisione?scheda=documenti">{{ da_rivedere.documenti }}</a></div>
+          <div class="tr-datatable__row"><span class="tr-datatable__label">In attesa di analisi</span><span class="tr-datatable__value">{{ in_attesa_ia }}</span></div>
+          <span class="tr-datatable__unit-note">da verificare in revisione</span>
+        </div>
+      </section>
     </div>
-    {% endif %}
-  </aside>
+  </div>
+</div>
 
-  <div class="tr-intro__main">
-    <h1 class="tr-h3 tr-intro__title">Cosa richiede <em>attenzione</em></h1>
-    <p class="tr-intro__lead">Solleciti aperti, scadenze vicine e tutto ciò che l'IA ha proposto e una persona deve ancora confermare.</p>
-
-    <section class="pmo-section" aria-labelledby="sez-verifica">
-      {{ sezione("Da", "verificare", id="sez-verifica") }}
-      <div class="tr-datatable">
-        <div class="tr-datatable__row"><span class="tr-datatable__label">Pratiche proposte</span><a class="tr-datatable__value" href="/revisione?scheda=pratiche">{{ da_rivedere.pratiche }}</a></div>
-        <div class="tr-datatable__row"><span class="tr-datatable__label">Mail da verificare</span><a class="tr-datatable__value" href="/revisione?scheda=messaggi">{{ da_rivedere.messaggi }}</a></div>
-        <div class="tr-datatable__row"><span class="tr-datatable__label">Documenti da verificare</span><a class="tr-datatable__value" href="/revisione?scheda=documenti">{{ da_rivedere.documenti }}</a></div>
-        <div class="tr-datatable__row"><span class="tr-datatable__label">In attesa di analisi</span><span class="tr-datatable__value">{{ in_attesa_ia }}</span></div>
-      </div>
-    </section>
-
-    <section class="pmo-section" aria-labelledby="sez-richieste">
+<div class="pmo-colonne">
+  <div class="pmo-colonna">
+    <section class="tr-panel" aria-labelledby="sez-richieste">
       {{ sezione("Richieste dei clienti", "da evadere", totale_richieste_cliente ~ (" pratica" if totale_richieste_cliente == 1 else " pratiche"), id="sez-richieste") }}
       {% if richieste_cliente %}
-      <table class="pmo-table">
+      <div class="pmo-scroll"><table class="pmo-table">
         <thead><tr><th>Ricevuta</th><th>Pratica</th><th>Cosa chiede</th></tr></thead>
         <tbody>
         {% for r, p in richieste_cliente %}
@@ -56,7 +53,7 @@
           </tr>
         {% endfor %}
         </tbody>
-      </table>
+      </table></div>
       <p class="pmo-muted pmo-mt-3">Stima automatica: mail del cliente con una richiesta, senza una nostra mail successiva sulla pratica. Vede solo le caselle collegate.</p>
       {% if totale_richieste_cliente > (richieste_cliente | length) %}
       <div class="tr-btn-group pmo-mt-4"><a class="tr-btn tr-btn--quiet tr-btn--sm" href="/pratiche?azione=risposta"><span>Tutte le pratiche con richieste in attesa</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a></div>
@@ -64,7 +61,7 @@
       {% else %}<p class="tr-card__empty">Nessuna richiesta dei clienti in attesa di risposta</p>{% endif %}
     </section>
 
-    <section class="pmo-section" aria-labelledby="sez-solleciti">
+    <section class="tr-panel" aria-labelledby="sez-solleciti">
       {{ sezione("Solleciti", "aperti", totale_solleciti ~ " in tutto", id="sez-solleciti") }}
       <div class="pmo-stack pmo-stack--tight">
         {% for s in solleciti %}
@@ -81,10 +78,10 @@
       {% endif %}
     </section>
 
-    <section class="pmo-section" aria-labelledby="sez-scadenze">
+    <section class="tr-panel" aria-labelledby="sez-scadenze">
       {{ sezione("Scadenze", "vicine", "entro 14 giorni", id="sez-scadenze") }}
       {% if scadenze %}
-      <table class="pmo-table">
+      <div class="pmo-scroll"><table class="pmo-table">
         <thead><tr><th>Scadenza</th><th>Pratica</th><th>Fase</th></tr></thead>
         <tbody>
         {% for p in scadenze %}
@@ -95,28 +92,45 @@
           </tr>
         {% endfor %}
         </tbody>
-      </table>
+      </table></div>
       {% else %}<p class="tr-card__empty">Nessuna scadenza imminente</p>{% endif %}
     </section>
+  </div>
 
-    <section class="pmo-section" aria-labelledby="sez-caselle">
-      {{ sezione("Caselle", "collegate", id="sez-caselle") }}
-      {% if caselle %}
+  <div class="pmo-colonna">
+    <section class="tr-panel" aria-labelledby="sez-fasi">
+      {{ sezione("Pratiche", "per fase", id="sez-fasi") }}
+      {% if per_stato %}
       <div class="tr-datatable">
-        {% for a in caselle %}
+        {% for stato, n in per_stato %}
         <div class="tr-datatable__row">
-          <span class="tr-datatable__label">{{ a.email }}</span>
-          <span class="tr-datatable__value">{% if not a.collegato %}<span class="tr-status tr-status--warning">Non collegata</span>{% else %}{{ esito(a.last_sync_status) }} · {{ a.gmail_last_sync_at | datadt }}{% endif %}</span>
+          <span class="tr-datatable__label">{{ stato | stato }}</span>
+          <a class="tr-datatable__value" href="/pratiche?stato={{ stato }}">{{ n }}</a>
         </div>
         {% endfor %}
-        <span class="tr-datatable__unit-note">esito e ora dell'ultima sincronizzazione</span>
       </div>
+      {% else %}<p class="tr-card__empty">Nessuna pratica attiva</p>{% endif %}
+    </section>
+
+    <section class="tr-panel" aria-labelledby="sez-caselle">
+      {{ sezione("Caselle", "collegate", id="sez-caselle") }}
+      {% if caselle %}
+      <ul class="pmo-list">
+        {% for a in caselle %}
+        <li>
+          <p class="pmo-voce__titolo">{{ a.email }}</p>
+          <div class="pmo-scheda__stati pmo-mt-2">
+            {% if not a.collegato %}<span class="tr-status tr-status--warning">Non collegata</span>{% else %}{{ esito(a.last_sync_status) }}<span class="pmo-meta">{{ a.gmail_last_sync_at | datadt }}</span>{% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
       {% else %}<p class="tr-card__empty">Nessuna casella collegata · <a href="/caselle">collega la tua</a></p>{% endif %}
     </section>
   </div>
 </div>
 
-<section class="pmo-section" aria-labelledby="sez-attivita">
+<section class="tr-panel" aria-labelledby="sez-attivita">
   {{ sezione("Ultime", "attività", "registrate", id="sez-attivita") }}
   {% if eventi %}
   <ol class="tr-timeline">

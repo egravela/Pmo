@@ -10,32 +10,35 @@
   'documenti': "Documenti di Drive che l'IA ha letto ma non ha collegato con certezza a una pratica. Conferma la proposta, indica la pratica giusta oppure ignora.",
   'errori': "Messaggi che la classificazione non è riuscita a elaborare. Si possono rimettere in coda: verranno ritentati al prossimo giro."} %}
 
-<div class="tr-intro">
-  <aside class="tr-intro__aside">
-    {{ eyebrow("Revisione") }}
-    <p class="tr-figure">
-      <span class="tr-figure__number">{{ totale }}</span>
-      <span class="tr-figure__label tr-mono tr-mono--muted">elementi<br>da verificare</span>
-    </p>
-    <dl class="tr-facts">
-      <div><dt>Pratiche</dt><dd>{{ conteggi.pratiche }}</dd></div>
-      <div><dt>Mail</dt><dd>{{ conteggi.messaggi }}</dd></div>
-      <div><dt>Documenti</dt><dd>{{ conteggi.documenti }}</dd></div>
-    </dl>
-  </aside>
-  <div class="tr-intro__main">
-    <h1 class="tr-h3 tr-intro__title">Coda di <em>revisione</em></h1>
-    <p class="tr-intro__lead">{{ guida[scheda] }}</p>
+{#- La testata della pagina sul suo piano bianco, chiusa dalla fila delle code. -#}
+<div class="tr-panel">
+  <div class="tr-intro">
+    <aside class="tr-intro__aside">
+      {{ eyebrow("Revisione") }}
+      <p class="tr-figure">
+        <span class="tr-figure__number">{{ totale }}</span>
+        <span class="tr-figure__label tr-mono tr-mono--muted">elementi<br>da verificare</span>
+      </p>
+      <dl class="tr-facts">
+        <div><dt>Pratiche</dt><dd>{{ conteggi.pratiche }}</dd></div>
+        <div><dt>Mail</dt><dd>{{ conteggi.messaggi }}</dd></div>
+        <div><dt>Documenti</dt><dd>{{ conteggi.documenti }}</dd></div>
+      </dl>
+    </aside>
+    <div class="tr-intro__main">
+      <h1 class="tr-h3 tr-intro__title">Coda di <em>revisione</em></h1>
+      <p class="tr-intro__lead">{{ guida[scheda] }}</p>
+    </div>
   </div>
-</div>
 
-{#- Le code sono pagine diverse (ognuna con le sue pagine): una sottonavigazione nella fila
-    delle tabs, con lo stato dichiarato da aria-current. -#}
-<nav class="tr-tabs pmo-sottonav" aria-label="Code di revisione">
-  {% for k, etichetta in schede %}
-  <a class="tr-tab" href="/revisione?scheda={{ k }}"{% if scheda == k %} aria-current="page"{% endif %}>{{ etichetta }} <span class="tr-tab__count">{{ conteggi[k] }}</span></a>
-  {% endfor %}
-</nav>
+  {#- Le code sono pagine diverse (ognuna con le sue pagine): una sottonavigazione nella fila
+      delle tabs, con lo stato dichiarato da aria-current. -#}
+  <nav class="tr-tabs pmo-sottonav" aria-label="Code di revisione">
+    {% for k, etichetta in schede %}
+    <a class="tr-tab" href="/revisione?scheda={{ k }}"{% if scheda == k %} aria-current="page"{% endif %}>{{ etichetta }} <span class="tr-tab__count">{{ conteggi[k] }}</span></a>
+    {% endfor %}
+  </nav>
+</div>
 
 <div class="pmo-tabpanel">
 
@@ -71,7 +74,7 @@
     {% endfor %}
   </div>
   {{ paginazione(pagina) }}
-  {% else %}<p class="tr-card__empty">Nessuna pratica proposta</p>{% endif %}
+  {% else %}<div class="tr-panel"><p class="tr-card__empty">Nessuna pratica proposta</p></div>{% endif %}
 {% endif %}
 
 {% if scheda == 'messaggi' %}
@@ -111,7 +114,7 @@
     {% endfor %}
   </div>
   {{ paginazione(pagina) }}
-  {% else %}<p class="tr-card__empty">Nessuna mail da verificare</p>{% endif %}
+  {% else %}<div class="tr-panel"><p class="tr-card__empty">Nessuna mail da verificare</p></div>{% endif %}
 {% endif %}
 
 {% if scheda == 'documenti' %}
@@ -142,29 +145,31 @@
     {% endfor %}
   </div>
   {{ paginazione(pagina) }}
-  {% else %}<p class="tr-card__empty">Nessun documento da verificare</p>{% endif %}
+  {% else %}<div class="tr-panel"><p class="tr-card__empty">Nessun documento da verificare</p></div>{% endif %}
 {% endif %}
 
 {% if scheda == 'errori' %}
   {% if errori %}
-  <div class="pmo-stack pmo-schede">
+  <div class="tr-card-grid pmo-schede">
     {% for m in errori %}
-    <div class="tr-notice tr-notice--danger">
-      <span class="tr-notice__icon" aria-hidden="true"></span>
-      <div class="tr-notice__content">
-        <p class="tr-notice__title">Errore di classificazione</p>
-        <p class="tr-notice__body"><strong>{{ m.subject | truncate(110) }}</strong></p>
-        <p class="pmo-dato">{{ m.data | data }} · {{ m.from_email }}</p>
-        <p class="tr-notice__body">{{ m.motivo }}</p>
-        <div class="tr-btn-group pmo-notice-actions">
-          <form method="post" action="/messaggi/{{ m.id }}/riclassifica">{{ csrf() }}<input type="hidden" name="ritorno" value="/revisione?scheda=errori"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Riprova</button></form>
+    <article class="tr-card pmo-scheda">
+      <div class="tr-notice tr-notice--danger">
+        <span class="tr-notice__icon" aria-hidden="true"></span>
+        <div class="tr-notice__content">
+          <p class="tr-notice__title">Errore di classificazione</p>
+          <p class="tr-notice__body"><strong>{{ m.subject | truncate(110) }}</strong></p>
+          <p class="pmo-dato">{{ m.data | data }} · {{ m.from_email }}</p>
+          <p class="tr-notice__body">{{ m.motivo }}</p>
+          <div class="tr-btn-group pmo-notice-actions">
+            <form method="post" action="/messaggi/{{ m.id }}/riclassifica">{{ csrf() }}<input type="hidden" name="ritorno" value="/revisione?scheda=errori"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Riprova</button></form>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
     {% endfor %}
   </div>
   {{ paginazione(pagina) }}
-  {% else %}<p class="tr-card__empty">Nessun errore</p>{% endif %}
+  {% else %}<div class="tr-panel"><p class="tr-card__empty">Nessun errore</p></div>{% endif %}
 {% endif %}
 
 </div>

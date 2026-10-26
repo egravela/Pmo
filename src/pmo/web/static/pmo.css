@@ -161,6 +161,48 @@ body.tr-page { min-height: 100vh; }
 .pmo-mt-6 { margin-top: var(--tr-space-6); }
 .pmo-mb-5 { margin-bottom: var(--tr-space-5); }
 
+/* ---- Piani -----------------------------------------------------------------------
+   Due piani, come chiede il README ("Superfici"): la pagina e' il fondo neutro, ogni
+   blocco che raccoglie contenuto sta un gradino sopra, in bianco — il .tr-panel per una
+   sezione intera, la .tr-card per un elemento di un elenco. Nessun bordo, nessuna ombra:
+   li stacca il piano. Fra un blocco e il successivo, su ogni pagina, la stessa distanza. */
+.tr-panel { --pmo-pad: var(--tr-space-7); min-width: 0; }
+@media (max-width: 720px) { .tr-panel { --pmo-pad: var(--tr-space-5); } }
+.pmo-container.pmo-main > * + *,
+.pmo-tabpanel > * + *,
+.pmo-colonna > * + * { margin-top: var(--tr-space-5); }
+/* Le tabs che cambiano pagina chiudono il pannello di testa, a filo del suo bordo
+   inferiore: il filetto della tab scelta poggia sul fondo della pagina. */
+.tr-panel > .pmo-sottonav:last-child {
+  margin: var(--tr-space-6) calc(-1 * var(--pmo-pad)) calc(-1 * var(--pmo-pad));
+  padding: 0 var(--pmo-pad);
+  border-bottom: 0;
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+  background: transparent;
+}
+/* Nel pannello di testa di una pratica le tappe stanno sotto il blocco introduttivo,
+   separate da un filetto. */
+.tr-panel > .pmo-tappe {
+  margin-top: var(--tr-space-6);
+  padding-top: var(--tr-space-6);
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+}
+/* L'elenco vuoto ha il suo piano come quello pieno. */
+.tr-panel > .tr-card__empty:only-child { margin: 0; }
+
+/* Cruscotto: due colonne di pannelli. A sinistra cio' che chiede un'azione, a destra i
+   riepiloghi. */
+.pmo-colonne {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--tr-space-5);
+  align-items: start;
+}
+.pmo-colonna { min-width: 0; }
+@media (max-width: 1200px) {
+  .pmo-colonne { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Testata di una pagina senza cifra: eyebrow, titolo, lead — nell'ordine del README.
    Il lead e' un .tr-intro__lead (60ch): non e' prosa lunga, non chiede la seconda colonna. */
 .pmo-testata { max-width: var(--tr-measure-prose); }

@@ -2,26 +2,29 @@
 {% from "_ds.html" import eyebrow, esito, paginazione with context %}
 {% block titolo %}Esecuzioni {{ account.email }} · {{ app_name }}{% endblock %}
 {% block contenuto %}
-<div class="tr-intro">
-  <aside class="tr-intro__aside">
-    {{ eyebrow("Caselle") }}
-    <p class="tr-figure">
-      <span class="tr-figure__number">{{ conteggi.totale }}</span>
-      <span class="tr-figure__label tr-mono tr-mono--muted">esecuzioni<br>registrate</span>
-    </p>
-    <dl class="tr-facts">
-      <div><dt>Ok</dt><dd>{{ conteggi.ok }}</dd></div>
-      <div><dt>Errori</dt><dd>{{ conteggi.errore }}</dd></div>
-    </dl>
-  </aside>
-  <div class="tr-intro__main">
-    <h1 class="tr-h3 tr-intro__title">Storico <em>esecuzioni</em></h1>
-    <p class="tr-intro__lead">Ogni giro di sincronizzazione della casella <span class="pmo-code">{{ account.email }}</span>: cosa ha letto, cosa ha classificato, quali errori ha incontrato.</p>
-    <div class="tr-btn-group"><a class="tr-btn tr-btn--neutral" href="/caselle"><span>Torna alle caselle</span></a></div>
+{#- La testata della pagina sta sul suo piano bianco, come ogni blocco di contenuto. -#}
+<div class="tr-panel">
+  <div class="tr-intro">
+    <aside class="tr-intro__aside">
+      {{ eyebrow("Caselle") }}
+      <p class="tr-figure">
+        <span class="tr-figure__number">{{ conteggi.totale }}</span>
+        <span class="tr-figure__label tr-mono tr-mono--muted">esecuzioni<br>registrate</span>
+      </p>
+      <dl class="tr-facts">
+        <div><dt>Ok</dt><dd>{{ conteggi.ok }}</dd></div>
+        <div><dt>Errori</dt><dd>{{ conteggi.errore }}</dd></div>
+      </dl>
+    </aside>
+    <div class="tr-intro__main">
+      <h1 class="tr-h3 tr-intro__title">Storico <em>esecuzioni</em></h1>
+      <p class="tr-intro__lead">Ogni giro di sincronizzazione della casella <span class="pmo-code">{{ account.email }}</span>: cosa ha letto, cosa ha classificato, quali errori ha incontrato.</p>
+      <div class="tr-btn-group"><a class="tr-btn tr-btn--neutral" href="/caselle"><span>Torna alle caselle</span></a></div>
+    </div>
   </div>
 </div>
 
-<section class="pmo-section" aria-label="Esecuzioni della casella">
+<section class="tr-panel" aria-label="Esecuzioni della casella">
   <div class="pmo-scroll">
   <table class="pmo-table">
     <thead><tr><th>Inizio</th><th>Fine</th><th>Tipo</th><th>Esito</th><th>Contatori</th><th>Errori</th></tr></thead>

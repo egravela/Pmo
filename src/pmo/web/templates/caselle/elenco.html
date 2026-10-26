@@ -4,25 +4,28 @@
 {% block contenuto %}
 {%- set cartelle = accounts | map(attribute='watched_folders') | map('length') | sum -%}
 {%- set collegate = accounts | selectattr('collegato') | list | length -%}
-<div class="tr-intro">
-  <aside class="tr-intro__aside">
-    {{ eyebrow("Caselle") }}
-    <p class="tr-figure">
-      <span class="tr-figure__number">{{ collegate }}</span>
-      <span class="tr-figure__label tr-mono tr-mono--muted">{{ 'casella' if collegate == 1 else 'caselle' }}<br>{{ 'collegata' if collegate == 1 else 'collegate' }}</span>
-    </p>
-    <dl class="tr-facts">
-      <div><dt>Cartelle Drive</dt><dd>{{ cartelle }}</dd></div>
-      <div><dt>Attive</dt><dd>{{ accounts | selectattr('attivo') | list | length }}</dd></div>
-    </dl>
-  </aside>
-  <div class="tr-intro__main">
-    <h1 class="tr-h3 tr-intro__title">Caselle <em>collegate</em></h1>
-    <p class="tr-intro__lead">Il PMO legge in sola lettura la posta e le cartelle Drive delle caselle collegate. Ogni persona del team collega la propria; gli amministratori le vedono tutte.</p>
+{#- La testata della pagina sta sul suo piano bianco, come ogni blocco di contenuto. -#}
+<div class="tr-panel">
+  <div class="tr-intro">
+    <aside class="tr-intro__aside">
+      {{ eyebrow("Caselle") }}
+      <p class="tr-figure">
+        <span class="tr-figure__number">{{ collegate }}</span>
+        <span class="tr-figure__label tr-mono tr-mono--muted">{{ 'casella' if collegate == 1 else 'caselle' }}<br>{{ 'collegata' if collegate == 1 else 'collegate' }}</span>
+      </p>
+      <dl class="tr-facts">
+        <div><dt>Cartelle Drive</dt><dd>{{ cartelle }}</dd></div>
+        <div><dt>Attive</dt><dd>{{ accounts | selectattr('attivo') | list | length }}</dd></div>
+      </dl>
+    </aside>
+    <div class="tr-intro__main">
+      <h1 class="tr-h3 tr-intro__title">Caselle <em>collegate</em></h1>
+      <p class="tr-intro__lead">Il PMO legge in sola lettura la posta e le cartelle Drive delle caselle collegate. Ogni persona del team collega la propria; gli amministratori le vedono tutte.</p>
+    </div>
   </div>
 </div>
 
-<section class="tr-card pmo-section" aria-labelledby="t-collega">
+<section class="tr-card" aria-labelledby="t-collega">
   <div class="tr-card__head">
     <div>
       <h2 class="tr-card__title" id="t-collega">Collega una <em>casella</em></h2>
@@ -46,7 +49,7 @@
   {% endif %}
 </section>
 
-<div class="pmo-stack pmo-section">
+<div class="pmo-stack">
 {% for a in accounts %}
   <section class="tr-card" aria-labelledby="t-account-{{ a.id }}">
     <div class="tr-card__head">
@@ -142,7 +145,7 @@
     </div>
   </section>
 {% else %}
-  <p class="tr-card__empty">Nessuna casella collegata</p>
+  <div class="tr-panel"><p class="tr-card__empty">Nessuna casella collegata</p></div>
 {% endfor %}
 </div>
 {% endblock %}

@@ -14,70 +14,73 @@
 {%- set aperti = solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list -%}
 {%- set ritorno = "/pratiche/" ~ pratica.id -%}
 
-<div class="tr-intro">
-  <aside class="tr-intro__aside">
-    {{ eyebrow(pratica.codice, "dal " ~ (pratica.data_apertura | data)) }}
-    <p class="tr-figure">
-      <span class="tr-figure__number">{{ cifra }}</span>
-      <span class="tr-figure__label tr-mono tr-mono--muted">{{ etichetta | safe }}</span>
-    </p>
-    <dl class="tr-facts">
-      <div><dt>Fase</dt><dd>{{ pratica.stato | stato }}</dd></div>
-      <div><dt>Ultima attività</dt><dd>{{ pratica.ultimo_evento_at | data }}</dd></div>
-      <div><dt>Scadenza</dt><dd>{{ pratica.data_scadenza | data }}</dd></div>
-      <div><dt>Solleciti</dt><dd>{{ aperti | length }}</dd></div>
-    </dl>
-  </aside>
+{#- Blocco introduttivo e tappe: la testata della pratica, sul suo piano bianco. -#}
+<div class="tr-panel">
+  <div class="tr-intro">
+    <aside class="tr-intro__aside">
+      {{ eyebrow(pratica.codice, "dal " ~ (pratica.data_apertura | data)) }}
+      <p class="tr-figure">
+        <span class="tr-figure__number">{{ cifra }}</span>
+        <span class="tr-figure__label tr-mono tr-mono--muted">{{ etichetta | safe }}</span>
+      </p>
+      <dl class="tr-facts">
+        <div><dt>Fase</dt><dd>{{ pratica.stato | stato }}</dd></div>
+        <div><dt>Ultima attività</dt><dd>{{ pratica.ultimo_evento_at | data }}</dd></div>
+        <div><dt>Scadenza</dt><dd>{{ pratica.data_scadenza | data }}</dd></div>
+        <div><dt>Solleciti</dt><dd>{{ aperti | length }}</dd></div>
+      </dl>
+    </aside>
 
-  <div class="tr-intro__main">
-    {#- Il titolo di una pratica e' contenuto, spesso un nome proprio: in frase. -#}
-    <h1 class="pmo-titolo">{{ pratica.titolo }}</h1>
-    <p class="tr-intro__lead">{{ pratica.cliente.nome if pratica.cliente else 'Cliente da indicare' }}{% if pratica.prodotto %} · {{ pratica.prodotto.nome }}{% endif %}</p>
-    {% if pratica.descrizione %}<div class="tr-intro__prose"><p class="tr-body pmo-text">{{ pratica.descrizione }}</p></div>{% endif %}
-    {#- La fase sta gia' nei dati a sinistra e nelle tappe qui sotto; qui solo cio' che non c'e' altrove. -#}
-    {% if pratica.stato not in FASI or pratica.priorita == 'alta' %}
-    <div class="pmo-scheda__stati pmo-mt-5">
-      {% if pratica.stato not in FASI %}{{ fase(pratica.stato) }}{% endif %}
-      {% if pratica.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
-    </div>
-    {% endif %}
-    <div class="tr-btn-group">
-      <button class="tr-btn tr-btn--secondary" type="button" data-copia="{{ pratica.tag }} {{ pratica.titolo }}"><span class="tr-icon tr-icon--copy" aria-hidden="true"></span><span>Copia oggetto mail</span></button>
-      {% if pratica.drive_folder_url %}<a class="tr-btn tr-btn--quiet" href="{{ pratica.drive_folder_url }}" target="_blank" rel="noopener"><span class="tr-icon tr-icon--folder" aria-hidden="true"></span><span>Cartella Drive</span></a>{% endif %}
-    </div>
-
-    {% if richieste_cliente %}
-    <div class="tr-notice tr-notice--warning pmo-mt-5">
-      <span class="tr-notice__icon" aria-hidden="true"></span>
-      <div class="tr-notice__content">
-        <p class="tr-notice__title">{{ 'Richiesta del cliente senza risposta' if richieste_cliente | length == 1 else 'Richieste del cliente senza risposta' }}</p>
-        {% for r in richieste_cliente %}
-        <p class="tr-notice__body"><strong>{{ r.data | data }}</strong> · {{ r.data | giorni_fa }} — {{ r.mittente }}: {{ r.titolo }}{% if r.url %} <a href="{{ r.url }}" target="_blank" rel="noopener">Apri la mail</a>{% endif %}</p>
-        {% endfor %}
-        <p class="tr-notice__body pmo-muted">Stima automatica: dopo questa mail non ne risulta una nostra sulla pratica. Vede solo le caselle collegate: una risposta data a voce o da un'altra casella non viene riconosciuta.</p>
+    <div class="tr-intro__main">
+      {#- Il titolo di una pratica e' contenuto, spesso un nome proprio: in frase. -#}
+      <h1 class="pmo-titolo">{{ pratica.titolo }}</h1>
+      <p class="tr-intro__lead">{{ pratica.cliente.nome if pratica.cliente else 'Cliente da indicare' }}{% if pratica.prodotto %} · {{ pratica.prodotto.nome }}{% endif %}</p>
+      {% if pratica.descrizione %}<div class="tr-intro__prose"><p class="tr-body pmo-text">{{ pratica.descrizione }}</p></div>{% endif %}
+      {#- La fase sta gia' nei dati a sinistra e nelle tappe qui sotto; qui solo cio' che non c'e' altrove. -#}
+      {% if pratica.stato not in FASI or pratica.priorita == 'alta' %}
+      <div class="pmo-scheda__stati pmo-mt-5">
+        {% if pratica.stato not in FASI %}{{ fase(pratica.stato) }}{% endif %}
+        {% if pratica.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
       </div>
-    </div>
-    {% endif %}
+      {% endif %}
+      <div class="tr-btn-group">
+        <button class="tr-btn tr-btn--secondary" type="button" data-copia="{{ pratica.tag }} {{ pratica.titolo }}"><span class="tr-icon tr-icon--copy" aria-hidden="true"></span><span>Copia oggetto mail</span></button>
+        {% if pratica.drive_folder_url %}<a class="tr-btn tr-btn--quiet" href="{{ pratica.drive_folder_url }}" target="_blank" rel="noopener"><span class="tr-icon tr-icon--folder" aria-hidden="true"></span><span>Cartella Drive</span></a>{% endif %}
+      </div>
 
-    {% if proposta %}
-    <div class="tr-notice tr-notice--warning">
-      <span class="tr-notice__icon" aria-hidden="true"></span>
-      <div class="tr-notice__content">
-        <p class="tr-notice__title">Da confermare</p>
-        <p class="tr-notice__body">Questa pratica è stata proposta dall'IA leggendo la posta. Verifica titolo, cliente e prodotto, poi conferma oppure scarta.</p>
-        <div class="tr-btn-group pmo-notice-actions">
-          <form method="post" action="/pratiche/{{ pratica.id }}/conferma">{{ csrf() }}<button class="tr-btn tr-btn--primary tr-btn--sm" type="submit"><span class="tr-icon tr-icon--check" aria-hidden="true"></span><span>Conferma pratica</span></button></form>
-          <form method="post" action="/pratiche/{{ pratica.id }}/scarta" data-conferma="Scartare la pratica proposta? I messaggi torneranno in revisione.">{{ csrf() }}<button class="tr-btn tr-btn--danger tr-btn--sm" type="submit">Scarta</button></form>
+      {% if richieste_cliente %}
+      <div class="tr-notice tr-notice--warning pmo-mt-5">
+        <span class="tr-notice__icon" aria-hidden="true"></span>
+        <div class="tr-notice__content">
+          <p class="tr-notice__title">{{ 'Richiesta del cliente senza risposta' if richieste_cliente | length == 1 else 'Richieste del cliente senza risposta' }}</p>
+          {% for r in richieste_cliente %}
+          <p class="tr-notice__body"><strong>{{ r.data | data }}</strong> · {{ r.data | giorni_fa }} — {{ r.mittente }}: {{ r.titolo }}{% if r.url %} <a href="{{ r.url }}" target="_blank" rel="noopener">Apri la mail</a>{% endif %}</p>
+          {% endfor %}
+          <p class="tr-notice__body pmo-muted">Stima automatica: dopo questa mail non ne risulta una nostra sulla pratica. Vede solo le caselle collegate: una risposta data a voce o da un'altra casella non viene riconosciuta.</p>
         </div>
       </div>
-    </div>
-    {% endif %}
-  </div>
-</div>
+      {% endif %}
 
-{% if pratica.stato in FASI %}
-<section class="pmo-tappe" aria-label="Fasi della pratica">{{ tappe(pratica) }}</section>
-{% endif %}
+      {% if proposta %}
+      <div class="tr-notice tr-notice--warning">
+        <span class="tr-notice__icon" aria-hidden="true"></span>
+        <div class="tr-notice__content">
+          <p class="tr-notice__title">Da confermare</p>
+          <p class="tr-notice__body">Questa pratica è stata proposta dall'IA leggendo la posta. Verifica titolo, cliente e prodotto, poi conferma oppure scarta.</p>
+          <div class="tr-btn-group pmo-notice-actions">
+            <form method="post" action="/pratiche/{{ pratica.id }}/conferma">{{ csrf() }}<button class="tr-btn tr-btn--primary tr-btn--sm" type="submit"><span class="tr-icon tr-icon--check" aria-hidden="true"></span><span>Conferma pratica</span></button></form>
+            <form method="post" action="/pratiche/{{ pratica.id }}/scarta" data-conferma="Scartare la pratica proposta? I messaggi torneranno in revisione.">{{ csrf() }}<button class="tr-btn tr-btn--danger tr-btn--sm" type="submit">Scarta</button></form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if pratica.stato in FASI %}
+  <section class="pmo-tappe" aria-label="Fasi della pratica">{{ tappe(pratica) }}</section>
+  {% endif %}
+</div>
 
 {#- ===========================================================================
     Viste della pratica. Una alla volta, scelte dalla barra delle tabs ancorata in

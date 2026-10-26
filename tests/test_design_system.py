@@ -201,6 +201,19 @@ def test_tappe_della_pratica_in_riga(client, db):
     assert html.count('aria-current="step"') == 1
 
 
+def test_ogni_pagina_si_apre_su_un_pannello_bianco(client, db):
+    """La testata di ogni pagina sta sul piano 1 (.tr-panel), non sul fondo della pagina."""
+    _login(client)
+    pratica = svc.crea_pratica(db, "Prova pannelli")
+    db.commit()
+    for url in ("/", "/pratiche", f"/pratiche/{pratica.id}", "/pratiche/nuova", "/solleciti", "/revisione", "/caselle", "/impostazioni"):
+        html = client.get(url).text
+        assert re.search(r'<main[^>]*>\s*<div class="tr-panel">', html), url
+    # le code di revisione chiudono il pannello di testa
+    html = client.get("/revisione").text
+    assert re.search(r'<nav class="tr-tabs pmo-sottonav"[^>]*>(?:(?!</div>).)*</nav>\s*</div>', html, re.S)
+
+
 def test_contatori_delle_esecuzioni_in_frase():
     from pmo.web.deps import f_contatori, f_esecuzione
 
