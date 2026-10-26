@@ -30,6 +30,7 @@ from pmo.db.models import (
 )
 
 GIORNI_SCADENZA_VICINA = 14
+REGOLA_VERIFICA = "da_verificare"  # sollecito che chiede di confermare una pratica o un evento proposto dall'IA
 
 # Le scelte del filtro "Azioni da fare" dell'elenco pratiche: valore -> etichetta.
 AZIONI_DA_FARE: dict[str, str] = {
@@ -140,6 +141,8 @@ def pratiche_con_azioni(
             .join(Pratica, Sollecito.pratica_id == Pratica.id)
             .where(
                 Sollecito.stato.in_([StatoSollecito.APERTO.value, StatoSollecito.IN_CARICO.value]),
+                # "da_verificare" ricorda di confermare le proposte dell'IA: è lavoro interno, non un'azione verso i clienti
+                Sollecito.regola != REGOLA_VERIFICA,
                 or_(Sollecito.snooze_fino.is_(None), Sollecito.snooze_fino <= oggi),
                 Pratica.stato.not_in(terminali),
             )

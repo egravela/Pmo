@@ -48,6 +48,14 @@ def test_azioni_da_fare_per_motivo(db, settings):
     assert not {lontana.id, tranquilla.id, passata.id} & azioni["qualsiasi"]
 
 
+def test_il_promemoria_di_conferma_non_e_un_azione_da_fare(db, settings):
+    _, _, _, _, tranquilla, *_ = _scenario(db)
+    db.add(Sollecito(pratica_id=tranquilla.id, regola="da_verificare", chiave=f"{tranquilla.id}:dv", gravita="info", titolo="Pratica proposta dall'IA da confermare"))
+    db.flush()
+    azioni = pratiche_con_azioni(db)
+    assert tranquilla.id not in azioni["solleciti"] and tranquilla.id not in azioni["qualsiasi"]
+
+
 def test_scadenza_piu_urgente_per_pratica(db, settings):
     _, _, scaduta, _, _, da_evento, passata = _scenario(db)
     scadenze = scadenze_vicine(db)
