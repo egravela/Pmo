@@ -3,7 +3,15 @@
 {% block titolo %}Impostazioni · {{ app_name }}{% endblock %}
 {% block contenuto %}
 {% set tipi_cliente = [('sanita', 'Sanità'), ('pa', 'Pubblica amministrazione'), ('partner', 'Partner'), ('altro', 'Altro')] %}
-{% set schede = [('regole', 'Regole di sollecito'), ('filtri', 'Filtri posta'), ('digest', 'Digest'), ('clienti', 'Clienti'), ('prodotti', 'Prodotti'), ('utenti', 'Utenti')] %}
+{% set schede = [('regole', 'Regole di sollecito'), ('filtri', 'Filtri posta'), ('digest', 'Digest'), ('clienti', 'Clienti'), ('prodotti', 'Prodotti'), ('utenti', 'Utenti'), ('claude', 'Collega Claude')] %}
+
+{#- Un comando da copiare: riga mono con il pulsante di copia (pmo.js, data-copia). -#}
+{% macro comando(testo, messaggio="Comando copiato negli appunti.") -%}
+<div class="pmo-cmd">
+  <pre><code>{{ testo }}</code></pre>
+  <button class="tr-btn tr-btn--neutral tr-btn--sm" type="button" data-copia="{{ testo }}" data-copia-messaggio="{{ messaggio }}" aria-label="Copia negli appunti"><span class="tr-icon tr-icon--copy" aria-hidden="true"></span><span>Copia</span></button>
+</div>
+{%- endmacro %}
 
 {% set guida = {
   'regole': "Le regole vengono valutate dopo ogni sincronizzazione e con «Ricalcola adesso» nella pagina dei solleciti. Qui si regolano soglia, gravità e attivazione.",
@@ -11,7 +19,8 @@
   'digest': "Il riepilogo quotidiano dei solleciti, inviato ogni giorno alle " ~ ('%02d:%02d' % (settings.digest_hour, settings.digest_minute)) ~ " se lo scheduler è attivo.",
   'clienti': "Nomi, alias e domini email dei clienti: più sono completi, più l'IA collega con certezza le mail alle pratiche.",
   'prodotti': "Prodotti e aree di attività, con gli alias con cui compaiono nelle mail e nei documenti.",
-  'utenti': "Le persone che accedono al PMO, il loro ruolo e chi riceve il digest."} %}
+  'utenti': "Le persone che accedono al PMO, il loro ruolo e chi riceve il digest.",
+  'claude': "Come collegare Claude Code al PMO con il protocollo MCP: pratiche, scadenze e solleciti diventano interrogabili in linguaggio naturale. Comandi e percorsi sono già quelli di questa installazione."} %}
 <div class="pmo-testata">
   {{ eyebrow("Impostazioni") }}
   <h1 class="tr-h3 tr-intro__title">Impostazioni del <em>PMO</em></h1>
@@ -129,6 +138,130 @@
     {% endfor %}
     </tbody>
   </table></div>
+{% endif %}
+
+{% if scheda == 'claude' and mcp %}
+  <section class="tr-card" aria-labelledby="t-claude-cosa">
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-claude-cosa">Interrogare il PMO da <em>Claude</em></h2></div>
+    <p class="tr-body">Il server MCP del PMO fa leggere a Claude le pratiche, la cronologia con i link a mail e documenti, i solleciti e la coda di revisione. Gira sul tuo PC, avviato da Claude, e non apre porte di rete. Una volta collegato puoi chiedere, ad esempio:</p>
+    <ul class="pmo-elenco">
+      <li>«Quali ordini sono senza specifiche da più di 15 giorni?»</li>
+      <li>«Riassumi la pratica PMO-2026-0042: cosa è successo e cosa manca?»</li>
+      <li>«Fammi vedere le pratiche proposte dall'IA per Azienda Zero, da confermare.»</li>
+      <li>«Cerca nei documenti l'ID dell'accordo quadro SAC 3.»</li>
+    </ul>
+    <p class="pmo-dato">Dati letti: {{ mcp.database }}</p>
+  </section>
+
+  <section class="tr-card pmo-section" aria-labelledby="t-claude-code">
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-claude-code">Collegare <em>Claude Code</em></h2></div>
+    <ol class="pmo-passi">
+      <li>
+        <div>
+          <p class="pmo-passi__titolo">Controlla il comando <span class="pmo-code">pmo</span> {% if mcp.eseguibile_presente %}<span class="tr-status tr-status--success">Trovato</span>{% else %}<span class="tr-status tr-status--danger">Non trovato</span>{% endif %}</p>
+          <p class="tr-body">È il comando che Claude avvierà, nell'ambiente in cui gira questa applicazione.</p>
+          {{ comando(mcp.eseguibile, "Percorso di pmo copiato negli appunti.") }}
+          {% if not mcp.eseguibile_presente %}
+          <div class="tr-notice tr-notice--warning pmo-mt-4">
+            <span class="tr-notice__icon" aria-hidden="true"></span>
+            <div class="tr-notice__content">
+              <p class="tr-notice__title">Comando assente</p>
+              <p class="tr-notice__body">Dalla cartella del progetto esegui <span class="pmo-code">pip install -e .</span> nell'ambiente virtuale, poi ricarica questa pagina.</p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="pmo-passi__titolo">Installa il plugin <span class="pmo-code">pmo-la-traccia</span></p>
+          <p class="tr-body">Una volta sola, da terminale (serve Claude Code 2.1.275 o successivo). Porta con sé il collegamento e due skill: una per consultare i dati, una per verificare e riparare il collegamento.</p>
+          {{ comando(mcp.comandi.marketplace) }}
+          {{ comando(mcp.comandi.plugin) }}
+          {% if mcp.plugin_nel_progetto %}
+          <p class="pmo-dato">Dal repository GitHub, se hai accesso, basta: {{ mcp.comandi.plugin_github }}</p>
+          {% else %}
+          <div class="tr-notice tr-notice--info pmo-mt-4">
+            <span class="tr-notice__icon" aria-hidden="true"></span>
+            <div class="tr-notice__content">
+              <p class="tr-notice__title">Plugin non presente in questa cartella</p>
+              <p class="tr-notice__body">Questa installazione non contiene la cartella del plugin: installalo dal repository, dentro Claude Code.</p>
+              {{ comando(mcp.comandi.plugin_github) }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="pmo-passi__titolo">Rispondi alle due domande di Claude Code</p>
+          <p class="tr-body">Quando abilita il plugin chiede il <strong>percorso del comando pmo</strong>: incolla quello del primo passo. Chiede poi se <strong>abilitare le azioni di scrittura</strong>: lascia disattivato, salvo che ti serva (vedi la nota sulla sicurezza più sotto).</p>
+          {{ comando(mcp.eseguibile, "Percorso di pmo copiato negli appunti.") }}
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="pmo-passi__titolo">Verifica il collegamento</p>
+          <p class="tr-body">Nella sessione già aperta ricarica i plugin, poi lancia la verifica: Claude chiama il server e ti dice se risponde e in quale modalità.</p>
+          {{ comando(mcp.comandi.ricarica) }}
+          {{ comando(mcp.comandi.verifica) }}
+          <p class="pmo-dato">Oppure chiedi semplicemente: «come siamo messi con le pratiche?»</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="tr-card pmo-section" aria-labelledby="t-claude-altri">
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-claude-altri">Altri <em>collegamenti</em></h2></div>
+    <ol class="pmo-passi">
+      <li>
+        <div>
+          <p class="pmo-passi__titolo">Claude Code senza il plugin</p>
+          <p class="tr-body">Registra solo il server, senza le skill. Non usare insieme il plugin: gli strumenti risulterebbero doppi.</p>
+          {{ comando(mcp.comandi.manuale) }}
+          <p class="pmo-dato">Per rimuoverlo: {{ mcp.comandi.rimuovi_manuale }}</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="pmo-passi__titolo">Claude Desktop</p>
+          <p class="tr-body">Apri <strong>Impostazioni → Sviluppatore → Modifica configurazione</strong>, aggiungi questo blocco e riavvia l'applicazione.</p>
+          {{ comando(mcp.comandi.desktop, "Configurazione copiata negli appunti.") }}
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="tr-card pmo-section" aria-labelledby="t-claude-strumenti">
+    <div class="tr-card__head"><h2 class="tr-card__title" id="t-claude-strumenti">Gli <em>strumenti</em> di Claude</h2></div>
+    <p class="tr-body">Questi sono gli strumenti che il server mette a disposizione. Per impostazione predefinita Claude vede solo quelli di lettura.</p>
+    {% if mcp.strumenti %}
+    <div class="pmo-scroll pmo-mt-4"><table class="pmo-table">
+      <thead><tr><th>Strumento</th><th>Cosa fa</th><th>Tipo</th></tr></thead>
+      <tbody>
+      {% for s in mcp.strumenti %}
+        <tr>
+          <td><span class="pmo-code">{{ s.nome }}</span></td>
+          <td>{{ s.descrizione }}</td>
+          <td>{% if s.scrittura %}<span class="tr-status tr-status--warning">Scrittura</span>{% else %}<span class="tr-chip">Lettura</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}
+    <p class="pmo-muted pmo-mt-4">Non riesco a leggere l'elenco degli strumenti dal server MCP: controlla che il pacchetto <span class="pmo-code">mcp</span> sia installato.</p>
+    {% endif %}
+  </section>
+
+  <div class="tr-notice tr-notice--warning pmo-section pmo-notice--testo">
+    <span class="tr-notice__icon" aria-hidden="true"></span>
+    <div class="tr-notice__content">
+      <p class="tr-notice__title">Prima di abilitare la scrittura</p>
+      <p class="tr-notice__body">Con la scrittura abilitata Claude può confermare o scartare pratiche, cambiare stati, aggiungere note e gestire i solleciti, sempre su tua richiesta e con la nota «via MCP» nella cronologia. Si abilita dall'opzione «Abilita le azioni di scrittura» del plugin (<span class="pmo-code">/config</span>, poi <span class="pmo-code">/reload-plugins</span>) oppure chiedendo a Claude <span class="pmo-code">/pmo-la-traccia:collega scrittura</span>.</p>
+      <p class="tr-notice__body">Mail e documenti sono contenuti esterni e possono contenere istruzioni ingannevoli: per questo il collegamento parte in sola lettura e le azioni vanno sempre riviste prima di dare l'ok. Quello che Claude legge entra nella conversazione ed è elaborato da Anthropic: valuta se è adatto ai dati dei clienti.</p>
+      <p class="tr-notice__body">Il collegamento funziona sul PC dove sono installati il progetto e il database. Per altri colleghi servono un database condiviso (PostgreSQL) e l'installazione su ogni PC. Maggiori dettagli in <span class="pmo-code">docs/mcp.md</span>.</p>
+    </div>
+  </div>
 {% endif %}
 
 {% if scheda == 'utenti' %}

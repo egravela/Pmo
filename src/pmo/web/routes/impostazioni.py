@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from pmo.db.models import Cliente, Prodotto, Regola, User
 from pmo.rules.definitions import assicura_regole
 from pmo.services.impostazioni import get_impostazione, set_impostazione
+from pmo.services.mcp_guida import contesto_guida
 from pmo.web.deps import admin_richiesto, flash, get_db, redirect, render, verifica_csrf
 
 router = APIRouter()
@@ -31,6 +32,7 @@ def pagina(request: Request, scheda: str = "regole", session: Session = Depends(
         "impostazioni.html",
         utente,
         scheda=scheda,
+        mcp=contesto_guida() if scheda == "claude" else None,
         regole=regole,
         filtri=filtri,
         digest=digest,

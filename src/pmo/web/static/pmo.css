@@ -531,3 +531,53 @@ a.pmo-title-link:focus-visible { outline: 2px solid var(--tr-brand-500); outline
 .tr-tab[aria-current="page"] .tr-tab__count { color: var(--tr-brand-600); }
 .pmo-sottonav { margin-top: var(--tr-space-8); }
 .pmo-tabpanel { margin-top: var(--tr-space-5); }
+
+/* ==========================================================================
+   Guida "Collega Claude" (Impostazioni): passi numerati, comandi da copiare, elenco puntato
+   ========================================================================== */
+.pmo-passi { list-style: none; margin: var(--tr-space-5) 0 0; padding: 0; display: grid; gap: var(--tr-space-7); counter-reset: passo; }
+.pmo-passi > li { counter-increment: passo; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--tr-space-4); }
+.pmo-passi > li::before {
+  content: counter(passo, decimal-leading-zero);
+  padding-top: 2px;
+  font-family: var(--tr-font-mono);
+  font-weight: var(--tr-weight-semibold);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono);
+  color: var(--tr-ink-400);
+}
+.pmo-passi__titolo { margin: 0 0 var(--tr-space-2); font-weight: var(--tr-weight-semibold); color: var(--tr-ink-900); }
+.pmo-passi__titolo .tr-status { margin-left: var(--tr-space-2); vertical-align: middle; }
+
+/* Un comando: voce mono su filetto, il pulsante di copia a destra. Va a capo anziche' scorrere,
+   cosi' un percorso lungo resta leggibile per intero. */
+.pmo-cmd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tr-space-3);
+  margin-top: var(--tr-space-3);
+  padding: var(--tr-space-3) var(--tr-space-4);
+  background: var(--tr-paper);
+  border: var(--tr-rule-thin) solid var(--tr-border-soft-2);
+}
+.pmo-cmd pre { margin: 0; min-width: 0; }
+.pmo-cmd code {
+  font-family: var(--tr-font-mono);
+  font-size: var(--tr-text-mono);
+  letter-spacing: var(--tr-tracking-mono-ui);
+  color: var(--tr-ink-900);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.pmo-cmd .tr-btn { flex: none; }
+
+.pmo-elenco { margin: var(--tr-space-4) 0 0; padding-left: var(--tr-space-5); display: grid; gap: var(--tr-space-2); color: var(--tr-ink-600); }
+/* Avviso con piu' paragrafi: un po' d'aria fra l'uno e l'altro. */
+.pmo-notice--testo .tr-notice__body + .tr-notice__body { margin-top: var(--tr-space-3); }
+/* Su schermi stretti il pulsante di copia va sotto il comando: il percorso non si spezza a meta' parola. */
+@media (max-width: 600px) {
+  .pmo-cmd { flex-direction: column; align-items: stretch; }
+  .pmo-cmd .tr-btn { align-self: flex-end; }
+  .pmo-passi > li { grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--tr-space-3); }
+}

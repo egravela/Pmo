@@ -127,6 +127,21 @@
     });
   }
 
+  function copiaClassica(testo) {
+    var campo = document.createElement('textarea');
+    campo.value = testo;
+    campo.setAttribute('readonly', '');
+    campo.setAttribute('aria-hidden', 'true');
+    campo.style.position = 'fixed';
+    campo.style.opacity = '0';
+    document.body.appendChild(campo);
+    campo.select();
+    var riuscita = false;
+    try { riuscita = document.execCommand('copy'); } catch (e) { riuscita = false; }
+    document.body.removeChild(campo);
+    return riuscita;
+  }
+
   /* ---- Avvio -------------------------------------------------------------- */
 
   function avvio() {
@@ -138,11 +153,15 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-copia]'), function (el) {
       el.addEventListener('click', function () {
         var testo = el.getAttribute('data-copia');
-        var fatto = function () { nuovoToast('success', 'Oggetto della mail copiato negli appunti.', 'Copiato'); };
+        var messaggio = el.getAttribute('data-copia-messaggio') || 'Oggetto della mail copiato negli appunti.';
+        var fatto = function () { nuovoToast('success', messaggio, 'Copiato'); };
         var errore = function () { nuovoToast('danger', 'Copia non riuscita: seleziona il testo e copialo a mano.'); };
+        // L'API moderna puo' mancare o essere negata (indirizzo non sicuro, permessi): si ripiega sul
+        // metodo classico, con un campo di testo temporaneo, e solo se fallisce anche quello si avvisa.
+        var classico = function () { if (copiaClassica(testo)) { fatto(); } else { errore(); } };
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(testo).then(fatto, errore);
-        } else { errore(); }
+          navigator.clipboard.writeText(testo).then(fatto, classico);
+        } else { classico(); }
       });
     });
 

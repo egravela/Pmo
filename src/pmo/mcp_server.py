@@ -349,7 +349,7 @@ def crea_server(
 
     @server.tool(annotations=SOLA_LETTURA)
     def dettaglio_pratica(codice: str, max_eventi: int = 60, max_elementi: int = 30) -> dict[str, Any]:
-        """Dettaglio di una pratica (es. PMO-2026-0001): dati, cronologia degli eventi con link alle fonti, solleciti, messaggi e documenti collegati (i più recenti, in numero limitato)."""
+        """Dettaglio di una pratica (ad esempio PMO-2026-0001): dati, cronologia degli eventi con link alle fonti, solleciti, messaggi e documenti collegati (i più recenti, in numero limitato)."""
         with session_scope() as session:
             pratica = _carica_pratica(session, codice)
             solleciti = [s for s in pratica.solleciti if s.stato in (StatoSollecito.APERTO, StatoSollecito.IN_CARICO)]
@@ -397,7 +397,7 @@ def crea_server(
         regola: str | None = None,
         limite: int = 50,
     ) -> dict[str, Any]:
-        """Elenca i solleciti automatici, dal più grave. Con stato="aperti" (predefinito) mostra quelli aperti o in carico, esclusi i silenziati. `regola` è il codice della regola (es. ordine_senza_specifiche)."""
+        """Elenca i solleciti automatici, dal più grave. Con stato="aperti" (predefinito) mostra quelli aperti o in carico, esclusi i silenziati. `regola` è il codice della regola (ad esempio ordine_senza_specifiche)."""
         with session_scope() as session:
             query = select(Sollecito).options(
                 selectinload(Sollecito.pratica).selectinload(Pratica.cliente), selectinload(Sollecito.assegnato)
@@ -592,7 +592,7 @@ def crea_server(
     def aggiorna_sollecito(
         sollecito_id: int, azione: Literal["prendi", "risolvi", "silenzia", "riapri"], giorni: int = 7
     ) -> dict[str, Any]:
-        """Aggiorna un sollecito: "prendi" (in carico a te), "risolvi", "silenzia" per `giorni` giorni, "riapri". Un sollecito risolto si riapre da solo se la condizione persiste al prossimo controllo."""
+        """Aggiorna un sollecito: "prendi" (in carico a te), "risolvi", "silenzia" (per il numero di giorni indicato) o "riapri". Un sollecito risolto si riapre da solo se la condizione persiste al prossimo controllo."""
         with session_scope() as session:
             sollecito = session.get(Sollecito, sollecito_id)
             if sollecito is None:
