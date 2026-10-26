@@ -185,7 +185,7 @@ def test_dettaglio_con_viste_e_barra_in_fondo(client, db):
     pratica = svc.crea_pratica(db, "Prova viste")
     db.commit()
     html = client.get(f"/pratiche/{pratica.id}").text
-    assert 'class="tr-tabs tr-tabs--bottom pmo-viste-barra" role="tablist"' in html
+    assert re.search(r'<div class="pmo-viste-barra">\s*<div class="tr-tabs tr-tabs--bottom pmo-container" role="tablist"', html)
     for vista in ("cronologia", "messaggi", "documenti", "solleciti", "scheda"):
         assert f'id="vista-{vista}" role="tabpanel" aria-labelledby="tab-{vista}"' in html
         assert f'id="tab-{vista}" aria-controls="vista-{vista}"' in html

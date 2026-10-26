@@ -21,6 +21,9 @@ body.tr-page { min-height: 100vh; }
 /* ==========================================================================
    Impianto: menu laterale + colonna del contenuto
    ========================================================================== */
+/* La base del menu laterale (l'utente) e la barra delle viste di una pratica hanno la stessa
+   altezza: una tab del sistema piu' il suo filetto. Cosi' la barra la prosegue verso destra. */
+:root { --pmo-base-h: calc(var(--tr-btn-h-lg) + var(--tr-rule-thin)); }
 .pmo-app {
   --pmo-side-w: 248px;
   display: grid;
@@ -51,7 +54,7 @@ body.tr-page { min-height: 100vh; }
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: var(--tr-space-5) 0;
+  padding: var(--tr-space-5) 0 0;
   background: var(--tr-surface);
   border-right: var(--tr-rule-thin) solid var(--tr-border-soft);
 }
@@ -96,16 +99,22 @@ body.tr-page { min-height: 100vh; }
 /* Il conteggio e' un dato: cifre tabellari, nessuna pastiglia (come .tr-tab__count). */
 .pmo-side__conteggio { font-variant-numeric: tabular-nums; font-size: 11px; color: var(--tr-ink-400); }
 .pmo-side__voce[aria-current="page"] .pmo-side__conteggio { color: var(--tr-brand-600); }
+/* La base del menu: nome ed Esci su una riga alta quanto la barra delle viste, chiusa sopra
+   dal filetto che la barra continua. */
 .pmo-side__utente {
+  flex: none;
+  box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--tr-space-1);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tr-space-3);
+  height: var(--pmo-base-h);
   margin-top: auto;
-  padding: var(--tr-space-4) var(--tr-space-5) 0;
+  padding: 0 var(--tr-space-5);
   border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
 }
-.pmo-side__utente form { margin: 0; }
+.pmo-side__utente .tr-mono { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmo-side__utente form { flex: none; margin: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .pmo-side__voce, .pmo-side__voce::before { transition: none; }
@@ -134,7 +143,7 @@ body.tr-page { min-height: 100vh; }
   .pmo-side__voce::before { inset: auto 0 0 0; width: auto; height: var(--tr-rule-medium); transform: scaleX(0); transform-origin: left center; }
   .pmo-side__voce:hover::before,
   .pmo-side__voce[aria-current="page"]::before { transform: scaleX(1); }
-  .pmo-side__utente { flex-direction: row; align-items: center; gap: var(--tr-space-4); margin: 0 var(--tr-space-4) 0 auto; padding: 0; border-top: 0; }
+  .pmo-side__utente { gap: var(--tr-space-4); height: auto; margin: 0 var(--tr-space-4) 0 auto; padding: 0; border-top: 0; }
   .pmo-container { padding-left: var(--tr-space-5); padding-right: var(--tr-space-5); }
   .pmo-main { padding-top: var(--tr-space-6); }
 }
@@ -546,17 +555,35 @@ a.pmo-title-link:focus-visible { outline: 2px solid var(--tr-brand-500); outline
 /* ==========================================================================
    Viste di una pagina di dettaglio
    La barra delle tabs ancorata in fondo (.tr-tabs--bottom, il filetto sopra la tab punta
-   al contenuto) resta attaccata al bordo inferiore dello schermo mentre si legge.
+   al contenuto) e' fissa sul bordo inferiore dello schermo, sempre visibile. Parte dal
+   menu laterale e ne copre il filetto destro: menu e barra sono un solo piano bianco a L,
+   e il filetto sopra la barra continua quello sopra la base del menu, alla stessa altezza.
+   Le tabs stanno sulla colonna del contenuto (.pmo-container).
    Si vede una vista alla volta; senza JavaScript le viste sono tutte in pagina e la barra
    non serve, quindi non compare.
    ========================================================================== */
 .pmo-viste-barra { display: none; }
 .pmo-js .pmo-viste-barra {
-  display: flex;
-  position: sticky;
+  display: block;
+  position: fixed;
+  z-index: 20;
+  left: calc(var(--pmo-side-w) - var(--tr-rule-thin));
+  right: 0;
   bottom: 0;
-  z-index: 10;
-  margin-top: var(--tr-space-6);
+  box-sizing: border-box;
+  height: var(--pmo-base-h);
+  margin: 0;
+  border-top: var(--tr-rule-thin) solid var(--tr-border-soft);
+  background: var(--tr-surface);
+}
+.pmo-viste-barra > .tr-tabs { height: 100%; border-top: 0; background: transparent; }
+/* La barra copre il fondo dello schermo: la pagina finisce sopra di lei, e i messaggi
+   transitori salgono oltre. */
+.pmo-js .pmo-shell:has(.pmo-viste-barra) { padding-bottom: var(--pmo-base-h); }
+.pmo-js body:has(.pmo-viste-barra) .tr-toast-region { bottom: calc(var(--pmo-base-h) + var(--tr-space-5)); }
+/* Sotto i 900px il menu sta in testa: la barra prende tutta la larghezza. */
+@media (max-width: 900px) {
+  .pmo-js .pmo-viste-barra { left: 0; }
 }
 .pmo-js .pmo-vista:not(.is-attiva) { display: none; }
 .pmo-vista + .pmo-vista { margin-top: var(--tr-space-5); }
