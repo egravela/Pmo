@@ -34,6 +34,7 @@ from pmo.rules.engine import ordina_gravita
 from pmo.services import pratiche as svc
 from pmo.services.richieste import (
     AZIONI_DA_FARE,
+    attese_cliente,
     pratiche_con_azioni,
     richieste_in_attesa,
     scadenze_vicine,
@@ -135,7 +136,8 @@ def elenco(
     senza_responsabile = responsabile_id == "nessuno"
     responsabile = "nessuno" if senza_responsabile else _intero_o(responsabile_id, None)
     richieste_aperte = richieste_in_attesa(session)
-    azioni = pratiche_con_azioni(session, richieste_aperte)
+    attese_aperte = attese_cliente(session)
+    azioni = pratiche_con_azioni(session, richieste_aperte, attese_aperte)
     azione = azione or ("risposta" if richieste else "")
     if azione in azioni:
         query = query.where(Pratica.id.in_(list(azioni[azione]) or [0]))
@@ -175,6 +177,7 @@ def elenco(
         )
         or 0,
         "con_richieste": len(set(session.scalars(select(filtrate.c.id))) & set(richieste_aperte)),
+        "con_attese": len(set(session.scalars(select(filtrate.c.id))) & set(attese_aperte)),
         "con_azioni": len(set(session.scalars(select(filtrate.c.id))) & azioni["qualsiasi"]),
     }
     pagina = pagina_per(request, totale, PER_PAGINA_PRATICHE)
@@ -198,6 +201,9 @@ def elenco(
         prodotti=prodotti,
         utenti=utenti,
         richieste_aperte=richieste_aperte,
+        attese_aperte=attese_aperte,
+        # quante pratiche attive hanno un'attesa, indipendentemente dagli altri filtri: servono ai comandi rapidi
+        totali_attese={chiave: len(azioni[chiave]) for chiave in ("risposta", "attesa_cliente", "attese")},
         azioni_da_fare=AZIONI_DA_FARE,
         scadenze=scadenze_vicine(session),
         filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile, "verifica": verifica, "tutte": tutte, "azione": azione},
@@ -268,6 +274,7 @@ def dettaglio(request: Request, pratica_id: int, session: Session = Depends(get_
         utente,
         pratica=pratica,
         richieste_cliente=richieste_in_attesa(session, [pratica.id]).get(pratica.id, []),
+        attese_del_cliente=attese_cliente(session, [pratica.id]).get(pratica.id, []),
         eventi=eventi,
         proposti=proposti,
         messaggi=messaggi,
@@ -323,13 +330,16 @@ def modifica(
 
 
 @router.post("/pratiche/{pratica_id}/stato", dependencies=[Depends(verifica_csrf)])
-def cambia_stato(request: Request, pratica_id: int, stato: str = Form(...), motivo: str = Form(""), session: Session = Depends(get_db), utente: User = Depends(utente_corrente)):
+def cambia_stato(request: Request, pratica_id: int, stato: str = Form(...), motivo: str = Form(""), ritorno: str = Form(""), session: Session = Depends(get_db), utente: User = Depends(utente_corrente)):
     pratica = _carica(session, pratica_id)
     try:
         svc.cambia_stato(session, pratica, stato, motivo=motivo, user_id=utente.id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Stato non valido") from None
-    flash(request, f"Stato aggiornato a '{pratica.etichetta_stato}'.")
+    flash(request, f"{pratica.codice}: fase aggiornata a '{pratica.etichetta_stato}'.")
+    # Dall'elenco si torna all'elenco, con gli stessi filtri; solo dentro le pratiche, mai verso un altro sito.
+    if ritorno.startswith("/pratiche") and not ritorno.startswith("//") and "\\" not in ritorno and "\n" not in ritorno:
+        return redirect(ritorno)
     return redirect(f"/pratiche/{pratica.id}")
 
 

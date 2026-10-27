@@ -25,7 +25,7 @@ from pmo.db.models import (
     User,
 )
 from pmo.rules.engine import ordina_gravita
-from pmo.services.richieste import richieste_in_attesa
+from pmo.services.richieste import attese_cliente, richieste_in_attesa
 from pmo.web.deps import get_db, render, utente_corrente
 
 router = APIRouter()
@@ -94,6 +94,16 @@ def dashboard(request: Request, session: Session = Depends(get_db), utente: User
         ((r[0], pratiche_con_richieste[pid]) for pid, r in aperte.items() if pid in pratiche_con_richieste),
         key=lambda coppia: coppia[0].data,
     )
+    # ... e quelle che aspettiamo noi dal cliente, sempre dalla più vecchia.
+    attese = attese_cliente(session)
+    pratiche_in_attesa = {
+        p.id: p
+        for p in session.scalars(select(Pratica).options(selectinload(Pratica.cliente)).where(Pratica.id.in_(list(attese) or [0])))
+    }
+    attese_del_cliente = sorted(
+        ((a[0], pratiche_in_attesa[pid]) for pid, a in attese.items() if pid in pratiche_in_attesa),
+        key=lambda coppia: coppia[0].data,
+    )
 
     return render(
         request,
@@ -112,4 +122,6 @@ def dashboard(request: Request, session: Session = Depends(get_db), utente: User
         ultime_run=ultime_run,
         richieste_cliente=richieste_cliente[:10],
         totale_richieste_cliente=len(richieste_cliente),
+        attese_del_cliente=attese_del_cliente[:10],
+        totale_attese_del_cliente=len(attese_del_cliente),
     )

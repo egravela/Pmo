@@ -61,6 +61,19 @@
       </div>
       {% endif %}
 
+      {% if attese_del_cliente %}
+      <div class="tr-notice tr-notice--info pmo-mt-5">
+        <span class="tr-notice__icon" aria-hidden="true"></span>
+        <div class="tr-notice__content">
+          <p class="tr-notice__title">{{ 'Aspettiamo una risposta dal cliente' if attese_del_cliente | length == 1 else 'Aspettiamo risposte dal cliente' }}</p>
+          {% for r in attese_del_cliente %}
+          <p class="tr-notice__body"><strong>{{ r.data | data }}</strong> · {{ r.data | giorni_fa }} — {{ r.titolo }}{% if r.controparte %} <span class="pmo-muted">(a {{ r.controparte }})</span>{% endif %}{% if r.url %} <a href="{{ r.url }}" target="_blank" rel="noopener">Apri la mail</a>{% endif %}</p>
+          {% endfor %}
+          <p class="tr-notice__body pmo-muted">Stima automatica: dopo la nostra mail non ne risulta una del cliente sulla pratica. Vede solo le caselle collegate: una risposta data a voce o su un'altra casella non viene riconosciuta.</p>
+        </div>
+      </div>
+      {% endif %}
+
       {% if proposta %}
       <div class="tr-notice tr-notice--warning">
         <span class="tr-notice__icon" aria-hidden="true"></span>

@@ -1,7 +1,9 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione with context %}
+{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione, csrf with context %}
 {% block titolo %}Pratiche · {{ app_name }}{% endblock %}
 {% block contenuto %}
+{#- L'indirizzo di questa pagina con i suoi filtri: il cambio di fase di una scheda torna qui. -#}
+{%- set ritorno = request.url.path ~ ('?' ~ request.url.query if request.url.query else '') -%}
 {%- set filtrato = filtri.q or filtri.stato or filtri.cliente_id or filtri.prodotto_id or filtri.responsabile_id or filtri.verifica or filtri.tutte or filtri.azione -%}
 {#- Il numero che riassume la pagina la apre; il testo e i filtri gli stanno accanto. -#}
 {#- La testata della pagina sta sul suo piano bianco, come ogni blocco di contenuto. -#}
@@ -16,7 +18,8 @@
       <dl class="tr-facts">
         <div><dt>Proposte IA</dt><dd>{{ riepilogo.proposte }}</dd></div>
         <div><dt>Con solleciti</dt><dd>{{ riepilogo.con_solleciti }}</dd></div>
-        <div><dt>Cliente in attesa</dt><dd>{% if riepilogo.con_richieste %}<a href="/pratiche?azione=risposta">{{ riepilogo.con_richieste }}</a>{% else %}0{% endif %}</dd></div>
+        <div><dt>Il cliente aspetta noi</dt><dd>{% if riepilogo.con_richieste %}<a href="/pratiche?azione=risposta">{{ riepilogo.con_richieste }}</a>{% else %}0{% endif %}</dd></div>
+        <div><dt>Noi aspettiamo lui</dt><dd>{% if riepilogo.con_attese %}<a href="/pratiche?azione=attesa_cliente">{{ riepilogo.con_attese }}</a>{% else %}0{% endif %}</dd></div>
         <div><dt>Azioni da fare</dt><dd>{% if riepilogo.con_azioni %}<a href="/pratiche?azione=qualsiasi">{{ riepilogo.con_azioni }}</a>{% else %}0{% endif %}</dd></div>
         <div><dt>Ordinato</dt><dd>{{ riepilogo.ordinato | euro if riepilogo.ordinato else '-' }}</dd></div>
       </dl>
@@ -27,6 +30,17 @@
       <p class="tr-intro__lead">Ogni pratica segue un lavoro dalla stima alla fattura. Cerca per codice, titolo, cliente o prodotto (più parole restringono la ricerca), oppure filtra per fase, cliente, prodotto, responsabile e azioni da fare.</p>
       <div class="tr-btn-group">
         <a class="tr-btn tr-btn--primary" href="/pratiche/nuova"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Nuova pratica</span></a>
+      </div>
+
+      {#- Chi aspetta chi: scorciatoie sui filtri, con i numeri di tutte le pratiche attive. -#}
+      <div class="pmo-attese" role="group" aria-label="Attese">
+        {% for chiave, etichetta in (('risposta', 'Il cliente aspetta noi'), ('attesa_cliente', 'Noi aspettiamo il cliente'), ('attese', 'Tutte le attese')) %}
+        <a class="pmo-tessera{{ ' is-attiva' if filtri.azione == chiave }}" href="/pratiche?azione={{ chiave }}"{% if filtri.azione == chiave %} aria-current="true"{% endif %}>
+          <span class="pmo-tessera__numero">{{ totali_attese[chiave] }}</span>
+          <span class="pmo-tessera__etichetta">{{ etichetta }}</span>
+        </a>
+        {% endfor %}
+        {% if filtri.azione in ('risposta', 'attesa_cliente', 'attese') %}<a class="tr-btn tr-btn--neutral tr-btn--sm" href="/pratiche">Tutte le pratiche</a>{% endif %}
       </div>
 
       <form method="get" aria-label="Filtri">
@@ -77,21 +91,41 @@
     {% for p in pratiche %}
     {%- set aperti = p.solleciti | selectattr('stato', 'in', ['aperto', 'in_carico']) | list %}
     {%- set richieste_cliente = richieste_aperte.get(p.id, []) %}
-    <a class="tr-card tr-card--action pmo-scheda" href="/pratiche/{{ p.id }}">
+    {%- set attese_del_cliente = attese_aperte.get(p.id, []) %}
+    {#- La scheda non è più un unico collegamento: dentro c'è un modulo (la fase). Il collegamento sta sul titolo e si estende a tutta la scheda. -#}
+    <article class="tr-card tr-card--action pmo-scheda">
       <div class="tr-card__head tr-card__head--bare">
         <div>
-          <h2 class="tr-card__title">{{ p.titolo }}</h2>
+          <h2 class="tr-card__title"><a class="pmo-scheda__link" href="/pratiche/{{ p.id }}">{{ p.titolo }}</a></h2>
           <p class="tr-card__sub">{{ p.cliente.nome if p.cliente else 'Cliente da indicare' }}{% if p.prodotto %} · {{ p.prodotto.nome }}{% endif %}</p>
         </div>
         <span class="tr-card__aside">{{ p.codice }}</span>
       </div>
       <div class="pmo-scheda__body">
+        {#- Chi aspetta chi, in cima: è ciò che si cerca in questa pagina. -#}
+        {% if richieste_cliente %}
+        <div class="tr-notice tr-notice--warning pmo-attesa">
+          <span class="tr-notice__icon" aria-hidden="true"></span>
+          <div class="tr-notice__content">
+            <p class="tr-notice__title">Il cliente aspetta noi · {{ richieste_cliente[0].data | giorni_fa }}</p>
+            <p class="tr-notice__body">{{ richieste_cliente[0].titolo | truncate(110) }}<span class="pmo-muted"> — {{ richieste_cliente[0].mittente }}</span></p>
+          </div>
+        </div>
+        {% endif %}
+        {% if attese_del_cliente %}
+        <div class="tr-notice tr-notice--info pmo-attesa">
+          <span class="tr-notice__icon" aria-hidden="true"></span>
+          <div class="tr-notice__content">
+            <p class="tr-notice__title">Aspettiamo il cliente · {{ attese_del_cliente[0].data | giorni_fa }}</p>
+            <p class="tr-notice__body">{{ attese_del_cliente[0].titolo | truncate(110) }}<span class="pmo-muted"> — {{ attese_del_cliente[0].controparte }}</span></p>
+          </div>
+        </div>
+        {% endif %}
         <div class="pmo-scheda__stati">
           {{ fase(p.stato) }}
           {% if p.stato_verifica == 'proposto' %}{{ da_confermare("Proposta IA") }}{% endif %}
           {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
           {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
-          {% if richieste_cliente %}<span class="tr-status tr-status--warning">Cliente in attesa · {{ richieste_cliente[0].giorni }} gg</span>{% endif %}
           {% set urgente = scadenze.get(p.id) %}
           {% if urgente %}
             {% if urgente < oggi %}<span class="tr-status tr-status--danger">Scadenza superata</span>
@@ -108,7 +142,18 @@
           {% if aperti %}<div class="tr-datatable__row"><span class="tr-datatable__label">Solleciti aperti</span><span class="tr-datatable__value">{{ aperti | length }}</span></div>{% endif %}
         </div>
       </div>
-    </a>
+      {#- Cambio di fase dalla scheda: dopo l'invio si torna a questo stesso elenco, con gli stessi filtri e la stessa pagina. -#}
+      <div class="tr-card__foot pmo-scheda__fase">
+        <form method="post" action="/pratiche/{{ p.id }}/stato" class="pmo-fase-form" aria-label="Cambia la fase di {{ p.codice }}">
+          {{ csrf() }}
+          <input type="hidden" name="ritorno" value="{{ ritorno }}">
+          {% call selezione("stato", "Fase", compatto=true, affiancata=false, id="fase-" ~ p.id) %}
+            {% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if k == p.stato }}>{{ v }}</option>{% endfor %}
+          {% endcall %}
+          <button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Cambia fase</button>
+        </form>
+      </div>
+    </article>
     {% endfor %}
   </div>
   {{ paginazione(pagina) }}

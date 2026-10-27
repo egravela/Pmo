@@ -650,3 +650,43 @@ a.pmo-title-link:focus-visible { outline: 2px solid var(--tr-brand-500); outline
   .pmo-cmd .tr-btn { align-self: flex-end; }
   .pmo-passi > li { grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--tr-space-3); }
 }
+/* ==========================================================================
+   Attese: chi aspetta chi. Scorciatoie sopra i filtri, riquadro in cima a ogni
+   scheda e cambio di fase in fondo.
+   ========================================================================== */
+.pmo-attese { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-2); margin-block: var(--tr-space-5); }
+.pmo-attese__numero { margin-left: var(--tr-space-2); font-family: var(--tr-font-mono); }
+.pmo-attesa { margin-bottom: var(--tr-space-4); }
+/* La scheda contiene un modulo, quindi non puo' essere un collegamento unico: il collegamento sta sul titolo
+   e si estende a tutta la scheda, mentre il modulo della fase resta sopra e cliccabile. */
+.pmo-scheda { position: relative; }
+.pmo-scheda__link { color: inherit; text-decoration: none; }
+.pmo-scheda__link::after { content: ""; position: absolute; inset: 0; }
+.pmo-scheda__link:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.pmo-scheda__fase { position: relative; z-index: 1; }
+.pmo-fase-form { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tr-space-3); }
+/* In una riga di schede il comando della fase sta sempre sul fondo, alla stessa altezza, qualunque sia la lunghezza del testo. */
+.pmo-scheda .pmo-scheda__fase.tr-card__foot { margin-top: auto; }
+.pmo-scheda .pmo-scheda__body { flex: 0 0 auto; }
+.pmo-scheda .pmo-scheda__fase { padding-top: var(--tr-space-5); }
+.pmo-fase-form { justify-content: flex-end; }
+
+/* Le tre scorciatoie sulle attese: riquadri con il numero in evidenza; quello attivo ha il blu del marchio. */
+.pmo-attese { gap: var(--tr-space-3); }
+.pmo-tessera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tr-space-1, 4px);
+  min-width: 150px;
+  padding: var(--tr-space-3) var(--tr-space-4);
+  border: 1px solid var(--tr-border-soft-2);
+  background: var(--tr-surface);
+  color: var(--tr-ink-900);
+  text-decoration: none;
+}
+.pmo-tessera:hover { border-color: var(--tr-brand-500); }
+.pmo-tessera:focus-visible { outline: 2px solid var(--tr-brand-600); outline-offset: 2px; }
+.pmo-tessera__numero { font-size: var(--tr-text-h3); font-weight: var(--tr-weight-semibold); line-height: 1.1; }
+.pmo-tessera__etichetta { font-family: var(--tr-font-mono); font-size: var(--tr-text-caption); text-transform: uppercase; letter-spacing: .04em; color: var(--tr-ink-400); }
+.pmo-tessera.is-attiva { border-color: var(--tr-brand-500); background: var(--tr-brand-50); }
+.pmo-tessera.is-attiva .pmo-tessera__numero { color: var(--tr-brand-600); }

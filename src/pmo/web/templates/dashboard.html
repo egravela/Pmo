@@ -61,6 +61,28 @@
       {% else %}<p class="tr-card__empty">Nessuna richiesta dei clienti in attesa di risposta</p>{% endif %}
     </section>
 
+    <section class="tr-panel" aria-labelledby="sez-attese">
+      {{ sezione("In attesa del", "cliente", totale_attese_del_cliente ~ (" pratica" if totale_attese_del_cliente == 1 else " pratiche"), id="sez-attese") }}
+      {% if attese_del_cliente %}
+      <div class="pmo-scroll"><table class="pmo-table">
+        <thead><tr><th>Inviata</th><th>Pratica</th><th>Cosa aspettiamo</th></tr></thead>
+        <tbody>
+        {% for a, p in attese_del_cliente %}
+          <tr>
+            <td>{{ a.data | data }}<br><span class="pmo-muted">{{ a.data | giorni_fa }}</span></td>
+            <td><a href="/pratiche/{{ p.id }}"><span class="pmo-code">{{ p.codice }}</span> {{ p.titolo | truncate(60) }}</a>{% if p.cliente %}<br><span class="pmo-muted">{{ p.cliente.nome }}</span>{% endif %}</td>
+            <td>{{ a.titolo | truncate(90) }}{% if a.controparte %}<br><span class="pmo-muted">a {{ a.controparte }}</span>{% endif %}{% if a.url %} · <a href="{{ a.url }}" target="_blank" rel="noopener">Apri la mail</a>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      <p class="pmo-muted pmo-mt-3">Stima automatica: nostre mail con un'offerta, una stima o una richiesta, senza una risposta successiva del cliente. Vede solo le caselle collegate.</p>
+      {% if totale_attese_del_cliente > (attese_del_cliente | length) %}
+      <div class="tr-btn-group pmo-mt-4"><a class="tr-btn tr-btn--quiet tr-btn--sm" href="/pratiche?azione=attesa_cliente"><span>Tutte le pratiche in attesa del cliente</span><span class="tr-icon tr-icon--arrow-right" aria-hidden="true"></span></a></div>
+      {% endif %}
+      {% else %}<p class="tr-card__empty">Nessuna risposta del cliente in attesa</p>{% endif %}
+    </section>
+
     <section class="tr-panel" aria-labelledby="sez-solleciti">
       {{ sezione("Solleciti", "aperti", totale_solleciti ~ " in tutto", id="sez-solleciti") }}
       <div class="pmo-stack pmo-stack--tight">

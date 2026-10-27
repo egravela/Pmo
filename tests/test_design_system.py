@@ -116,7 +116,8 @@ def test_parola_chiave_solo_nei_titoli_scritti_non_in_quelli_presi_dai_dati(clie
         assert "<em>" in titolo, titolo
     assert re.search(r'<h1 class="pmo-titolo">Banca degli Occhi</h1>', html)
     elenco = client.get("/pratiche").text
-    assert '<h2 class="tr-card__title">Banca degli Occhi</h2>' in elenco
+    # nell'elenco il titolo è il collegamento alla pratica, e resta un dato: niente parola chiave in <em>
+    assert f'<h2 class="tr-card__title"><a class="pmo-scheda__link" href="/pratiche/{pratica.id}">Banca degli Occhi</a></h2>' in elenco
 
 
 def test_testata_di_sezione_con_tratto_d_accento(client):

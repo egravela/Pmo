@@ -107,8 +107,19 @@ def test_una_nostra_mail_successiva_chiude_la_richiesta(db, settings):
     pratica, _ = _pratica_con_richiesta(db, acc, giorni_fa=10)
     risposta = _messaggio(db, acc, "ris1", "tris1", "Re: Richiesta", "Inviato il DURC", giorni_fa=5, from_email="egravela@latraccia.it")
     risposta.pratica_id = pratica.id
+    risposta.to_emails = ["stefano@hsangiovanni.roma.it"]  # una risposta va al cliente, non a un collega
     db.flush()
     assert richieste_in_attesa(db) == {}
+
+
+def test_un_inoltro_interno_non_chiude_la_richiesta(db, settings):
+    acc = _account(db)
+    pratica, _ = _pratica_con_richiesta(db, acc, giorni_fa=10)
+    inoltro = _messaggio(db, acc, "fwd1", "tfwd1", "Fwd: Richiesta", "Pasquale, ci pensi tu?", giorni_fa=9, from_email="egravela@latraccia.it")
+    inoltro.pratica_id = pratica.id
+    inoltro.to_emails = ["ploizzo@latraccia.it"]  # solo interna: nessuno ha risposto al cliente
+    db.flush()
+    assert list(richieste_in_attesa(db)) == [pratica.id]
 
 
 def test_una_nostra_mail_precedente_non_chiude_la_richiesta(db, settings):
