@@ -238,12 +238,15 @@ def f_evento(valore: str) -> str:
 def f_giorni_fa(valore: datetime | date | None) -> str:
     if valore is None:
         return "-"
+    # Giorni di calendario nel fuso dell'app, gli stessi della data mostrata accanto: una mail di ieri sera
+    # è "ieri" anche se sono passate meno di 24 ore.
+    oggi = datetime.now(_tz()).date()
     if isinstance(valore, datetime):
         if valore.tzinfo is None:
             valore = valore.replace(tzinfo=UTC)
-        giorni = (datetime.now(UTC) - valore).days
+        giorni = (oggi - valore.astimezone(_tz()).date()).days
     else:
-        giorni = (date.today() - valore).days
+        giorni = (oggi - valore).days
     if giorni <= 0:
         return "oggi"
     if giorni == 1:
