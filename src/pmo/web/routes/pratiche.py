@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime, time
 from decimal import Decimal, InvalidOperation
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from pydantic import BeforeValidator
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -85,22 +87,53 @@ def _carica(session: Session, pratica_id: int) -> Pratica:
     return pratica
 
 
+def _intero_o(valore: object, predefinito: int | None) -> int | None:
+    """Il modulo dei filtri manda i menu lasciati su "Tutti" come stringa vuota: non è un errore, è "nessun filtro"."""
+    try:
+        return int(str(valore).strip())
+    except (TypeError, ValueError):
+        return predefinito
+
+
+IdFiltro = Annotated[int | None, BeforeValidator(lambda v: _intero_o(v, None))]
+InteroFiltro = Annotated[int, BeforeValidator(lambda v: _intero_o(v, 0))]
+
+
+def _filtra_per_testo(query, testo: str):  # noqa: ANN001, ANN202
+    """Ogni parola scritta deve comparire in almeno uno tra codice, titolo, descrizione, cliente e prodotto."""
+    for parola in testo.split():
+        pulita = parola.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        like = f"%{pulita}%"
+        query = query.where(
+            or_(
+                Pratica.codice.ilike(like, escape="\\"),
+                Pratica.titolo.ilike(like, escape="\\"),
+                Pratica.descrizione.ilike(like, escape="\\"),
+                Pratica.cliente_id.in_(select(Cliente.id).where(Cliente.nome.ilike(like, escape="\\"))),
+                Pratica.prodotto_id.in_(select(Prodotto.id).where(Prodotto.nome.ilike(like, escape="\\"))),
+            )
+        )
+    return query
+
+
 @router.get("/pratiche")
 def elenco(
     request: Request,
     q: str = "",
     stato: str = "",
-    cliente_id: int | None = None,
-    prodotto_id: int | None = None,
-    responsabile_id: int | None = None,
+    cliente_id: IdFiltro = None,
+    prodotto_id: IdFiltro = None,
+    responsabile_id: str = "",  # un identificativo, oppure "nessuno" per le pratiche senza responsabile
     verifica: str = "",
-    tutte: int = 0,
+    tutte: InteroFiltro = 0,
     azione: str = "",
-    richieste: int = 0,  # vecchio nome del filtro "in attesa di una nostra risposta", tenuto per i link già in uso
+    richieste: InteroFiltro = 0,  # vecchio nome del filtro "in attesa di una nostra risposta", tenuto per i link già in uso
     session: Session = Depends(get_db),
     utente: User = Depends(utente_corrente),
 ):
     query = select(Pratica)
+    senza_responsabile = responsabile_id == "nessuno"
+    responsabile = "nessuno" if senza_responsabile else _intero_o(responsabile_id, None)
     richieste_aperte = richieste_in_attesa(session)
     azioni = pratiche_con_azioni(session, richieste_aperte)
     azione = azione or ("risposta" if richieste else "")
@@ -108,9 +141,7 @@ def elenco(
         query = query.where(Pratica.id.in_(list(azioni[azione]) or [0]))
     else:
         azione = ""
-    if q:
-        like = f"%{q.strip()}%"
-        query = query.where(or_(Pratica.codice.ilike(like), Pratica.titolo.ilike(like), Pratica.descrizione.ilike(like)))
+    query = _filtra_per_testo(query, q)
     if stato:
         query = query.where(Pratica.stato == stato)
     elif not tutte:
@@ -119,10 +150,14 @@ def elenco(
         query = query.where(Pratica.cliente_id == cliente_id)
     if prodotto_id:
         query = query.where(Pratica.prodotto_id == prodotto_id)
-    if responsabile_id:
-        query = query.where(Pratica.responsabile_user_id == responsabile_id)
+    if senza_responsabile:
+        query = query.where(Pratica.responsabile_user_id.is_(None))
+    elif responsabile:
+        query = query.where(Pratica.responsabile_user_id == responsabile)
     if verifica == "proposte":
         query = query.where(Pratica.stato_verifica == StatoVerifica.PROPOSTO.value)
+    elif verifica == "confermate":
+        query = query.where(Pratica.stato_verifica == StatoVerifica.CONFERMATO.value)
     else:
         query = query.where(Pratica.stato_verifica != StatoVerifica.RIFIUTATO.value)
     # Il riepilogo vale per tutto l'elenco filtrato, non per la sola pagina mostrata.
@@ -165,7 +200,7 @@ def elenco(
         richieste_aperte=richieste_aperte,
         azioni_da_fare=AZIONI_DA_FARE,
         scadenze=scadenze_vicine(session),
-        filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile_id, "verifica": verifica, "tutte": tutte, "azione": azione},
+        filtri={"q": q, "stato": stato, "cliente_id": cliente_id, "prodotto_id": prodotto_id, "responsabile_id": responsabile, "verifica": verifica, "tutte": tutte, "azione": azione},
         stati=ETICHETTE_STATO,
     )
 

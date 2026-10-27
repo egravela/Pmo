@@ -24,13 +24,13 @@
 
     <div class="tr-intro__main">
       <h1 class="tr-h3 tr-intro__title">Tutte le <em>pratiche</em></h1>
-      <p class="tr-intro__lead">Ogni pratica segue un lavoro dalla stima alla fattura. Cerca per codice o titolo, oppure restringi per fase, cliente, prodotto e responsabile.</p>
+      <p class="tr-intro__lead">Ogni pratica segue un lavoro dalla stima alla fattura. Cerca per codice, titolo, cliente o prodotto (più parole restringono la ricerca), oppure filtra per fase, cliente, prodotto, responsabile e azioni da fare.</p>
       <div class="tr-btn-group">
         <a class="tr-btn tr-btn--primary" href="/pratiche/nuova"><span class="tr-icon tr-icon--plus" aria-hidden="true"></span><span>Nuova pratica</span></a>
       </div>
 
       <form method="get" aria-label="Filtri">
-        {{ campo("q", "Cerca", filtri.q, segnaposto="codice, titolo, descrizione", icona="search") }}
+        {{ campo("q", "Cerca", filtri.q, segnaposto="codice, titolo, cliente, prodotto", icona="search") }}
         <div class="pmo-grid pmo-mt-2">
           {% call selezione("stato", "Fase") %}
             <option value="">Attive</option>
@@ -46,11 +46,13 @@
           {% endcall %}
           {% call selezione("responsabile_id", "Responsabile") %}
             <option value="">Tutti</option>
+            <option value="nessuno" {{ 'selected' if filtri.responsabile_id == 'nessuno' }}>Senza responsabile</option>
             {% for u in utenti %}<option value="{{ u.id }}" {{ 'selected' if filtri.responsabile_id == u.id }}>{{ u.nome or u.email }}</option>{% endfor %}
           {% endcall %}
           {% call selezione("verifica", "Verifica") %}
             <option value="">Tutte</option>
             <option value="proposte" {{ 'selected' if filtri.verifica == 'proposte' }}>Solo proposte dall'IA</option>
+          <option value="confermate" {{ 'selected' if filtri.verifica == 'confermate' }}>Solo confermate</option>
           {% endcall %}
           {% call selezione("azione", "Azioni da fare") %}
             <option value="">Tutte le pratiche</option>
