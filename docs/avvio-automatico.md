@@ -51,6 +51,19 @@ Dopo aver cambiato `.env` il server va riavviato: ferma i processi come sopra e 
 
 ## Se cambi cartella o computer
 
-L'attività punta al percorso assoluto di `scripts/avvia_pmo.ps1`. Su un altro PC va ricreata (vedi il comando
-`Register-ScheduledTask` nello storico del repository, oppure usa il Docker Compose: `docker compose up -d`, che
-parte da solo con Docker).
+L'attività punta al percorso assoluto di `scripts/avvia_pmo.ps1`. Su un altro PC, o se sposti la cartella, va
+ricreata (da PowerShell, correggendo `$repo`); in alternativa usa il Docker Compose: `docker compose up -d`.
+
+```powershell
+$repo = "C:\percorso\della\cartella\pmo"
+$utente = "$env:USERDOMAIN\$env:USERNAME"
+$azione = New-ScheduledTaskAction -Execute "powershell.exe" -WorkingDirectory $repo `
+  -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$repo\scripts\avvia_pmo.ps1`""
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $utente
+$trigger.Delay = "PT30S"
+$impostazioni = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
+  -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -MultipleInstances IgnoreNew
+$principal = New-ScheduledTaskPrincipal -UserId $utente -LogonType Interactive -RunLevel Limited
+Register-ScheduledTask -TaskName "PMO La Traccia - server" -Action $azione -Trigger $trigger `
+  -Settings $impostazioni -Principal $principal
+```
