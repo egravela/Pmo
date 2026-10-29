@@ -671,6 +671,16 @@ a.pmo-title-link:focus-visible { outline: 2px solid var(--tr-brand-500); outline
 .pmo-scheda .pmo-scheda__fase { padding-top: var(--tr-space-5); }
 .pmo-fase-form { justify-content: flex-end; }
 .pmo-fase-form .pmo-fasi { flex: 1 1 100%; }
+/* I dettagli della scheda, chiusi: sopra il collegamento che copre la scheda, come il modulo
+   della fase, cosi' il riquadro si apre senza aprire la pratica. Aperti, la tabella dati sta
+   a filo del testo della scheda. */
+.pmo-scheda__dettagli { position: relative; z-index: 1; margin: var(--tr-space-4) 0; }
+.pmo-scheda__dettagli > summary { width: fit-content; }
+/* Ogni scheda ha l'altezza del suo contenuto: aprire i dettagli di una non allunga di vuoto
+   quella accanto. */
+.pmo-schede:has(.pmo-scheda__dettagli) { align-items: start; }
+.pmo-scheda__dettagli .pmo-details__body { padding-left: 0; }
+.pmo-scheda__dettagli .tr-datatable { margin-top: var(--tr-space-4); }
 
 /* ---- Scelta della fase in chips ---------------------------------------------------
    Tutte le fasi in vista. Il sistema non ha una chip da scegliere: e' la sua .tr-chip con il

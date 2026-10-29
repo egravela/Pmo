@@ -99,7 +99,6 @@
           <h2 class="tr-card__title"><a class="pmo-scheda__link" href="/pratiche/{{ p.id }}">{{ p.titolo }}</a></h2>
           <p class="tr-card__sub">{{ p.cliente.nome if p.cliente else 'Cliente da indicare' }}{% if p.prodotto %} · {{ p.prodotto.nome }}{% endif %}</p>
         </div>
-        <span class="tr-card__aside">{{ p.codice }}</span>
       </div>
       <div class="pmo-scheda__body">
         {#- Chi aspetta chi, in cima: è ciò che si cerca in questa pagina. -#}
@@ -121,26 +120,35 @@
           </div>
         </div>
         {% endif %}
-        <div class="pmo-scheda__stati">
-          {{ fase(p.stato) }}
-          {% if p.stato_verifica == 'proposto' %}{{ da_confermare("Proposta IA") }}{% endif %}
-          {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
-          {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
-          {% set urgente = scadenze.get(p.id) %}
-          {% if urgente %}
-            {% if urgente < oggi %}<span class="tr-status tr-status--danger">Scadenza superata</span>
-            {% else %}<span class="tr-status tr-status--warning">Scade il {{ urgente | data }}</span>{% endif %}
-          {% endif %}
-        </div>
-        <div class="tr-datatable">
-          {#- Le date sono quelle delle mail e dei documenti, non quella in cui sono stati importati. -#}
-          <div class="tr-datatable__row"><span class="tr-datatable__label">Aperta il</span><span class="tr-datatable__value">{{ p.data_apertura | data }}</span></div>
-          <div class="tr-datatable__row"><span class="tr-datatable__label">Ultima attività</span><span class="tr-datatable__value">{{ p.ultimo_evento_at | data }}{% if p.ultimo_evento_at %} · {{ p.ultimo_evento_at | giorni_fa }}{% endif %}</span></div>
-          <div class="tr-datatable__row"><span class="tr-datatable__label">In fase da</span><span class="tr-datatable__value">{{ p.stato_dal | giorni_fa }}</span></div>
-          <div class="tr-datatable__row"><span class="tr-datatable__label">Scadenza</span><span class="tr-datatable__value">{{ p.data_scadenza | data }}</span></div>
-          <div class="tr-datatable__row"><span class="tr-datatable__label">Ordinato</span><span class="tr-datatable__value">{{ p.importo_ordine | euro }}</span></div>
-          {% if aperti %}<div class="tr-datatable__row"><span class="tr-datatable__label">Solleciti aperti</span><span class="tr-datatable__value">{{ aperti | length }}</span></div>{% endif %}
-        </div>
+        {#- Codice, stati e dati non servono a colpo d'occhio: stanno in un riquadro chiuso, cosi'
+            la scheda resta bassa e in una schermata entrano piu' pratiche. La fase si legge
+            gia' dalle chips qui sotto. -#}
+        <details class="pmo-details pmo-scheda__dettagli">
+          <summary><span class="pmo-details__label">Dettagli</span></summary>
+          <div class="pmo-details__body">
+            <div class="pmo-scheda__stati">
+              {{ fase(p.stato) }}
+              {% if p.stato_verifica == 'proposto' %}{{ da_confermare("Proposta IA") }}{% endif %}
+              {% if p.priorita == 'alta' %}<span class="tr-chip">Priorità alta</span>{% endif %}
+              {% if aperti %}{{ gravita(aperti[0].gravita) }}{% endif %}
+              {% set urgente = scadenze.get(p.id) %}
+              {% if urgente %}
+                {% if urgente < oggi %}<span class="tr-status tr-status--danger">Scadenza superata</span>
+                {% else %}<span class="tr-status tr-status--warning">Scade il {{ urgente | data }}</span>{% endif %}
+              {% endif %}
+            </div>
+            <div class="tr-datatable">
+              {#- Le date sono quelle delle mail e dei documenti, non quella in cui sono stati importati. -#}
+              <div class="tr-datatable__row"><span class="tr-datatable__label">Codice</span><span class="tr-datatable__value">{{ p.codice }}</span></div>
+              <div class="tr-datatable__row"><span class="tr-datatable__label">Aperta il</span><span class="tr-datatable__value">{{ p.data_apertura | data }}</span></div>
+              <div class="tr-datatable__row"><span class="tr-datatable__label">Ultima attività</span><span class="tr-datatable__value">{{ p.ultimo_evento_at | data }}{% if p.ultimo_evento_at %} · {{ p.ultimo_evento_at | giorni_fa }}{% endif %}</span></div>
+              <div class="tr-datatable__row"><span class="tr-datatable__label">In fase da</span><span class="tr-datatable__value">{{ p.stato_dal | giorni_fa }}</span></div>
+              <div class="tr-datatable__row"><span class="tr-datatable__label">Scadenza</span><span class="tr-datatable__value">{{ p.data_scadenza | data }}</span></div>
+              <div class="tr-datatable__row"><span class="tr-datatable__label">Ordinato</span><span class="tr-datatable__value">{{ p.importo_ordine | euro }}</span></div>
+              {% if aperti %}<div class="tr-datatable__row"><span class="tr-datatable__label">Solleciti aperti</span><span class="tr-datatable__value">{{ aperti | length }}</span></div>{% endif %}
+            </div>
+          </div>
+        </details>
       </div>
       {#- Cambio di fase dalla scheda: dopo l'invio si torna a questo stesso elenco, con gli stessi filtri e la stessa pagina. -#}
       <div class="tr-card__foot pmo-scheda__fase">

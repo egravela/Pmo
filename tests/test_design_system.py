@@ -234,6 +234,20 @@ def test_cambio_di_fase_in_chips(client, db):
     assert re.search(r'value="specifiche" checked', client.get(f"/pratiche/{pratica.id}").text)
 
 
+def test_scheda_della_pratica_con_i_dettagli_chiusi(client, db):
+    """Nell'elenco codice, stati e dati della pratica stanno in un riquadro chiuso."""
+    _login(client)
+    pratica = svc.crea_pratica(db, "Prova dettagli chiusi")
+    db.commit()
+    html = client.get("/pratiche").text
+    scheda = re.search(r'<article class="tr-card tr-card--action pmo-scheda">.*?</article>', html, re.S).group(0)
+    dettagli = re.search(r'<details class="pmo-details pmo-scheda__dettagli">.*?</details>', scheda, re.S).group(0)
+    assert "<details class=\"pmo-details pmo-scheda__dettagli\" open" not in scheda
+    assert pratica.codice in dettagli and "tr-datatable" in dettagli and "pmo-scheda__stati" in dettagli
+    fuori = scheda.replace(dettagli, "")
+    assert "tr-datatable" not in fuori and "tr-card__aside" not in fuori
+
+
 def test_contatori_delle_esecuzioni_in_frase():
     from pmo.web.deps import f_contatori, f_esecuzione
 
