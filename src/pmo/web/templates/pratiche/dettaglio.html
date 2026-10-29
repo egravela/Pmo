@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, campo, area, selezione, fase, da_confermare, stato_sollecito, sollecito, csrf, tappe with context %}
+{% from "_ds.html" import eyebrow, campo, area, selezione, fase, da_confermare, stato_sollecito, sollecito, csrf, tappe, scelta_fase with context %}
 {% block titolo %}{{ pratica.codice }} · {{ app_name }}{% endblock %}
 {% block contenuto %}
 {% set proposta = pratica.stato_verifica == 'proposto' %}
@@ -115,11 +115,14 @@
       <span class="tr-card__aside">{{ eventi | length }} eventi</span>
     </div>
 
-    <form method="post" action="/pratiche/{{ pratica.id }}/stato" class="pmo-bar pmo-bar--fill">
+    {#- Tutte le fasi in chips: si sceglie a colpo d'occhio, poi il motivo e il comando. -#}
+    <form method="post" action="/pratiche/{{ pratica.id }}/stato" data-fase="{{ pratica.stato }}">
       {{ csrf() }}
-      {% call selezione("stato", "Nuova fase", compatto=true) %}{% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if k == pratica.stato }}>{{ v }}</option>{% endfor %}{% endcall %}
-      {{ campo("motivo", "Motivo", compatto=true, largo=true, segnaposto="es. ordine firmato") }}
-      <div class="tr-btn-group"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Cambia fase</button></div>
+      {{ scelta_fase(stati, pratica.stato, "fase-pratica", "Cambia fase") }}
+      <div class="pmo-bar pmo-bar--fill pmo-mt-4">
+        {{ campo("motivo", "Motivo", compatto=true, largo=true, segnaposto="es. ordine firmato") }}
+        <div class="tr-btn-group"><button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Cambia fase</button></div>
+      </div>
     </form>
 
     {% if proposti %}

@@ -215,6 +215,25 @@ def test_ogni_pagina_si_apre_su_un_pannello_bianco(client, db):
     assert re.search(r'<nav class="tr-tabs pmo-sottonav"[^>]*>(?:(?!</div>).)*</nav>\s*</div>', html, re.S)
 
 
+def test_cambio_di_fase_in_chips(client, db):
+    """Il cambio di fase mostra tutte le fasi come chips (radio), con quella attuale scelta."""
+    from pmo.db.models import ETICHETTE_STATO
+
+    _login(client)
+    pratica = svc.crea_pratica(db, "Prova chips", stato="ordine")
+    db.commit()
+    for url in (f"/pratiche/{pratica.id}", "/pratiche"):
+        html = client.get(url).text
+        form = re.search(rf'<form method="post" action="/pratiche/{pratica.id}/stato".*?</form>', html, re.S).group(0)
+        assert 'role="radiogroup"' in form and "<select" not in form, url
+        assert form.count('class="pmo-fasi__scelta"') == len(ETICHETTE_STATO), url
+        assert re.search(r'value="ordine" checked', form), url
+        assert 'data-fase="ordine"' in form, url
+    csrf = re.search(r'name="csrf_token" value="([^"]+)"', form).group(1)
+    assert client.post(f"/pratiche/{pratica.id}/stato", data={"stato": "specifiche", "csrf_token": csrf}).status_code == 303
+    assert re.search(r'value="specifiche" checked', client.get(f"/pratiche/{pratica.id}").text)
+
+
 def test_contatori_delle_esecuzioni_in_frase():
     from pmo.web.deps import f_contatori, f_esecuzione
 

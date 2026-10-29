@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione, csrf with context %}
+{% from "_ds.html" import eyebrow, campo, selezione, spunta, fase, gravita, da_confermare, paginazione, csrf, scelta_fase with context %}
 {% block titolo %}Pratiche · {{ app_name }}{% endblock %}
 {% block contenuto %}
 {#- L'indirizzo di questa pagina con i suoi filtri: il cambio di fase di una scheda torna qui. -#}
@@ -144,12 +144,10 @@
       </div>
       {#- Cambio di fase dalla scheda: dopo l'invio si torna a questo stesso elenco, con gli stessi filtri e la stessa pagina. -#}
       <div class="tr-card__foot pmo-scheda__fase">
-        <form method="post" action="/pratiche/{{ p.id }}/stato" class="pmo-fase-form" aria-label="Cambia la fase di {{ p.codice }}">
+        <form method="post" action="/pratiche/{{ p.id }}/stato" class="pmo-fase-form" aria-label="Cambia la fase di {{ p.codice }}" data-fase="{{ p.stato }}">
           {{ csrf() }}
           <input type="hidden" name="ritorno" value="{{ ritorno }}">
-          {% call selezione("stato", "Fase", compatto=true, affiancata=false, id="fase-" ~ p.id) %}
-            {% for k, v in stati.items() %}<option value="{{ k }}" {{ 'selected' if k == p.stato }}>{{ v }}</option>{% endfor %}
-          {% endcall %}
+          {{ scelta_fase(stati, p.stato, "fase-" ~ p.id, "Cambia fase") }}
           <button class="tr-btn tr-btn--secondary tr-btn--sm" type="submit">Cambia fase</button>
         </form>
       </div>

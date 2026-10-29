@@ -141,6 +141,29 @@
 {%- endmacro -%}
 
 
+{#- Scelta della fase in chips: tutte le fasi in vista, una sola scelta. Il sistema non ha una
+    chip da scegliere: e' la sua chip con il punto che nel pannello del select segna la voce
+    scelta; le altre restano spente. I radio sono nativi (frecce e spazio), invisibili ma non
+    alla tastiera. Sospesa e annullata, fuori dal percorso, fanno gruppo a parte dopo un
+    filetto, e vanno a capo insieme. -#}
+{%- macro scelta_fase(stati, attuale, id, etichetta="Fase") -%}
+{%- macro chip(k, v, scelta) -%}<label class="pmo-fasi__scelta"><input type="radio" name="stato" value="{{ k }}"{% if scelta %} checked{% endif %}><span class="tr-chip"><span class="tr-dot" aria-hidden="true"></span>{{ v }}</span></label>{%- endmacro -%}
+<div class="tr-fieldset pmo-fasi" role="radiogroup" aria-labelledby="{{ id }}-legenda">
+  <span class="tr-fieldset__legend" id="{{ id }}-legenda">{{ etichetta }}</span>
+  <div class="pmo-fasi__scelte">
+    {%- for k, v in stati.items() if k in FASI %}
+    {{ chip(k, v, k == attuale) }}
+    {%- endfor %}
+    <span class="pmo-fasi__fuori">
+      {%- for k, v in stati.items() if k not in FASI %}
+      {{ chip(k, v, k == attuale) }}
+      {%- endfor %}
+    </span>
+  </div>
+</div>
+{%- endmacro -%}
+
+
 {#- Paginazione. Il sistema non ne ha una: e' composta con la sua grammatica. Il conteggio in
     mono a sinistra, i comandi a destra; la pagina corrente e' un'azione con il filetto acceso,
     dichiarata con aria-current. Sopra, il filetto che chiude l'elenco. -#}

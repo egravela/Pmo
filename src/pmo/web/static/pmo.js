@@ -184,6 +184,19 @@
         if (!window.confirm(f.getAttribute('data-conferma'))) { e.preventDefault(); }
       });
     });
+
+    // Fase in chips: "Cambia fase" si accende solo quando la chip scelta non e' la fase attuale.
+    Array.prototype.forEach.call(document.querySelectorAll('form[data-fase]'), function (f) {
+      var attuale = f.getAttribute('data-fase');
+      var b = f.querySelector('button[type="submit"]');
+      if (!b) { return; }
+      var aggiorna = function () {
+        var scelta = f.querySelector('input[name="stato"]:checked');
+        b.disabled = !scelta || scelta.value === attuale;
+      };
+      f.addEventListener('change', aggiorna);
+      aggiorna();
+    });
   }
 
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', avvio); }
